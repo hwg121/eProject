@@ -1,0 +1,31 @@
+{
+  "name": "green-groves",
+  "version": "1.0.0",
+  "description": "Green Groves - SPA React.js + Laravel API for gardening enthusiasts",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run backend:serve\" \"npm run frontend:start\"",
+    "backend:serve": "cd backend && php artisan serve --port=8000",
+    "frontend:start": "cd frontend && npm start",
+    "backend:install": "cd backend && composer install",
+    "frontend:install": "cd frontend && npm install",
+    "backend:migrate": "cd backend && php artisan migrate",
+    "backend:seed": "cd backend && php artisan db:seed",
+    "setup": "npm run backend:install && npm run frontend:install && npm run backend:migrate && npm run backend:seed",
+    "build": "cd frontend && npm run build",
+    "test": "cd frontend && npm test"
+  },
+  "keywords": [
+    "react",
+    "laravel",
+    "gardening",
+    "spa",
+    "api",
+    "tailwindcss"
+  ],
+  "author": "Green Groves Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
