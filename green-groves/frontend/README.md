@@ -1,70 +1,267 @@
-# Getting Started with Create React App
+# Green Groves - Gardening SPA Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A beautiful, modern React frontend for the Green Groves gardening platform, designed to work seamlessly with a Laravel backend.
 
-## Available Scripts
+## 🌟 Features
 
-In the project directory, you can run:
+### Frontend Features
+- **Modern React 18** with TypeScript
+- **Responsive Design** with Tailwind CSS
+- **Smooth Animations** with Framer Motion
+- **Admin Dashboard** with full CRUD operations
+- **Authentication System** with Laravel Sanctum integration
+- **File Upload** support for images and videos
+- **Search & Filtering** with real-time updates
+- **Sorting Capabilities** for all data tables
+- **Mobile-First Design** with beautiful UI/UX
 
-### `npm start`
+### Admin Dashboard
+- **Dashboard Analytics** with real-time statistics
+- **Article Management** (Create, Read, Update, Delete)
+- **Video Management** with embed support
+- **Site Settings** customization
+- **User Management** and role-based access
+- **File Upload** with drag & drop
+- **Search & Sort** functionality
+- **Responsive Admin Interface**
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 🚀 Getting Started
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Laravel backend running on `http://localhost:8000`
 
-### `npm test`
+### Installation
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. **Clone the repository**
+```bash
+git clone <repository-url>
+cd green-groves-frontend
+```
 
-### `npm run build`
+2. **Install dependencies**
+```bash
+npm install
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+3. **Environment Setup**
+```bash
+cp .env.example .env
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+4. **Configure environment variables**
+```env
+VITE_API_BASE_URL=http://localhost:8000/api
+VITE_BACKEND_URL=http://localhost:8000
+VITE_APP_NAME=Green Groves
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+5. **Start development server**
+```bash
+npm run dev
+```
 
-### `npm run eject`
+## 🔧 Laravel Backend Integration
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Required Laravel API Endpoints
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+#### Authentication
+```php
+POST /api/auth/login
+POST /api/auth/logout  
+GET  /api/auth/user
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+#### Admin Dashboard
+```php
+GET  /api/admin/dashboard/stats
+GET  /api/admin/analytics?range={timeRange}
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+#### Articles CRUD
+```php
+GET    /api/admin/articles
+GET    /api/admin/articles/{id}
+POST   /api/admin/articles
+PUT    /api/admin/articles/{id}
+DELETE /api/admin/articles/{id}
+```
 
-## Learn More
+#### Videos CRUD
+```php
+GET    /api/admin/videos
+GET    /api/admin/videos/{id}
+POST   /api/admin/videos
+PUT    /api/admin/videos/{id}
+DELETE /api/admin/videos/{id}
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+#### Site Settings
+```php
+GET /api/admin/settings
+PUT /api/admin/settings
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+#### File Upload
+```php
+POST /api/admin/upload
+```
 
-### Code Splitting
+#### Public Endpoints
+```php
+GET /api/articles
+GET /api/videos
+GET /api/tools
+GET /api/books
+GET /api/seeds
+GET /api/pots
+GET /api/accessories
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Laravel Setup Requirements
 
-### Analyzing the Bundle Size
+1. **Install Laravel Sanctum**
+```bash
+composer require laravel/sanctum
+php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"
+php artisan migrate
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+2. **Configure CORS** in `config/cors.php`:
+```php
+'paths' => ['api/*', 'sanctum/csrf-cookie'],
+'allowed_origins' => ['http://localhost:5173'],
+'allowed_methods' => ['*'],
+'allowed_headers' => ['*'],
+'supports_credentials' => true,
+```
 
-### Making a Progressive Web App
+3. **API Routes** in `routes/api.php`:
+```php
+Route::prefix('auth')->group(function () {
+    Route::post('login', [AuthController::class, 'login']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('logout', [AuthController::class, 'logout']);
+        Route::get('user', [AuthController::class, 'user']);
+    });
+});
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+    Route::get('dashboard/stats', [DashboardController::class, 'stats']);
+    Route::apiResource('articles', ArticleController::class);
+    Route::apiResource('videos', VideoController::class);
+    Route::get('settings', [SettingsController::class, 'show']);
+    Route::put('settings', [SettingsController::class, 'update']);
+    Route::post('upload', [UploadController::class, 'store']);
+});
+```
 
-### Advanced Configuration
+## 📁 Project Structure
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```
+src/
+├── components/
+│   ├── Layout/
+│   │   ├── Header.tsx
+│   │   ├── Footer.tsx
+│   │   └── Layout.tsx
+│   ├── UI/
+│   │   ├── Card.tsx
+│   │   └── PageHeader.tsx
+│   └── common/
+│       ├── LoadingSpinner.tsx
+│       └── ErrorMessage.tsx
+├── contexts/
+│   └── AuthContext.tsx
+├── hooks/
+│   └── useApi.ts
+├── pages/
+│   ├── Home.tsx
+│   ├── Login.tsx
+│   ├── AdminDashboard.tsx
+│   └── [other pages]
+├── services/
+│   └── api.ts
+├── types/
+│   └── api.ts
+└── data/
+    └── mockData.ts
+```
 
-### Deployment
+## 🎨 Styling & Design
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+- **Tailwind CSS** for utility-first styling
+- **Framer Motion** for smooth animations
+- **Lucide React** for beautiful icons
+- **Responsive Design** with mobile-first approach
+- **Green/Emerald Color Scheme** for gardening theme
+- **Modern Glassmorphism** effects and gradients
 
-### `npm run build` fails to minify
+## 🔐 Authentication Flow
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+1. User enters credentials on `/login`
+2. Frontend sends POST to `/api/auth/login`
+3. Laravel returns user data + Sanctum token
+4. Token stored in localStorage
+5. All subsequent API calls include `Authorization: Bearer {token}`
+6. Protected routes check authentication status
+7. Admin routes verify user role
+
+## 📊 Admin Dashboard Features
+
+### Dashboard Analytics
+- Real-time statistics display
+- User growth metrics
+- Content performance tracking
+- Page view analytics
+
+### Content Management
+- **Articles**: Full CRUD with rich text editing
+- **Videos**: Embed support for YouTube/Vimeo
+- **Categories**: Organize content efficiently
+- **Status Management**: Draft/Published states
+
+### Site Customization
+- Logo and branding settings
+- Color scheme customization
+- Contact information management
+- Social media links
+- SEO meta tags
+
+## 🚀 Deployment
+
+### Build for Production
+```bash
+npm run build
+```
+
+### Environment Variables for Production
+```env
+VITE_API_BASE_URL=https://your-api-domain.com/api
+VITE_BACKEND_URL=https://your-api-domain.com
+VITE_APP_ENV=production
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📝 License
+
+This project is licensed under the MIT License.
+
+## 🆘 Support
+
+For support and questions:
+- Create an issue in the repository
+- Contact the development team
+- Check the documentation
+
+---
+
+**Green Groves** - Growing knowledge, nurturing nature! 🌱
