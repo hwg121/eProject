@@ -17,3 +17,4 @@ class Tool extends Model
         'images_json',
     ];
 }
+

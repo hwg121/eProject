@@ -17,6 +17,11 @@ import Books from './pages/Books';
 import About from './pages/About';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminTools from './pages/admin/AdminTools';
+import AdminEssentials from './pages/admin/AdminEssentials';
+import AdminPots from './pages/admin/AdminPots';
+import AdminAccessories from './pages/admin/AdminAccessories';
+import AdminAbout from './pages/admin/AdminAbout';
 
 function App() {
   return (
@@ -41,6 +46,11 @@ function App() {
                       <Route path="/books" element={<Books />} />
                       <Route path="/about" element={<About />} />
                       <Route path="/admin" element={<AdminDashboard />} />
+                      <Route path="/admin/tools" element={<AdminTools />} />
+                      <Route path="/admin/essentials" element={<AdminEssentials />} />
+                      <Route path="/admin/pots" element={<AdminPots />} />
+                      <Route path="/admin/accessories" element={<AdminAccessories />} />
+                      <Route path="/admin/about" element={<AdminAbout />} />
                     </Routes>
                   </AnimatePresence>
                 </Layout>

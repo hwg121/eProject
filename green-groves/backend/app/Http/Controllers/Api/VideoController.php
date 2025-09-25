@@ -33,3 +33,4 @@ class VideoController extends Controller
         return new VideoResource($video);
     }
 }
+

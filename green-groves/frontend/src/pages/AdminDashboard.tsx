@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BarChart3, Users, BookOpen, Video, Lightbulb, Star, 
-  Plus, Search, Filter, Edit, Trash2, Eye, Calendar,
+  Plus, Search, Filter, Edit, Trash2, Eye, Calendar, Wrench, Leaf, Package, Sparkles,
   TrendingUp, Activity, Globe, Clock, Award, Target,
   FileText, Image, Link, Tag, DollarSign, Heart,
   Settings, Bell, Download, Upload, RefreshCw, MessageSquare
@@ -166,6 +166,75 @@ const AdminDashboard: React.FC = () => {
     }
   ]);
 
+  const [tools, setTools] = useState<ContentItem[]>([
+    {
+      id: '1',
+      title: 'Professional Pruning Shears',
+      category: 'Cutting Tools',
+      status: 'published',
+      price: 29.99,
+      createdAt: '2024-01-15',
+      updatedAt: '2024-01-20',
+      description: 'High-quality steel pruning shears for precise cuts',
+      imageUrl: 'https://images.pexels.com/photos/416978/pexels-photo-416978.jpeg'
+    }
+  ]);
+
+  const [essentials, setEssentials] = useState<ContentItem[]>([
+    {
+      id: '1',
+      title: 'Organic Compost',
+      category: 'Soil Amendment',
+      status: 'published',
+      createdAt: '2024-01-15',
+      updatedAt: '2024-01-20',
+      description: 'Rich organic compost for healthy plant growth',
+      imageUrl: 'https://images.pexels.com/photos/416978/pexels-photo-416978.jpeg'
+    }
+  ]);
+
+  const [pots, setPots] = useState<ContentItem[]>([
+    {
+      id: '1',
+      title: 'Ceramic Garden Pot',
+      category: 'Ceramic',
+      status: 'published',
+      price: 24.99,
+      createdAt: '2024-01-15',
+      updatedAt: '2024-01-20',
+      description: 'Beautiful ceramic pot perfect for indoor and outdoor plants',
+      imageUrl: 'https://images.pexels.com/photos/416978/pexels-photo-416978.jpeg'
+    }
+  ]);
+
+  const [accessories, setAccessories] = useState<ContentItem[]>([
+    {
+      id: '1',
+      title: 'Solar Garden Lights',
+      category: 'Lighting',
+      status: 'published',
+      price: 29.99,
+      rating: 4.7,
+      createdAt: '2024-01-15',
+      updatedAt: '2024-01-20',
+      description: 'Beautiful solar-powered LED lights for garden decoration',
+      imageUrl: 'https://images.pexels.com/photos/416978/pexels-photo-416978.jpeg'
+    }
+  ]);
+
+  const [aboutPages, setAboutPages] = useState<ContentItem[]>([
+    {
+      id: '1',
+      title: 'About Green Groves',
+      category: 'Company',
+      status: 'published',
+      createdAt: '2024-01-15',
+      updatedAt: '2024-01-20',
+      description: 'Learn about Green Groves - your trusted gardening companion',
+      imageUrl: 'https://images.pexels.com/photos/416978/pexels-photo-416978.jpeg'
+    }
+  ]);
+
   const [videos, setVideos] = useState<ContentItem[]>([
     {
       id: '1',
@@ -207,7 +276,12 @@ const AdminDashboard: React.FC = () => {
     techniques: ['Beginner', 'Intermediate', 'Advanced', 'Seasonal', 'Indoor', 'Outdoor'],
     books: ['Beginner Guides', 'Advanced Techniques', 'Plant Science', 'Garden Design', 'Organic Gardening'],
     suggestions: ['Tools', 'Accessories', 'Books', 'Seeds', 'Fertilizers'],
-    videos: ['Techniques', 'Plant Care', 'Garden Design', 'Seasonal Tips', 'Tool Reviews']
+    videos: ['Techniques', 'Plant Care', 'Garden Design', 'Seasonal Tips', 'Tool Reviews'],
+    tools: ['Cutting Tools', 'Hand Tools', 'Power Tools', 'Watering', 'Soil Tools'],
+    essentials: ['Soil Amendment', 'Growing Medium', 'Fertilizer', 'Seeds', 'Plant Food'],
+    pots: ['Ceramic', 'Plastic', 'Terracotta', 'Metal', 'Wood', 'Fiberglass'],
+    accessories: ['Lighting', 'Decorative', 'Functional', 'Watering', 'Support', 'Storage'],
+    about: ['Company', 'Team', 'Mission', 'History', 'Contact']
   };
 
   const getContentData = (type: string) => {
@@ -216,6 +290,11 @@ const AdminDashboard: React.FC = () => {
       case 'books': return books;
       case 'suggestions': return suggestions;
       case 'videos': return videos;
+      case 'tools': return tools;
+      case 'essentials': return essentials;
+      case 'pots': return pots;
+      case 'accessories': return accessories;
+      case 'about': return aboutPages;
       default: return [];
     }
   };
@@ -226,6 +305,11 @@ const AdminDashboard: React.FC = () => {
       case 'books': setBooks(data); break;
       case 'suggestions': setSuggestions(data); break;
       case 'videos': setVideos(data); break;
+      case 'tools': setTools(data); break;
+      case 'essentials': setEssentials(data); break;
+      case 'pots': setPots(data); break;
+      case 'accessories': setAccessories(data); break;
+      case 'about': setAboutPages(data); break;
     }
   };
 
@@ -383,6 +467,11 @@ const AdminDashboard: React.FC = () => {
             { id: 'books', label: 'Books', icon: BookOpen, color: 'from-purple-500 to-violet-600' },
             { id: 'suggestions', label: 'Suggestions', icon: Star, color: 'from-yellow-500 to-orange-600' },
             { id: 'videos', label: 'Videos', icon: Video, color: 'from-red-500 to-pink-600' },
+            { id: 'tools', label: 'Tools', icon: Wrench, color: 'from-blue-500 to-indigo-600' },
+            { id: 'essentials', label: 'Essentials', icon: Leaf, color: 'from-green-500 to-emerald-600' },
+            { id: 'pots', label: 'Pots', icon: Package, color: 'from-amber-500 to-orange-600' },
+            { id: 'accessories', label: 'Accessories', icon: Sparkles, color: 'from-pink-500 to-rose-600' },
+            { id: 'about', label: 'About Pages', icon: FileText, color: 'from-indigo-500 to-purple-600' },
             { id: 'messages', label: 'Messages', icon: MessageSquare, color: 'from-indigo-500 to-purple-600' }
           ].map((tab) => (
             <motion.button

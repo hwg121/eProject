@@ -33,3 +33,4 @@ class EssentialController extends Controller
         return new EssentialResource($essential);
     }
 }
+

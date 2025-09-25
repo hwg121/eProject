@@ -29,3 +29,4 @@ class PotController extends Controller
         return new PotResource($pot);
     }
 }
+

@@ -20,3 +20,4 @@ class BookResource extends JsonResource
         ];
     }
 }
+

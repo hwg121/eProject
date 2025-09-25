@@ -29,3 +29,4 @@ class ArticleResource extends JsonResource
         ];
     }
 }
+

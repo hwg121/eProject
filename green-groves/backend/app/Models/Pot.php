@@ -17,3 +17,4 @@ class Pot extends Model
         'image',
     ];
 }
+

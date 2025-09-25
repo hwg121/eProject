@@ -16,3 +16,4 @@ class Essential extends Model
         'season',
     ];
 }
+

@@ -16,3 +16,4 @@ class Video extends Model
         'thumbnail',
     ];
 }
+

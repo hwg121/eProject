@@ -21,3 +21,4 @@ class VisitorStat extends Model
         'meta_json' => 'array',
     ];
 }
+

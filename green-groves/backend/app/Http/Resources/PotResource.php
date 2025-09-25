@@ -21,3 +21,4 @@ class PotResource extends JsonResource
         ];
     }
 }
+

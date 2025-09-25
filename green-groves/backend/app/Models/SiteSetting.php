@@ -16,3 +16,4 @@ class SiteSetting extends Model
 
     public $timestamps = true;
 }
+

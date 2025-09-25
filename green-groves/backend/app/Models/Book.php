@@ -16,3 +16,4 @@ class Book extends Model
         'buy_link',
     ];
 }
+

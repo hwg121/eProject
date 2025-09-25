@@ -34,3 +34,4 @@ class BookController extends Controller
         return new BookResource($book);
     }
 }
+
