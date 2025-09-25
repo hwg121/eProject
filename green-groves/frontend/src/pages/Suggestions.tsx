@@ -1,43 +1,68 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Star, ExternalLink, BookOpen, Wrench, Sparkles } from 'lucide-react';
 import Card from '../components/UI/Card';
 import PageHeader from '../components/UI/PageHeader';
+import { publicService } from '../services/api.ts';
 
 const Suggestions: React.FC = () => {
-  const suggestions = {
-    tools: [
-      { name: "Fiskars Bypass Pruner", rating: 4.8, price: "$24.99", description: "Sharp, durable pruning shears for clean cuts" },
-      { name: "Corona ComfortGEL Trowel", rating: 4.6, price: "$19.95", description: "Ergonomic hand trowel with comfort grip" },
-      { name: "Dramm ColorStorm Watering Wand", rating: 4.7, price: "$32.50", description: "Gentle watering wand perfect for delicate plants" }
-    ],
-    accessories: [
-      { name: "Gardener's Supply Tomato Cages", rating: 4.5, price: "$12.95", description: "Sturdy support cages for growing tomatoes" },
-      { name: "Solar Fairy String Lights", rating: 4.4, price: "$15.99", description: "Magical lighting for evening garden ambiance" },
-      { name: "Decorative Plant Markers", rating: 4.3, price: "$8.75", description: "Stylish markers to identify your plants" }
-    ],
-    books: [
-      { name: "The Flower Farmer", rating: 4.9, price: "$24.95", description: "Complete guide to growing cut flowers" },
-      { name: "Grow Your Soil!", rating: 4.7, price: "$19.95", description: "Master soil health for better gardens" },
-      { name: "The Pruning Book", rating: 4.6, price: "$22.50", description: "Expert techniques for pruning all plants" }
-    ]
-  };
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const renderSuggestionCard = (item: any, icon: React.ReactNode, category: string) => (
-    <Card key={item.name} className="h-full">
+  useEffect(() => {
+    const loadSuggestions = async () => {
+      try {
+        setLoading(true);
+        const suggestionsData = await publicService.getSuggestions();
+        setSuggestions(suggestionsData);
+      } catch (err) {
+        setError('Failed to load suggestions');
+        console.error('Error loading suggestions:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSuggestions();
+  }, []);
+
+  // Filter suggestions based on category and search term
+  const filteredSuggestions = suggestions.filter(suggestion => {
+    const matchesCategory = selectedCategory === 'all' || suggestion.category === selectedCategory;
+    const matchesSearch = suggestion.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         suggestion.description.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  // Get unique categories for filter
+  const categories = ['all', ...new Set(suggestions.map(s => s.category).filter(Boolean))];
+
+  const renderSuggestionCard = (item: any) => (
+    <Card key={item.id} className="h-full">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center space-x-2">
-          <div className="text-emerald-600">{icon}</div>
-          <span className="text-sm text-emerald-600 font-medium">{category}</span>
+          <div className="text-emerald-600">
+            <Star className="h-5 w-5" />
+          </div>
+          <span className="text-sm text-emerald-600 font-medium">{item.category}</span>
         </div>
         <div className="flex items-center space-x-1">
           <Star className="h-4 w-4 text-yellow-500 fill-current" />
-          <span className="text-sm font-semibold">{item.rating}</span>
+          <span className="text-sm font-semibold">{item.rating || '4.5'}</span>
         </div>
       </div>
-      <h3 className="text-lg font-semibold text-emerald-800 mb-2">{item.name}</h3>
+      <h3 className="text-lg font-semibold text-emerald-800 mb-2">{item.title}</h3>
       <p className="text-emerald-600 text-sm mb-4 leading-relaxed">{item.description}</p>
       <div className="flex items-center justify-between mt-auto">
-        <span className="text-lg font-bold text-emerald-800">{item.price}</span>
+        <div className="flex items-center space-x-4 text-sm text-emerald-600">
+          <span>👁️ {item.views || 0}</span>
+          <span>❤️ {item.likes || 0}</span>
+          <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs">
+            {item.difficulty_level || 'beginner'}
+          </span>
+        </div>
         <button className="flex items-center space-x-1 text-emerald-600 hover:text-emerald-800 transition-colors">
           <ExternalLink className="h-4 w-4" />
           <span className="text-sm">View Details</span>
@@ -49,53 +74,78 @@ const Suggestions: React.FC = () => {
   return (
     <div className="space-y-12">
       <PageHeader
-        title="Product Suggestions"
-        subtitle="Hand-picked recommendations from gardening experts to help you succeed"
+        title="Gardening Suggestions"
+        subtitle="Expert recommendations and tips to help you succeed in your gardening journey"
         icon={<Star className="h-10 w-10" />}
       />
 
-      {/* Featured Recommendations */}
-      <Card className="bg-gradient-to-r from-emerald-600 to-green-600 text-white">
-        <h2 className="text-2xl font-bold mb-4">🏆 Editor's Choice This Month</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white/10 p-4 rounded-lg">
-            <h3 className="font-semibold mb-2">Best Tool</h3>
-            <p className="text-emerald-100">Fiskars Bypass Pruner - Professional-grade cutting performance</p>
+      {/* Search and Filter */}
+      <Card>
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="Search suggestions..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            />
           </div>
-          <div className="bg-white/10 p-4 rounded-lg">
-            <h3 className="font-semibold mb-2">Best Book</h3>
-            <p className="text-emerald-100">The Flower Farmer - Transform your passion into profit</p>
-          </div>
-          <div className="bg-white/10 p-4 rounded-lg">
-            <h3 className="font-semibold mb-2">Best Accessory</h3>
-            <p className="text-emerald-100">Solar Fairy Lights - Create magical garden nights</p>
+          <div className="flex gap-2">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="px-4 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              {categories.map(category => (
+                <option key={category} value={category}>
+                  {category === 'all' ? 'All Categories' : category}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </Card>
 
-      {/* Tool Recommendations */}
-      <section className="space-y-6">
-        <h2 className="text-3xl font-bold text-emerald-800 text-center">🔧 Recommended Tools</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {suggestions.tools.map(tool => renderSuggestionCard(tool, <Wrench className="h-5 w-5" />, "Tool"))}
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-emerald-600">Loading suggestions...</p>
         </div>
-      </section>
-
-      {/* Accessory Recommendations */}
-      <section className="space-y-6">
-        <h2 className="text-3xl font-bold text-emerald-800 text-center">✨ Recommended Accessories</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {suggestions.accessories.map(accessory => renderSuggestionCard(accessory, <Sparkles className="h-5 w-5" />, "Accessory"))}
+      ) : error ? (
+        <div className="text-center py-12">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
+          >
+            Try Again
+          </button>
         </div>
-      </section>
-
-      {/* Book Recommendations */}
-      <section className="space-y-6">
-        <h2 className="text-3xl font-bold text-emerald-800 text-center">📚 Recommended Books</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {suggestions.books.map(book => renderSuggestionCard(book, <BookOpen className="h-5 w-5" />, "Book"))}
-        </div>
-      </section>
+      ) : (
+        <>
+          {/* Suggestions Grid */}
+          <section className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-3xl font-bold text-emerald-800">
+                💡 Gardening Suggestions ({filteredSuggestions.length})
+              </h2>
+            </div>
+            
+            {filteredSuggestions.length === 0 ? (
+              <div className="text-center py-12">
+                <Star className="h-16 w-16 text-emerald-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-emerald-800 mb-2">No suggestions found</h3>
+                <p className="text-emerald-600">Try adjusting your search or filter criteria</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredSuggestions.map(suggestion => renderSuggestionCard(suggestion))}
+              </div>
+            )}
+          </section>
+        </>
+      )}
 
       {/* Budget-Friendly Options */}
       <Card className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white">

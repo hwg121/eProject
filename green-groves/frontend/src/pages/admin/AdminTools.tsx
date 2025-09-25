@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import Card from '../../components/UI/Card';
+import { publicService } from '../../services/api.ts';
 
 interface Tool {
   id: string;
@@ -27,40 +28,9 @@ interface Tool {
 
 const AdminTools: React.FC = () => {
   const { isDarkMode } = useTheme();
-  const [tools, setTools] = useState<Tool[]>([
-    {
-      id: '1',
-      name: 'Professional Pruning Shears',
-      description: 'High-quality steel pruning shears for precise cuts',
-      brand: 'GardenPro',
-      model: 'GP-2024',
-      price: 29.99,
-      category: 'Cutting Tools',
-      specifications: 'Steel blade, ergonomic handle, 8-inch length',
-      imageUrl: 'https://images.pexels.com/photos/416978/pexels-photo-416978.jpeg',
-      status: 'active',
-      rating: 4.8,
-      inStock: true,
-      createdAt: '2024-01-15',
-      updatedAt: '2024-01-20'
-    },
-    {
-      id: '2',
-      name: 'Garden Trowel Set',
-      description: 'Durable trowel set for planting and transplanting',
-      brand: 'EcoTools',
-      model: 'ET-TROWEL-3',
-      price: 19.99,
-      category: 'Hand Tools',
-      specifications: 'Stainless steel, rubber grip, 3-piece set',
-      imageUrl: 'https://images.pexels.com/photos/1301856/pexels-photo-1301856.jpeg',
-      status: 'active',
-      rating: 4.5,
-      inStock: true,
-      createdAt: '2024-01-10',
-      updatedAt: '2024-01-18'
-    }
-  ]);
+  const [tools, setTools] = useState<Tool[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -70,6 +40,44 @@ const AdminTools: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const itemsPerPage = 20;
+
+  // Load tools from database
+  useEffect(() => {
+    const loadTools = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await publicService.getTools();
+        
+        // Transform data to Tool interface
+        const transformedTools: Tool[] = data.map((tool: any) => ({
+          id: tool.id.toString(),
+          name: tool.name,
+          description: tool.description,
+          brand: 'Green Groves',
+          model: tool.slug || 'GG-001',
+          price: 0,
+          category: 'Tools',
+          specifications: tool.description,
+          imageUrl: tool.images_json ? JSON.parse(tool.images_json)[0] : '/image.png',
+          status: 'active',
+          rating: 4.5,
+          inStock: true,
+          createdAt: tool.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+          updatedAt: tool.updated_at?.split('T')[0] || new Date().toISOString().split('T')[0]
+        }));
+        
+        setTools(transformedTools);
+      } catch (err) {
+        setError('Failed to load tools');
+        console.error('Error loading tools:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTools();
+  }, []);
 
   const categories = ['Cutting Tools', 'Hand Tools', 'Power Tools', 'Watering', 'Soil Tools'];
 
@@ -122,6 +130,35 @@ const AdminTools: React.FC = () => {
     setIsModalOpen(false);
     setEditingTool(null);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="text-center p-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <h2 className="text-2xl font-bold text-emerald-600 mb-4">Loading Tools</h2>
+          <p className="text-gray-600">Please wait while we load your tools...</p>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="text-center p-8">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Error Loading Tools</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

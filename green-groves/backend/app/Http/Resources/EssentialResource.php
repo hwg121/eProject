@@ -11,10 +11,14 @@ class EssentialResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'type' => $this->type,
             'name' => $this->name,
-            'details' => $this->details_json ? json_decode($this->details_json, true) : [],
-            'season' => $this->season,
+            'slug' => $this->slug,
+            'description' => $this->description,
+            'price' => $this->price,
+            'image' => $this->image,
+            'category' => $this->category,
+            'weight' => $this->weight,
+            'brand' => $this->brand,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

@@ -1,10 +1,101 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sparkles, Palette, Gem, Leaf, Droplets, Sun, Wind, Star, Heart, Gift, Lightbulb, Shield, Clock, DollarSign } from 'lucide-react';
 import Card from '../components/UI/Card';
 import PageHeader from '../components/UI/PageHeader';
-import { accessories } from '../data/mockData';
+import { publicService } from '../services/api.ts';
 
 const Accessories: React.FC = () => {
+  const [accessories, setAccessories] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const loadAccessories = async () => {
+      try {
+        setLoading(true);
+        const data = await publicService.getAccessories();
+        setAccessories(data);
+      } catch (err) {
+        setError('Failed to load accessories');
+        console.error('Error loading accessories:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAccessories();
+  }, []);
+
+  // Filter accessories based on category and search term
+  const filteredAccessories = accessories.filter(accessory => {
+    const matchesCategory = selectedCategory === 'all' || accessory.category === selectedCategory;
+    const matchesSearch = accessory.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         accessory.description.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  // Get unique categories for filter
+  const categories = ['all', ...new Set(accessories.map(a => a.category).filter(Boolean))];
+
+  const renderAccessoryCard = (accessory: any) => (
+    <Card key={accessory.id} className="h-full">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center space-x-2">
+          <div className="text-emerald-600">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <span className="text-sm text-emerald-600 font-medium">{accessory.category}</span>
+        </div>
+        <div className="flex items-center space-x-1">
+          <Star className="h-4 w-4 text-yellow-500 fill-current" />
+          <span className="text-sm font-semibold">4.5</span>
+        </div>
+      </div>
+      <h3 className="text-lg font-semibold text-emerald-800 mb-2">{accessory.name}</h3>
+      <p className="text-emerald-600 text-sm mb-4 leading-relaxed">{accessory.description}</p>
+      
+      <div className="space-y-2 mb-4">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-emerald-600">Material:</span>
+          <span className="font-medium">{accessory.material}</span>
+        </div>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-emerald-600">Size:</span>
+          <span className="font-medium">{accessory.size}</span>
+        </div>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-emerald-600">Color:</span>
+          <span className="font-medium">{accessory.color}</span>
+        </div>
+        {accessory.brand && (
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-emerald-600">Brand:</span>
+            <span className="font-medium">{accessory.brand}</span>
+          </div>
+        )}
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-emerald-600">Waterproof:</span>
+          <span className="font-medium">{accessory.is_waterproof ? 'Yes' : 'No'}</span>
+        </div>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-emerald-600">Durable:</span>
+          <span className="font-medium">{accessory.is_durable ? 'Yes' : 'No'}</span>
+        </div>
+      </div>
+      
+      <div className="flex items-center justify-between mt-auto">
+        <span className="text-lg font-bold text-emerald-800">
+          {accessory.price ? `$${accessory.price}` : 'Contact for price'}
+        </span>
+        <button className="flex items-center space-x-1 text-emerald-600 hover:text-emerald-800 transition-colors">
+          <Sparkles className="h-4 w-4" />
+          <span className="text-sm">View Details</span>
+        </button>
+      </div>
+    </Card>
+  );
   const decorativeItems = [
     {
       category: "Mini Decorative Items",
@@ -248,6 +339,74 @@ const Accessories: React.FC = () => {
         subtitle="Diverse accessory world: mini decorations, stones, lighting and smart accessories"
         icon={<Sparkles className="h-10 w-10" />}
       />
+
+      {/* Search and Filter */}
+      <Card>
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="Search accessories..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            />
+          </div>
+          <div className="flex gap-2">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="px-4 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              {categories.map(category => (
+                <option key={category} value={category}>
+                  {category === 'all' ? 'All Categories' : category}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </Card>
+
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-emerald-600">Loading accessories...</p>
+        </div>
+      ) : error ? (
+        <div className="text-center py-12">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      ) : (
+        <>
+          {/* Accessories Grid */}
+          <section className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-3xl font-bold text-emerald-800">
+                ✨ Available Accessories ({filteredAccessories.length})
+              </h2>
+            </div>
+            
+            {filteredAccessories.length === 0 ? (
+              <div className="text-center py-12">
+                <Sparkles className="h-16 w-16 text-emerald-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-emerald-800 mb-2">No accessories found</h3>
+                <p className="text-emerald-600">Try adjusting your search or filter criteria</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredAccessories.map(accessory => renderAccessoryCard(accessory))}
+              </div>
+            )}
+          </section>
+        </>
+      )}
 
       {/* Decorative Items Section */}
       {decorativeItems.map((category, categoryIndex) => (

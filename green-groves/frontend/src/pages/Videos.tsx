@@ -1,67 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Play, Clock, User } from 'lucide-react';
 import Card from '../components/UI/Card';
 import PageHeader from '../components/UI/PageHeader';
+import { publicService } from '../services/api.ts';
 
 const Videos: React.FC = () => {
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+  const [videos, setVideos] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const videos = [
-    {
-      id: 1,
-      title: "Container Gardening for Beginners",
-      description: "Learn the basics of growing plants in containers with this comprehensive guide.",
-      duration: "12:45",
-      instructor: "Sarah Green",
-      thumbnail: "https://images.pexels.com/photos/1301856/pexels-photo-1301856.jpeg",
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
-    },
-    {
-      id: 2,
-      title: "Pruning Techniques for Healthy Plants",
-      description: "Master the art of pruning to promote healthy growth and beautiful blooms.",
-      duration: "18:30",
-      instructor: "Mike Garden",
-      thumbnail: "https://images.pexels.com/photos/416978/pexels-photo-416978.jpeg",
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
-    },
-    {
-      id: 3,
-      title: "Composting Made Simple",
-      description: "Create nutrient-rich compost for your garden with kitchen scraps and yard waste.",
-      duration: "15:20",
-      instructor: "Emma Nature",
-      thumbnail: "https://images.pexels.com/photos/1301856/pexels-photo-1301856.jpeg",
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
-    },
-    {
-      id: 4,
-      title: "Indoor Herb Garden Setup",
-      description: "Grow fresh herbs year-round with this indoor gardening setup tutorial.",
-      duration: "10:15",
-      instructor: "James Herbs",
-      thumbnail: "https://images.pexels.com/photos/416978/pexels-photo-416978.jpeg",
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
-    },
-    {
-      id: 5,
-      title: "Organic Pest Control Methods",
-      description: "Natural ways to protect your plants from pests without harmful chemicals.",
-      duration: "14:50",
-      instructor: "Lisa Organic",
-      thumbnail: "https://images.pexels.com/photos/1301856/pexels-photo-1301856.jpeg",
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
-    },
-    {
-      id: 6,
-      title: "Seasonal Garden Planning",
-      description: "Plan your garden throughout the seasons for continuous harvests and blooms.",
-      duration: "22:10",
-      instructor: "David Seasons",
-      thumbnail: "https://images.pexels.com/photos/416978/pexels-photo-416978.jpeg",
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
-    }
-  ];
+  useEffect(() => {
+    const loadVideos = async () => {
+      try {
+        setLoading(true);
+        const data = await publicService.getVideos();
+        setVideos(data);
+      } catch (err) {
+        setError('Failed to load videos');
+        console.error('Error loading videos:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadVideos();
+  }, []);
 
   return (
     <div className="space-y-8">
@@ -71,32 +35,41 @@ const Videos: React.FC = () => {
         icon={<Play className="h-10 w-10" />}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {videos.map((video) => (
-          <Card key={video.id} className="h-full cursor-pointer" hover={true}>
-            <div className="relative mb-4" onClick={() => setSelectedVideo(video.videoUrl)}>
-              <img
-                src={video.thumbnail}
-                alt={video.title}
-                className="w-full h-48 object-cover rounded-lg"
-              />
-              <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center rounded-lg hover:bg-opacity-30 transition-all duration-300">
-                <Play className="h-16 w-16 text-white opacity-80 hover:opacity-100 hover:scale-110 transition-all duration-300" />
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-emerald-600">Loading videos...</p>
+        </div>
+      ) : error ? (
+        <div className="text-center py-12">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {videos.map((video) => (
+            <Card key={video.id} className="h-full cursor-pointer" hover={true}>
+              <div className="relative mb-4" onClick={() => setSelectedVideo(video.embed_url)}>
+                <img
+                  src={video.thumbnail || '/image.png'}
+                  alt={video.title}
+                  className="w-full h-48 object-cover rounded-lg"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center rounded-lg hover:bg-opacity-30 transition-all duration-300">
+                  <Play className="h-16 w-16 text-white opacity-80 hover:opacity-100 hover:scale-110 transition-all duration-300" />
+                </div>
               </div>
-              <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-sm flex items-center">
-                <Clock className="h-3 w-3 mr-1" />
-                {video.duration}
-              </div>
-            </div>
-            <h3 className="text-xl font-semibold text-emerald-800 mb-2">{video.title}</h3>
-            <p className="text-emerald-600 mb-4 leading-relaxed">{video.description}</p>
-            <div className="flex items-center text-sm text-emerald-500 mt-auto">
-              <User className="h-4 w-4 mr-1" />
-              <span>{video.instructor}</span>
-            </div>
-          </Card>
-        ))}
-      </div>
+              <h3 className="text-xl font-semibold text-emerald-800 mb-2">{video.title}</h3>
+              <p className="text-emerald-600 mb-4 leading-relaxed">{video.description}</p>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Video Modal */}
       {selectedVideo && (

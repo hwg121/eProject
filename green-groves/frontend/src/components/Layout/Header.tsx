@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Leaf, Menu, X, Clock, Users, MapPin, LogIn, AlertCircle } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Leaf, Menu, X, Clock, Users, MapPin, LogIn, LogOut, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -9,12 +9,13 @@ import DarkModeToggle from '../UI/DarkModeToggle';
 
 const Header: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { isDarkMode } = useTheme();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [visitorCount, setVisitorCount] = useState<number>(1247);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -52,6 +53,15 @@ const Header: React.FC = () => {
       order: 999
     }] : []),
   ];
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
 
   return (
@@ -172,16 +182,13 @@ const Header: React.FC = () => {
               <DarkModeToggle />
               {user ? (
                 <motion.button
-                  onClick={() => {
-                    // Add logout functionality here
-                    window.location.href = '/';
-                  }}
-                  className="flex items-center space-x-1 xl:space-x-2 bg-red-500 text-white px-2 lg:px-3 xl:px-4 py-1.5 lg:py-2 rounded-lg xl:rounded-xl hover:bg-red-600 transition-colors font-semibold text-xs lg:text-xs xl:text-sm"
+                  onClick={handleLogout}
+                  className="flex items-center justify-center bg-red-500 text-white p-2 lg:p-3 xl:p-4 rounded-lg xl:rounded-xl hover:bg-red-600 transition-colors"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
+                  title="Logout"
                 >
-                  <LogIn className="h-4 w-4" />
-                  <span className="hidden lg:inline xl:inline">Logout</span>
+                  <LogOut className="h-4 w-4" />
                 </motion.button>
               ) : (
                 <motion.div
@@ -191,10 +198,10 @@ const Header: React.FC = () => {
                 >
                   <Link
                     to="/login"
-                    className="flex items-center space-x-1 xl:space-x-2 bg-emerald-500 text-white px-2 lg:px-3 xl:px-4 py-1.5 lg:py-2 rounded-lg xl:rounded-xl hover:bg-emerald-600 transition-colors font-semibold text-xs lg:text-xs xl:text-sm"
+                    className="flex items-center justify-center bg-emerald-500 text-white p-2 lg:p-3 xl:p-4 rounded-lg xl:rounded-xl hover:bg-emerald-600 transition-colors"
+                    title="Login"
                   >
                     <LogIn className="h-4 w-4" />
-                    <span className="hidden lg:inline xl:inline">Login</span>
                   </Link>
                 </motion.div>
               )}
@@ -290,10 +297,10 @@ const Header: React.FC = () => {
                         <Link
                           to="/login"
                           onClick={() => setIsMenuOpen(false)}
-                          className="flex items-center justify-center space-x-3 px-6 py-4 rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 transition-colors text-lg font-semibold"
+                          className="flex items-center justify-center px-6 py-4 rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 transition-colors"
+                          title="Login"
                         >
                           <LogIn className="h-5 w-5" />
-                          <span className="font-semibold">Login</span>
                         </Link>
                       </motion.div>
                     )}
@@ -306,12 +313,12 @@ const Header: React.FC = () => {
                         <button
                           onClick={() => {
                             setIsMenuOpen(false);
-                            window.location.href = '/';
+                            handleLogout();
                           }}
-                          className="flex items-center justify-center space-x-3 px-6 py-4 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors w-full text-lg font-semibold"
+                          className="flex items-center justify-center px-6 py-4 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors w-full"
+                          title="Logout"
                         >
-                          <LogIn className="h-5 w-5" />
-                          <span className="font-semibold">Logout</span>
+                          <LogOut className="h-5 w-5" />
                         </button>
                       </motion.div>
                     )}

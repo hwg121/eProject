@@ -1,191 +1,267 @@
-# 🌱 Green Groves - SPA React.js + Laravel API
+# Green Groves - Gardening SPA Frontend
 
-## 📋 Tổng Quan Dự Án
+A beautiful, modern React frontend for the Green Groves gardening platform, designed to work seamlessly with a Laravel backend.
 
-**Green Groves** là một website cung cấp thông tin, hướng dẫn và tài nguyên toàn diện về làm vườn quy mô nhỏ. Dự án được xây dựng với kiến trúc SPA (Single Page Application) sử dụng React.js cho frontend và Laravel API cho backend.
+## 🌟 Features
 
-### 🎯 Mục Đích Chính
-- Kỹ thuật và mẹo làm vườn
-- Dụng cụ và thiết bị cần thiết  
-- Đất, phân bón, thuốc trừ sâu
-- Chậu cây và phụ kiện
-- Video hướng dẫn và sách tham khảo
-- Gợi ý mua sắm sản phẩm
+### Frontend Features
+- **Modern React 18** with TypeScript
+- **Responsive Design** with Tailwind CSS
+- **Smooth Animations** with Framer Motion
+- **Admin Dashboard** with full CRUD operations
+- **Authentication System** with Laravel Sanctum integration
+- **File Upload** support for images and videos
+- **Search & Filtering** with real-time updates
+- **Sorting Capabilities** for all data tables
+- **Mobile-First Design** with beautiful UI/UX
 
-### 🏗️ Kiến Trúc Dự Án
+### Admin Dashboard
+- **Dashboard Analytics** with real-time statistics
+- **Article Management** (Create, Read, Update, Delete)
+- **Video Management** with embed support
+- **Site Settings** customization
+- **User Management** and role-based access
+- **File Upload** with drag & drop
+- **Search & Sort** functionality
+- **Responsive Admin Interface**
 
-```
-green-groves/
-├── frontend/          # React.js SPA
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── common/     # Header, Footer, Navigation
-│   │   │   ├── pages/      # Home, Articles, Tools, etc.
-│   │   │   ├── admin/      # Admin Panel Components
-│   │   │   └── ui/         # Reusable UI Components
-│   │   ├── services/       # API Services
-│   │   ├── context/        # React Context
-│   │   ├── hooks/          # Custom Hooks
-│   │   └── utils/          # Helper Functions
-│   └── package.json
-├── backend/           # Laravel API
-│   ├── app/
-│   │   ├── Http/Controllers/Api/
-│   │   ├── Models/
-│   │   └── Http/Resources/
-│   ├── database/
-│   │   ├── migrations/
-│   │   └── seeders/
-│   └── routes/api.php
-└── docs/             # Documentation
-```
+## 🚀 Getting Started
 
-### 🛠️ Công Nghệ Sử Dụng
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Laravel backend running on `http://localhost:8000`
 
-#### Frontend (React.js)
-- **React 18+** với React Router DOM
-- **Tailwind CSS** + Headless UI cho styling
-- **Axios** cho API calls
-- **Framer Motion** cho animations
-- **React Hook Form** cho form handling
+### Installation
 
-#### Backend (Laravel)
-- **Laravel 10+** với PHP 8.1+
-- **Laravel Sanctum** cho authentication
-- **MySQL** database với Eloquent ORM
-- **CORS** configuration cho SPA
-
-### 🚀 Cài Đặt & Chạy Dự Án
-
-#### 1. Clone Repository
+1. **Clone the repository**
 ```bash
-git clone https://github.com/GreenGroves-Team/green-groves.git
-cd green-groves
+git clone <repository-url>
+cd green-groves-frontend
 ```
 
-#### 2. Backend Setup (Laravel API)
+2. **Install dependencies**
 ```bash
-cd backend
-composer install
-cp .env.example .env
-php artisan key:generate
-php artisan migrate
-php artisan db:seed
-php artisan serve --port=8000
-```
-
-#### 3. Frontend Setup (React.js)
-```bash
-cd frontend
 npm install
-npm start
 ```
 
-### 📊 Tính Năng Chính
-
-#### 🌐 Frontend Features
-- **Trang Chủ**: Logo, banner carousel, bài viết nổi bật
-- **Kỹ Thuật Làm Vườn**: Bài viết có danh mục, tag, hình ảnh, video
-- **Dụng Cụ Làm Vườn**: Danh sách, mô tả, video demo
-- **Vật Liệu Cần Thiết**: Đất, phân bón, thuốc trừ sâu, hạt giống
-- **Chậu & Phụ Kiện**: Hướng dẫn chọn lựa, hình ảnh, gợi ý sản phẩm
-- **Video Giáo Dục**: Thumbnail tải nhanh + trình phát video
-- **Liên Hệ**: Bản đồ vị trí và form liên hệ
-- **Responsive Design**: Hoạt động trên mobile/tablet/desktop
-
-#### 🔐 Admin Panel (CMS)
-- **Xác thực quản trị viên** với Laravel Sanctum
-- **Quản lý bài viết** với WYSIWYG editor
-- **Quản lý dụng cụ** với upload hình ảnh/video
-- **Quản lý vật liệu** với phân loại theo mùa
-- **Quản lý chậu & phụ kiện** với specifications
-- **Quản lý video & sách** với metadata
-- **Cài đặt website** và ticker
-- **Analytics dashboard** với thống kê khách truy cập
-
-### 👥 Thành Viên Nhóm
-
-- **Hiếu (Leader)** - Backend Laravel API & Quản lý repo
-- **Hưng** - Frontend React.js & UI/UX Design  
-- **Bảo** - Backend APIs đặc biệt (Geolocation, Visitor Counter)
-- **Khang** - Content Management & Database Seeding
-- **Tài** - Frontend Integration & Routing
-
-### 📅 Kế Hoạch Phát Triển
-
-#### Tuần 1: Khởi Tạo & Phát Triển Cốt Lõi
-- Setup Laravel API với authentication
-- Tạo React app với routing cơ bản
-- Thiết kế UI/UX trên Figma
-- Tạo database migrations và seeders
-
-#### Tuần 2: Hoàn Thiện & Tối Ưu
-- Implement admin panel đầy đủ chức năng
-- Tích hợp Google Maps và YouTube API
-- Responsive optimization
-- Production deployment
-
-### 🔧 API Endpoints
-
-#### Public APIs
-```
-GET  /api/v1/articles          # Danh sách bài viết
-GET  /api/v1/articles/{id}     # Chi tiết bài viết
-GET  /api/v1/tools             # Danh sách dụng cụ
-GET  /api/v1/essentials        # Danh sách vật liệu
-GET  /api/v1/pots              # Danh sách chậu cây
-GET  /api/v1/videos            # Danh sách video
-GET  /api/v1/books             # Danh sách sách
-POST /api/v1/contact           # Gửi liên hệ
+3. **Environment Setup**
+```bash
+cp .env.example .env
 ```
 
-#### Admin APIs (Protected)
-```
-POST   /api/v1/admin/login     # Đăng nhập admin
-GET    /api/v1/admin/dashboard # Dashboard thống kê
-GET    /api/v1/admin/articles  # CRUD bài viết
-GET    /api/v1/admin/tools     # CRUD dụng cụ
-GET    /api/v1/admin/essentials # CRUD vật liệu
-PUT    /api/v1/admin/settings  # Cài đặt website
+4. **Configure environment variables**
+```env
+VITE_API_BASE_URL=http://localhost:8000/api
+VITE_BACKEND_URL=http://localhost:8000
+VITE_APP_NAME=Green Groves
 ```
 
-### 📱 Responsive Breakpoints
+5. **Start development server**
+```bash
+npm run dev
+```
 
-- **Mobile**: 375px - 767px
-- **Tablet**: 768px - 1023px  
-- **Desktop**: 1024px+
+## 🔧 Laravel Backend Integration
 
-### 🎨 Design System
+### Required Laravel API Endpoints
 
-#### Colors
-- **Primary**: Blue (#0ea5e9)
-- **Secondary**: Green (#22c55e)
-- **Neutral**: Gray scale
+#### Authentication
+```php
+POST /api/auth/login
+POST /api/auth/logout  
+GET  /api/auth/user
+```
 
-#### Typography
-- **Font Family**: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto'
-- **Headings**: Font weight 600-700
-- **Body**: Font weight 400
+#### Admin Dashboard
+```php
+GET  /api/admin/dashboard/stats
+GET  /api/admin/analytics?range={timeRange}
+```
 
-### 📚 Tài Liệu Tham Khảo
+#### Articles CRUD
+```php
+GET    /api/admin/articles
+GET    /api/admin/articles/{id}
+POST   /api/admin/articles
+PUT    /api/admin/articles/{id}
+DELETE /api/admin/articles/{id}
+```
 
-- [Laravel Documentation](https://laravel.com/docs)
-- [React Documentation](https://reactjs.org/docs)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
-- [Headless UI Documentation](https://headlessui.com/)
+#### Videos CRUD
+```php
+GET    /api/admin/videos
+GET    /api/admin/videos/{id}
+POST   /api/admin/videos
+PUT    /api/admin/videos/{id}
+DELETE /api/admin/videos/{id}
+```
 
-### 🤝 Contributing
+#### Site Settings
+```php
+GET /api/admin/settings
+PUT /api/admin/settings
+```
 
-1. Fork repository
-2. Tạo feature branch: `git checkout -b feature/your-feature`
-3. Commit changes: `git commit -m 'feat: add new feature'`
-4. Push branch: `git push origin feature/your-feature`
-5. Tạo Pull Request
+#### File Upload
+```php
+POST /api/admin/upload
+```
 
-### 📄 License
+#### Public Endpoints
+```php
+GET /api/articles
+GET /api/videos
+GET /api/tools
+GET /api/books
+GET /api/seeds
+GET /api/pots
+GET /api/accessories
+```
 
-Dự án này được phát triển bởi nhóm Green Groves cho mục đích học tập.
+### Laravel Setup Requirements
+
+1. **Install Laravel Sanctum**
+```bash
+composer require laravel/sanctum
+php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"
+php artisan migrate
+```
+
+2. **Configure CORS** in `config/cors.php`:
+```php
+'paths' => ['api/*', 'sanctum/csrf-cookie'],
+'allowed_origins' => ['http://localhost:5173'],
+'allowed_methods' => ['*'],
+'allowed_headers' => ['*'],
+'supports_credentials' => true,
+```
+
+3. **API Routes** in `routes/api.php`:
+```php
+Route::prefix('auth')->group(function () {
+    Route::post('login', [AuthController::class, 'login']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('logout', [AuthController::class, 'logout']);
+        Route::get('user', [AuthController::class, 'user']);
+    });
+});
+
+Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+    Route::get('dashboard/stats', [DashboardController::class, 'stats']);
+    Route::apiResource('articles', ArticleController::class);
+    Route::apiResource('videos', VideoController::class);
+    Route::get('settings', [SettingsController::class, 'show']);
+    Route::put('settings', [SettingsController::class, 'update']);
+    Route::post('upload', [UploadController::class, 'store']);
+});
+```
+
+## 📁 Project Structure
+
+```
+src/
+├── components/
+│   ├── Layout/
+│   │   ├── Header.tsx
+│   │   ├── Footer.tsx
+│   │   └── Layout.tsx
+│   ├── UI/
+│   │   ├── Card.tsx
+│   │   └── PageHeader.tsx
+│   └── common/
+│       ├── LoadingSpinner.tsx
+│       └── ErrorMessage.tsx
+├── contexts/
+│   └── AuthContext.tsx
+├── hooks/
+│   └── useApi.ts
+├── pages/
+│   ├── Home.tsx
+│   ├── Login.tsx
+│   ├── AdminDashboard.tsx
+│   └── [other pages]
+├── services/
+│   └── api.ts
+├── types/
+│   └── api.ts
+└── data/
+    └── mockData.ts
+```
+
+## 🎨 Styling & Design
+
+- **Tailwind CSS** for utility-first styling
+- **Framer Motion** for smooth animations
+- **Lucide React** for beautiful icons
+- **Responsive Design** with mobile-first approach
+- **Green/Emerald Color Scheme** for gardening theme
+- **Modern Glassmorphism** effects and gradients
+
+## 🔐 Authentication Flow
+
+1. User enters credentials on `/login`
+2. Frontend sends POST to `/api/auth/login`
+3. Laravel returns user data + Sanctum token
+4. Token stored in localStorage
+5. All subsequent API calls include `Authorization: Bearer {token}`
+6. Protected routes check authentication status
+7. Admin routes verify user role
+
+## 📊 Admin Dashboard Features
+
+### Dashboard Analytics
+- Real-time statistics display
+- User growth metrics
+- Content performance tracking
+- Page view analytics
+
+### Content Management
+- **Articles**: Full CRUD with rich text editing
+- **Videos**: Embed support for YouTube/Vimeo
+- **Categories**: Organize content efficiently
+- **Status Management**: Draft/Published states
+
+### Site Customization
+- Logo and branding settings
+- Color scheme customization
+- Contact information management
+- Social media links
+- SEO meta tags
+
+## 🚀 Deployment
+
+### Build for Production
+```bash
+npm run build
+```
+
+### Environment Variables for Production
+```env
+VITE_API_BASE_URL=https://your-api-domain.com/api
+VITE_BACKEND_URL=https://your-api-domain.com
+VITE_APP_ENV=production
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📝 License
+
+This project is licensed under the MIT License.
+
+## 🆘 Support
+
+For support and questions:
+- Create an issue in the repository
+- Contact the development team
+- Check the documentation
 
 ---
 
-**🌱 Chúc bạn có trải nghiệm làm vườn tuyệt vời! 🌱**
+**Green Groves** - Growing knowledge, nurturing nature! 🌱

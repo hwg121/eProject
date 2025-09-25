@@ -12,10 +12,15 @@ class PotResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'slug' => $this->slug,
             'description' => $this->description,
-            'dimensions' => $this->dimensions,
-            'material' => $this->material,
+            'price' => $this->price,
             'image' => $this->image,
+            'material' => $this->material,
+            'size' => $this->size,
+            'drainage_holes' => $this->drainage_holes,
+            'color' => $this->color,
+            'brand' => $this->brand,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

@@ -1,87 +1,41 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BookOpen, ExternalLink, Star } from 'lucide-react';
 import Card from '../components/UI/Card';
 import PageHeader from '../components/UI/PageHeader';
 import Carousel from '../components/UI/Carousel';
-import { books } from '../data/mockData';
+import { publicService } from '../services/api.ts';
 
 const Books: React.FC = () => {
+  const [books, setBooks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const featuredBooks = [
-    {
-      id: '1',
-      title: 'The Well-Tended Perennial Garden',
-      description: 'A comprehensive guide to creating and maintaining beautiful perennial gardens that bloom year after year.',
-      image: 'https://images.pexels.com/photos/416978/pexels-photo-416978.jpeg',
-      badge: 'Bestseller',
-      link: '#'
-    },
-    {
-      id: '2',
-      title: 'Square Foot Gardening Revolution',
-      description: 'Maximize your harvest in minimal space with this innovative gardening method that\'s perfect for beginners.',
-      image: 'https://images.pexels.com/photos/1301856/pexels-photo-1301856.jpeg',
-      badge: 'Beginner Friendly',
-      link: '#'
-    },
-    {
-      id: '3',
-      title: 'The Hidden Life of Trees',
-      description: 'Discover the fascinating secret world of trees and how they communicate, nurture, and support each other.',
-      image: 'https://images.pexels.com/photos/416978/pexels-photo-416978.jpeg',
-      badge: 'Award Winner',
-      link: '#'
-    }
-  ];
-  const additionalBooks = [
-    {
-      id: 3,
-      title: "The Hidden Life of Trees",
-      author: "Peter Wohlleben",
-      description: "Discover the fascinating social life and complex communication networks of trees.",
-      buyLink: "https://example.com/buy", 
-      borrowLink: "https://example.com/borrow",
-      image: "https://images.pexels.com/photos/1301856/pexels-photo-1301856.jpeg",
-      rating: 4.8,
-      category: "Nature Science",
-      price: 24.95
-    },
-    {
-      id: 4,
-      title: "Botany for Gardeners",
-      author: "Brian Capon",
-      description: "Understanding plant science to become a better gardener.",
-      buyLink: "https://example.com/buy",
-      borrowLink: "https://example.com/borrow",
-      image: "https://images.pexels.com/photos/416978/pexels-photo-416978.jpeg",
-      rating: 4.6,
-      category: "Plant Science"
-    },
-    {
-      id: 5,
-      title: "The Vegetable Gardener's Bible",
-      author: "Edward C. Smith",
-      description: "The complete guide to growing vegetables using the W-O-R-D system.",
-      buyLink: "https://example.com/buy",
-      borrowLink: "https://example.com/borrow",
-      image: "https://images.pexels.com/photos/1301856/pexels-photo-1301856.jpeg",
-      rating: 4.7,
-      category: "Vegetable Gardening"
-    },
-    {
-      id: 6,
-      title: "Native Plants of the Southeast",
-      author: "Larry Mellichamp",
-      description: "A comprehensive field guide to native plants and their benefits.",
-      buyLink: "https://example.com/buy",
-      borrowLink: "https://example.com/borrow",
-      image: "https://images.pexels.com/photos/416978/pexels-photo-416978.jpeg",
-      rating: 4.5,
-      category: "Native Plants"
-    }
-  ];
+  useEffect(() => {
+    const loadBooks = async () => {
+      try {
+        setLoading(true);
+        const data = await publicService.getBooks();
+        setBooks(data);
+      } catch (err) {
+        setError('Failed to load books');
+        console.error('Error loading books:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const allBooks = [...books.map(book => ({...book, rating: 4.5, category: "General"})), ...additionalBooks];
+    loadBooks();
+  }, []);
+
+  // Featured books will be the first 3 books from the database
+  const featuredBooks = books.slice(0, 3).map(book => ({
+    id: book.id.toString(),
+    title: book.title,
+    description: book.description,
+    image: book.image || '/image.png',
+    badge: 'Featured',
+    link: '#'
+  }));
 
   return (
     <div className="space-y-8">
@@ -129,54 +83,71 @@ const Books: React.FC = () => {
       </Card>
 
       {/* Books Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {allBooks.map((book) => (
-          <Card key={book.id} className="h-full">
-            <img
-              src={book.image}
-              alt={book.title}
-              className="w-full h-48 object-cover rounded-lg mb-4"
-            />
-            <div className="flex items-center justify-between mb-2">
-              <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs">
-                {book.category}
-              </span>
-              <div className="flex items-center space-x-1">
-                <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                <span className="text-sm font-semibold text-emerald-800">{book.rating}</span>
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-emerald-600">Loading books...</p>
+        </div>
+      ) : error ? (
+        <div className="text-center py-12">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {books.map((book) => (
+            <Card key={book.id} className="h-full">
+              <img
+                src={book.image || '/image.png'}
+                alt={book.title}
+                className="w-full h-48 object-cover rounded-lg mb-4"
+              />
+              <div className="flex items-center justify-between mb-2">
+                <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs">
+                  {book.category || 'General'}
+                </span>
+                <div className="flex items-center space-x-1">
+                  <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                  <span className="text-sm font-semibold text-emerald-800">{book.rating || '4.5'}</span>
+                </div>
               </div>
-            </div>
-            <h3 className="text-xl font-semibold text-emerald-800 mb-2">{book.title}</h3>
-            <p className="text-emerald-600 font-medium mb-3">by {book.author}</p>
-            <p className="text-emerald-600 mb-4 leading-relaxed">{book.description}</p>
-            {book.price && (
-              <div className="mb-4">
-                <span className="text-lg font-bold text-emerald-800">${book.price}</span>
+              <h3 className="text-xl font-semibold text-emerald-800 mb-2">{book.title}</h3>
+              <p className="text-emerald-600 font-medium mb-3">by {book.author || 'Unknown Author'}</p>
+              <p className="text-emerald-600 mb-4 leading-relaxed">{book.description}</p>
+              {book.price && (
+                <div className="mb-4">
+                  <span className="text-lg font-bold text-emerald-800">${book.price}</span>
+                </div>
+              )}
+              <div className="flex flex-col sm:flex-row gap-2 mt-auto">
+                <a
+                  href={book.buyLink || '#'}
+                  className="flex items-center justify-center space-x-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  <span>Buy Online</span>
+                </a>
+                <a
+                  href={book.borrowLink || '#'}
+                  className="flex items-center justify-center space-x-2 bg-emerald-100 text-emerald-700 px-4 py-2 rounded-lg hover:bg-emerald-200 transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <BookOpen className="h-4 w-4" />
+                  <span>Borrow</span>
+                </a>
               </div>
-            )}
-            <div className="flex flex-col sm:flex-row gap-2 mt-auto">
-              <a
-                href={book.buyLink}
-                className="flex items-center justify-center space-x-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <ExternalLink className="h-4 w-4" />
-                <span>Buy Online</span>
-              </a>
-              <a
-                href={book.borrowLink}
-                className="flex items-center justify-center space-x-2 bg-emerald-100 text-emerald-700 px-4 py-2 rounded-lg hover:bg-emerald-200 transition-colors"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <BookOpen className="h-4 w-4" />
-                <span>Borrow</span>
-              </a>
-            </div>
-          </Card>
-        ))}
-      </div>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Book Categories */}
       <Card className="bg-gradient-to-r from-green-500 to-teal-500 text-white">

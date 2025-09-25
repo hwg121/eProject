@@ -1,9 +1,93 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Package, Droplets, Sun, Wind, Star, Heart, Gift, Lightbulb, Shield, Clock, DollarSign, Thermometer, Eye, CheckCircle, AlertTriangle, Info, Ruler, Weight, Palette } from 'lucide-react';
 import Card from '../components/UI/Card';
 import PageHeader from '../components/UI/PageHeader';
+import { publicService } from '../services/api.ts';
 
 const Pots: React.FC = () => {
+  const [pots, setPots] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedMaterial, setSelectedMaterial] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const loadPots = async () => {
+      try {
+        setLoading(true);
+        const data = await publicService.getPots();
+        setPots(data);
+      } catch (err) {
+        setError('Failed to load pots');
+        console.error('Error loading pots:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPots();
+  }, []);
+
+  // Filter pots based on material and search term
+  const filteredPots = pots.filter(pot => {
+    const matchesMaterial = selectedMaterial === 'all' || pot.material === selectedMaterial;
+    const matchesSearch = pot.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         pot.description.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesMaterial && matchesSearch;
+  });
+
+  // Get unique materials for filter
+  const materials = ['all', ...new Set(pots.map(p => p.material).filter(Boolean))];
+
+  const renderPotCard = (pot: any) => (
+    <Card key={pot.id} className="h-full">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center space-x-2">
+          <div className="text-emerald-600">
+            <Package className="h-5 w-5" />
+          </div>
+          <span className="text-sm text-emerald-600 font-medium">{pot.material}</span>
+        </div>
+        <div className="flex items-center space-x-1">
+          <Star className="h-4 w-4 text-yellow-500 fill-current" />
+          <span className="text-sm font-semibold">4.5</span>
+        </div>
+      </div>
+      <h3 className="text-lg font-semibold text-emerald-800 mb-2">{pot.name}</h3>
+      <p className="text-emerald-600 text-sm mb-4 leading-relaxed">{pot.description}</p>
+      
+      <div className="space-y-2 mb-4">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-emerald-600">Size:</span>
+          <span className="font-medium">{pot.size}</span>
+        </div>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-emerald-600">Color:</span>
+          <span className="font-medium">{pot.color}</span>
+        </div>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-emerald-600">Drainage:</span>
+          <span className="font-medium">{pot.drainage_holes ? 'Yes' : 'No'}</span>
+        </div>
+        {pot.brand && (
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-emerald-600">Brand:</span>
+            <span className="font-medium">{pot.brand}</span>
+          </div>
+        )}
+      </div>
+      
+      <div className="flex items-center justify-between mt-auto">
+        <span className="text-lg font-bold text-emerald-800">
+          {pot.price ? `$${pot.price}` : 'Contact for price'}
+        </span>
+        <button className="flex items-center space-x-1 text-emerald-600 hover:text-emerald-800 transition-colors">
+          <Eye className="h-4 w-4" />
+          <span className="text-sm">View Details</span>
+        </button>
+      </div>
+    </Card>
+  );
   const potTypes = [
     {
       category: "Plastic Pots",
@@ -247,6 +331,74 @@ const Pots: React.FC = () => {
         subtitle="Complete guide to choosing pots, hanging systems and frames for each plant type"
         icon={<Package className="h-10 w-10" />}
       />
+
+      {/* Search and Filter */}
+      <Card>
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="Search pots..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            />
+          </div>
+          <div className="flex gap-2">
+            <select
+              value={selectedMaterial}
+              onChange={(e) => setSelectedMaterial(e.target.value)}
+              className="px-4 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              {materials.map(material => (
+                <option key={material} value={material}>
+                  {material === 'all' ? 'All Materials' : material}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </Card>
+
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-emerald-600">Loading pots...</p>
+        </div>
+      ) : error ? (
+        <div className="text-center py-12">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      ) : (
+        <>
+          {/* Pots Grid */}
+          <section className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-3xl font-bold text-emerald-800">
+                🪴 Available Pots ({filteredPots.length})
+              </h2>
+            </div>
+            
+            {filteredPots.length === 0 ? (
+              <div className="text-center py-12">
+                <Package className="h-16 w-16 text-emerald-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-emerald-800 mb-2">No pots found</h3>
+                <p className="text-emerald-600">Try adjusting your search or filter criteria</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredPots.map(pot => renderPotCard(pot))}
+              </div>
+            )}
+          </section>
+        </>
+      )}
 
       {/* Pot Types Section */}
       {potTypes.map((category, categoryIndex) => (

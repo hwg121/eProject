@@ -1,39 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Wrench, Play, ExternalLink } from 'lucide-react';
 import Card from '../components/UI/Card';
 import PageHeader from '../components/UI/PageHeader';
 import Carousel from '../components/UI/Carousel';
-import { tools } from '../data/mockData';
+import { publicService } from '../services/api.ts';
 
 const Tools: React.FC = () => {
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+  const [tools, setTools] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const featuredTools = [
-    {
-      id: '1',
-      title: 'Professional Pruning Shears',
-      description: 'Sharp, durable cutting tools for precise pruning and plant maintenance. Essential for every gardener.',
-      image: 'https://images.pexels.com/photos/416978/pexels-photo-416978.jpeg',
-      badge: 'Best Seller',
-      link: '#'
-    },
-    {
-      id: '2',
-      title: 'Ergonomic Garden Trowel',
-      description: 'Comfortable grip design reduces hand fatigue during extended planting and weeding sessions.',
-      image: 'https://images.pexels.com/photos/1301856/pexels-photo-1301856.jpeg',
-      badge: 'Editor\'s Choice',
-      link: '#'
-    },
-    {
-      id: '3',
-      title: 'Smart Watering System',
-      description: 'Automated irrigation solution that keeps your plants perfectly hydrated while you\'re away.',
-      image: 'https://images.pexels.com/photos/416978/pexels-photo-416978.jpeg',
-      badge: 'Innovation Award',
-      link: '#'
-    }
-  ];
+  useEffect(() => {
+    const loadTools = async () => {
+      try {
+        setLoading(true);
+        const data = await publicService.getTools();
+        setTools(data);
+      } catch (err) {
+        setError('Failed to load tools');
+        console.error('Error loading tools:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTools();
+  }, []);
+
+  // Featured tools will be the first 3 tools from the database
+  const featuredTools = tools.slice(0, 3).map(tool => ({
+    id: tool.id.toString(),
+    title: tool.name,
+    description: tool.description,
+    image: tool.images_json ? JSON.parse(tool.images_json)[0] : '/image.png',
+    badge: 'Featured',
+    link: '#'
+  }));
   return (
     <div className="space-y-8">
       <PageHeader
@@ -60,36 +63,57 @@ const Tools: React.FC = () => {
           className="shadow-xl"
         />
       </section>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {tools.map((tool) => (
-          <Card key={tool.id} className="h-full">
-            <img
-              src={tool.image}
-              alt={tool.name}
-              className="w-full h-48 object-cover rounded-lg mb-4"
-            />
-            <h3 className="text-xl font-semibold text-emerald-800 mb-3">
-              {tool.name}
-            </h3>
-            <p className="text-emerald-600 mb-3 leading-relaxed">
-              {tool.description}
-            </p>
-            <div className="bg-emerald-50 p-3 rounded-lg mb-4">
-              <h4 className="font-semibold text-emerald-800 mb-1">Usage:</h4>
-              <p className="text-emerald-700 text-sm">{tool.usage}</p>
-            </div>
-            {tool.videoUrl && (
-              <button
-                onClick={() => setSelectedVideo(tool.videoUrl!)}
-                className="flex items-center space-x-2 text-emerald-600 hover:text-emerald-800 transition-colors"
-              >
-                <Play className="h-4 w-4" />
-                <span className="text-sm font-medium">Watch Demo Video</span>
-              </button>
-            )}
-          </Card>
-        ))}
-      </div>
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-emerald-600">Loading tools...</p>
+        </div>
+      ) : error ? (
+        <div className="text-center py-12">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {tools.map((tool) => (
+            <Card key={tool.id} className="h-full">
+              <img
+                src={tool.images_json ? JSON.parse(tool.images_json)[0] : '/image.png'}
+                alt={tool.name}
+                className="w-full h-48 object-cover rounded-lg mb-4"
+              />
+              <h3 className="text-xl font-semibold text-emerald-800 mb-3">
+                {tool.name}
+              </h3>
+              <p className="text-emerald-600 mb-3 leading-relaxed">
+                {tool.description}
+              </p>
+              {tool.video_url && (
+                <button
+                  onClick={() => setSelectedVideo(tool.video_url)}
+                  className="flex items-center space-x-2 text-emerald-600 hover:text-emerald-800 transition-colors mb-4"
+                >
+                  <Play className="h-4 w-4" />
+                  <span className="text-sm font-medium">Watch Demo Video</span>
+                </button>
+              )}
+              <div className="flex justify-between items-center">
+                <span className="text-lg font-bold text-emerald-800">
+                  Available
+                </span>
+                <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                  In Stock
+                </span>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Video Modal */}
       {selectedVideo && (

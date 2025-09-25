@@ -1,31 +1,36 @@
 {
-  "name": "green-groves",
-  "version": "1.0.0",
-  "description": "Green Groves - SPA React.js + Laravel API for gardening enthusiasts",
-  "main": "index.js",
+  "name": "vite-react-typescript-starter",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run backend:serve\" \"npm run frontend:start\"",
-    "backend:serve": "cd backend && php artisan serve --port=8000",
-    "frontend:start": "cd frontend && npm start",
-    "backend:install": "cd backend && composer install",
-    "frontend:install": "cd frontend && npm install",
-    "backend:migrate": "cd backend && php artisan migrate",
-    "backend:seed": "cd backend && php artisan db:seed",
-    "setup": "npm run backend:install && npm run frontend:install && npm run backend:migrate && npm run backend:seed",
-    "build": "cd frontend && npm run build",
-    "test": "cd frontend && npm test"
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
   },
-  "keywords": [
-    "react",
-    "laravel",
-    "gardening",
-    "spa",
-    "api",
-    "tailwindcss"
-  ],
-  "author": "Green Groves Team",
-  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.4",
+    "framer-motion": "^12.23.19",
+    "lucide-react": "^0.344.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.9.1"
+  },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@eslint/js": "^9.9.1",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.18",
+    "eslint": "^9.9.1",
+    "eslint-plugin-react-hooks": "^5.1.0-rc.0",
+    "eslint-plugin-react-refresh": "^0.4.11",
+    "globals": "^15.9.0",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.5.3",
+    "typescript-eslint": "^8.3.0",
+    "vite": "^5.4.2"
   }
 }

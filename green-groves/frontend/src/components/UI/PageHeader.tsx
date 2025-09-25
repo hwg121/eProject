@@ -26,43 +26,47 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, icon }) => {
       
       <div className="relative z-10">
         <motion.div 
-          className="flex justify-center items-center mb-8 py-2"
+          className="flex justify-center items-center mb-8 py-2 w-full"
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          {icon && (
-            <motion.div 
-              className={`relative mr-4 p-4 rounded-2xl shadow-lg ${
-                isDarkMode 
-                  ? 'text-emerald-300 bg-gradient-to-br from-emerald-900/60 to-green-900/60 shadow-emerald-500/30' 
-                  : 'text-emerald-600 bg-gradient-to-br from-emerald-100 to-green-100 shadow-emerald-200/40'
-              }`}
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.2 }}
-            >
-              {icon}
-              <motion.div
-                className="absolute -top-1 -right-1"
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+          <div className="flex items-center justify-center space-x-6">
+            {icon && (
+              <motion.div 
+                className={`relative p-4 rounded-2xl shadow-lg flex-shrink-0 ${
+                  isDarkMode 
+                    ? 'text-emerald-300 bg-gradient-to-br from-emerald-900/60 to-green-900/60 shadow-emerald-500/30' 
+                    : 'text-emerald-600 bg-gradient-to-br from-emerald-100 to-green-100 shadow-emerald-200/40'
+                }`}
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.2 }}
               >
-                <Sparkles className={`h-4 w-4 ${isDarkMode ? 'text-yellow-300 drop-shadow-lg' : 'text-yellow-500 drop-shadow-md'}`} />
+                <div className="w-10 h-10 flex items-center justify-center">
+                  {icon}
+                </div>
+                <motion.div
+                  className="absolute -top-1 -right-1"
+                  animate={{ rotate: [0, 10, -10, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                >
+                  <Sparkles className={`h-4 w-4 ${isDarkMode ? 'text-yellow-300 drop-shadow-lg' : 'text-yellow-500 drop-shadow-md'}`} />
+                </motion.div>
               </motion.div>
-            </motion.div>
-          )}
-          <motion.h1 
-            className={`text-4xl sm:text-5xl md:text-6xl font-bold bg-gradient-to-r bg-clip-text text-transparent leading-tight py-2 ${
-              isDarkMode 
-                ? 'from-emerald-300 via-green-300 to-teal-300' 
-                : 'from-emerald-800 via-green-700 to-teal-700'
-            }`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
-            {title}
-          </motion.h1>
+            )}
+            <motion.h1 
+              className={`text-4xl sm:text-5xl md:text-6xl font-bold bg-gradient-to-r bg-clip-text text-transparent leading-tight py-2 flex-shrink-0 ${
+                isDarkMode 
+                  ? 'from-emerald-300 via-green-300 to-teal-300' 
+                  : 'from-emerald-800 via-green-700 to-teal-700'
+              }`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              {title}
+            </motion.h1>
+          </div>
         </motion.div>
         
         {/* Simple decorative line */}

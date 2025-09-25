@@ -98,11 +98,11 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
     order: 8
   },
   { 
-    path: '/about', 
-    icon: Heart, 
-    label: 'About', 
-    emoji: '❤️', 
-    color: 'from-rose-500 to-pink-500',
+    path: '/about-us', 
+    icon: Users, 
+    label: 'About Us', 
+    emoji: '👥', 
+    color: 'from-teal-500 to-cyan-500',
     isVisible: true,
     order: 9
   }

@@ -22,7 +22,7 @@ const Login: React.FC = () => {
     console.log('Form submitted with:', { email, password }); // Debug log
     
     if (!email || !password) {
-      setError('Please enter both email and password');
+      setError('Vui lòng nhập cả email và mật khẩu');
       return;
     }
     
@@ -34,11 +34,11 @@ const Login: React.FC = () => {
         console.log('Login successful, navigating to admin...'); // Debug log
         navigate('/admin');
       } else {
-        setError('Invalid credentials. Please use: admin@greengroves.com / admin123');
+        setError('Thông tin đăng nhập không đúng. Vui lòng sử dụng: admin@greengroves.com / admin123');
       }
     } catch (error) {
       console.error('Login error:', error);
-      setError('Login failed. Please try again.');
+      setError('Đăng nhập thất bại. Vui lòng thử lại.');
     }
   };
 
@@ -128,15 +128,15 @@ const Login: React.FC = () => {
           >
             <h3 className={`font-semibold mb-2 ${
               isDarkMode ? 'text-emerald-200' : 'text-emerald-800'
-            }`}>Demo Credentials:</h3>
+            }`}>Thông tin đăng nhập demo:</h3>
             <p className="text-sm">
               <strong>Email:</strong> admin@greengroves.com<br />
-              <strong>Password:</strong> admin123
+              <strong>Mật khẩu:</strong> admin123
             </p>
             <p className={`text-xs mt-2 ${
               isDarkMode ? 'text-emerald-400' : 'text-emerald-600'
             }`}>
-              Fields are pre-filled for testing
+              Các trường đã được điền sẵn để test
             </p>
           </motion.div>
 
@@ -161,7 +161,7 @@ const Login: React.FC = () => {
               <label className={`block font-semibold mb-2 ${
                 isDarkMode ? 'text-emerald-300' : 'text-emerald-700'
               }`}>
-                Email Address
+                Địa chỉ Email
               </label>
               <div className="relative">
                 <Mail className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${
@@ -176,7 +176,7 @@ const Login: React.FC = () => {
                       ? 'bg-gray-800 border-emerald-700/30 text-emerald-100' 
                       : 'bg-white border-emerald-200 text-gray-900'
                   }`}
-                  placeholder="Enter your email"
+                  placeholder="Nhập email của bạn"
                   required
                 />
               </div>
@@ -186,7 +186,7 @@ const Login: React.FC = () => {
               <label className={`block font-semibold mb-2 ${
                 isDarkMode ? 'text-emerald-300' : 'text-emerald-700'
               }`}>
-                Password
+                Mật khẩu
               </label>
               <div className="relative">
                 <Lock className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${
@@ -201,7 +201,7 @@ const Login: React.FC = () => {
                       ? 'bg-gray-800 border-emerald-700/30 text-emerald-100' 
                       : 'bg-white border-emerald-200 text-gray-900'
                   }`}
-                  placeholder="Enter your password"
+                  placeholder="Nhập mật khẩu của bạn"
                   required
                 />
                 <button
@@ -228,21 +228,21 @@ const Login: React.FC = () => {
               {isLoading ? (
                 <div className="flex items-center justify-center space-x-2">
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Loading...</span>
+                  <span>Đang đăng nhập...</span>
                 </div>
               ) : (
-                'Sign In'
+                'Đăng nhập'
               )}
             </motion.button>
           </form>
 
           <div className="mt-6 text-center">
             <p className={isDarkMode ? 'text-emerald-300' : 'text-emerald-600'}>
-              Contact Administrator{' '}
+              Cần hỗ trợ?{' '}
               <a href="#" className={`font-semibold transition-colors ${
                 isDarkMode ? 'hover:text-emerald-200' : 'hover:text-emerald-800'
               }`}>
-                Contact Administrator
+                Liên hệ quản trị viên
               </a>
             </p>
           </div>

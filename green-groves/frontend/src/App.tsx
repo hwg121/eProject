@@ -1,10 +1,10 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { NavigationProvider } from './contexts/NavigationContext';
 import Layout from './components/Layout/Layout';
+import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Techniques from './pages/Techniques';
 import Tools from './pages/Tools';
@@ -14,7 +14,7 @@ import Accessories from './pages/Accessories';
 import Suggestions from './pages/Suggestions';
 import Videos from './pages/Videos';
 import Books from './pages/Books';
-import About from './pages/About';
+import AboutUs from './pages/AboutUs';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminTools from './pages/admin/AdminTools';
@@ -22,6 +22,7 @@ import AdminEssentials from './pages/admin/AdminEssentials';
 import AdminPots from './pages/admin/AdminPots';
 import AdminAccessories from './pages/admin/AdminAccessories';
 import AdminAbout from './pages/admin/AdminAbout';
+import AdminAboutUs from './pages/AdminAboutUs';
 
 function App() {
   return (
@@ -44,17 +45,47 @@ function App() {
                       <Route path="/suggestions" element={<Suggestions />} />
                       <Route path="/videos" element={<Videos />} />
                       <Route path="/books" element={<Books />} />
-                      <Route path="/about" element={<About />} />
-                      <Route path="/admin" element={<AdminDashboard />} />
-                      <Route path="/admin/tools" element={<AdminTools />} />
-                      <Route path="/admin/essentials" element={<AdminEssentials />} />
-                      <Route path="/admin/pots" element={<AdminPots />} />
-                      <Route path="/admin/accessories" element={<AdminAccessories />} />
-                      <Route path="/admin/about" element={<AdminAbout />} />
+                      <Route path="/about-us" element={<AboutUs />} />
+                      <Route path="/admin" element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <AdminDashboard />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/admin/tools" element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <AdminTools />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/admin/essentials" element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <AdminEssentials />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/admin/pots" element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <AdminPots />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/admin/accessories" element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <AdminAccessories />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/admin/about" element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <AdminAbout />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/admin/about-us" element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <AdminAboutUs />
+                        </ProtectedRoute>
+                      } />
                     </Routes>
                   </AnimatePresence>
                 </Layout>
               } />
+              <Route path="*" element={<div className="text-center py-12"><h1 className="text-4xl font-bold text-emerald-800 mb-4">404 - Page Not Found</h1><p className="text-emerald-600">The page you're looking for doesn't exist.</p></div>} />
             </Routes>
           </Router>
         </AuthProvider>

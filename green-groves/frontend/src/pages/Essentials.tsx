@@ -1,10 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Flower, Droplets, Bug, Sprout, Beaker, Shield, Scaling as Seedling, CheckCircle, AlertTriangle, Info, Thermometer, Sun, Wind, Clock } from 'lucide-react';
 import Card from '../components/UI/Card';
 import PageHeader from '../components/UI/PageHeader';
-import { seeds, soilTips } from '../data/mockData';
+import { publicService } from '../services/api.ts';
 
 const Essentials: React.FC = () => {
+  const [essentials, setEssentials] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadEssentials = async () => {
+      try {
+        setLoading(true);
+        const data = await publicService.getEssentials();
+        setEssentials(data);
+      } catch (err) {
+        setError('Failed to load essentials');
+        console.error('Error loading essentials:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadEssentials();
+  }, []);
   const soilTypes = [
     {
       name: "Clay Soil",
