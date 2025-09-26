@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { getCacheStats } from '../services/api';
+// import { getCacheStats } from '../services/api.ts';
 
 interface PerformanceMetrics {
   renderTime: number;
@@ -34,20 +34,24 @@ const PerformanceMonitor: React.FC<Props> = ({
   const measurePerformance = useCallback(() => {
     if (!shouldShow) return;
 
-    // Get API cache stats
-    const cacheStats = getCacheStats();
+    // Get API cache stats (mock for now)
+    const cacheStats = {
+      requests: 0,
+      size: 0,
+      avgResponseTime: 0
+    };
     
     // Get memory usage (if available)
-    const memoryInfo = (performance as any).memory;
+    const memoryInfo = (performance as { memory?: { usedJSHeapSize: number } }).memory;
     const memoryUsage = memoryInfo ? memoryInfo.usedJSHeapSize / 1024 / 1024 : 0;
 
     // Get network information (if available)
-    const connection = (navigator as any).connection;
+    const connection = (navigator as { connection?: { downlink: number } }).connection;
     const networkSpeed = connection ? connection.downlink || 0 : 0;
 
     // Calculate render time (approximate)
     const navigationTiming = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-    const renderTime = navigationTiming ? navigationTiming.loadEventEnd - navigationTiming.navigationStart : 0;
+    const renderTime = navigationTiming ? navigationTiming.loadEventEnd - (navigationTiming as unknown as { navigationStart: number }).navigationStart : 0;
 
     setMetrics({
       renderTime: Math.round(renderTime),
@@ -79,10 +83,10 @@ const PerformanceMonitor: React.FC<Props> = ({
           console.log('LCP:', entry.startTime);
         }
         if (entry.entryType === 'first-input') {
-          console.log('FID:', entry.processingStart - entry.startTime);
+          console.log('FID:', (entry as unknown as { processingStart: number }).processingStart - entry.startTime);
         }
         if (entry.entryType === 'layout-shift') {
-          console.log('CLS:', (entry as any).value);
+          console.log('CLS:', (entry as unknown as { value: number }).value);
         }
       }
     });
@@ -178,27 +182,6 @@ const PerformanceMonitor: React.FC<Props> = ({
   );
 };
 
-// HOC for measuring component render time
-export const withPerformanceMonitoring = <P extends object>(
-  WrappedComponent: React.ComponentType<P>,
-  componentName: string
-) => {
-  return React.memo((props: P) => {
-    useEffect(() => {
-      performance.mark(`${componentName}-start`);
-      
-      return () => {
-        performance.mark(`${componentName}-end`);
-        performance.measure(
-          `${componentName}-render`,
-          `${componentName}-start`,
-          `${componentName}-end`
-        );
-      };
-    });
-
-    return <WrappedComponent {...props} />;
-  });
-};
+// HOC moved to separate file to avoid fast refresh warning
 
 export default PerformanceMonitor;
