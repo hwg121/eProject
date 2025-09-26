@@ -32,16 +32,16 @@ copy xampp-config\httpd-vhosts.conf C:\xampp\apache\conf\extra\httpd-vhosts.conf
 #### C. Create Directories
 ```bash
 # Create project directories
-mkdir C:\xampp\htdocs\green-groves-frontend
-mkdir C:\xampp\htdocs\green-groves-backend
-mkdir C:\xampp\htdocs\green-groves-backend\public
+mkdir C:\xampp\htdocs\frontend
+mkdir C:\xampp\htdocs\backend
+mkdir C:\xampp\htdocs\backend\public
 ```
 
 #### D. Copy .htaccess Files
 ```bash
 # Copy .htaccess files
-copy xampp-config\frontend.htaccess C:\xampp\htdocs\green-groves-frontend\.htaccess
-copy xampp-config\backend.htaccess C:\xampp\htdocs\green-groves-backend\public\.htaccess
+copy xampp-config\frontend.htaccess C:\xampp\htdocs\frontend\.htaccess
+copy xampp-config\backend.htaccess C:\xampp\htdocs\backend\public\.htaccess
 ```
 
 ## 🔧 Configuration Details
@@ -63,10 +63,10 @@ Access-Control-Allow-Credentials: true
 ### Directory Structure
 ```
 C:\xampp\htdocs\
-├── green-groves-frontend\     # Frontend (Port 80)
+├── frontend\                  # Frontend (Port 80)
 │   ├── .htaccess
 │   └── [build files]
-└── green-groves-backend\      # Backend (Port 8080)
+└── backend\                   # Backend (Port 8080)
     └── public\
         ├── .htaccess
         └── [Laravel files]

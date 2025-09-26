@@ -4,7 +4,7 @@
 Write-Host "🚀 Starting Backend Deployment for XAMPP..." -ForegroundColor Green
 
 # Set variables
-$BackendPath = "C:\xampp\htdocs\green-groves-backend"
+$BackendPath = "C:\xampp\htdocs\backend"
 $BackendSource = "D:\eProject\green-groves\backend"
 
 Write-Host "📁 Backend Path: $BackendPath" -ForegroundColor Yellow

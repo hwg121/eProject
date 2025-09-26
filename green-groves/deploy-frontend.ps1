@@ -4,7 +4,7 @@
 Write-Host "🚀 Starting Frontend Deployment for XAMPP..." -ForegroundColor Green
 
 # Set variables
-$FrontendPath = "C:\xampp\htdocs\green-groves-frontend"
+$FrontendPath = "C:\xampp\htdocs\frontend"
 $FrontendSource = "D:\eProject\green-groves\frontend"
 
 Write-Host "📁 Frontend Path: $FrontendPath" -ForegroundColor Yellow

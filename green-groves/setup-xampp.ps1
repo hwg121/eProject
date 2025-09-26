@@ -34,9 +34,9 @@ Copy-Item "xampp-config\httpd-vhosts.conf" "$APACHE_CONF\extra\httpd-vhosts.conf
 # Create directories
 Write-Host "📁 Creating directories..." -ForegroundColor Yellow
 $directories = @(
-    "$HTDOCS\green-groves-frontend",
-    "$HTDOCS\green-groves-backend",
-    "$HTDOCS\green-groves-backend\public"
+    "$HTDOCS\frontend",
+    "$HTDOCS\backend",
+    "$HTDOCS\backend\public"
 )
 
 foreach ($dir in $directories) {
@@ -48,13 +48,13 @@ foreach ($dir in $directories) {
 
 # Copy .htaccess files
 Write-Host "📄 Installing .htaccess files..." -ForegroundColor Yellow
-Copy-Item "xampp-config\frontend.htaccess" "$HTDOCS\green-groves-frontend\.htaccess" -Force
-Copy-Item "xampp-config\backend.htaccess" "$HTDOCS\green-groves-backend\public\.htaccess" -Force
+Copy-Item "xampp-config\frontend.htaccess" "$HTDOCS\frontend\.htaccess" -Force
+Copy-Item "xampp-config\backend.htaccess" "$HTDOCS\backend\public\.htaccess" -Force
 
 # Set permissions
 Write-Host "🔐 Setting permissions..." -ForegroundColor Yellow
-icacls "$HTDOCS\green-groves-frontend" /grant "Everyone:(OI)(CI)F" /T
-icacls "$HTDOCS\green-groves-backend" /grant "Everyone:(OI)(CI)F" /T
+icacls "$HTDOCS\frontend" /grant "Everyone:(OI)(CI)F" /T
+icacls "$HTDOCS\backend" /grant "Everyone:(OI)(CI)F" /T
 
 # Test Apache configuration
 Write-Host "🧪 Testing Apache configuration..." -ForegroundColor Yellow
@@ -72,8 +72,8 @@ Write-Host "📋 Next steps:" -ForegroundColor Cyan
 Write-Host "1. Start XAMPP Control Panel" -ForegroundColor White
 Write-Host "2. Start Apache service" -ForegroundColor White
 Write-Host "3. Deploy your applications:" -ForegroundColor White
-Write-Host "   - Frontend: C:\xampp\htdocs\green-groves-frontend" -ForegroundColor White
-Write-Host "   - Backend: C:\xampp\htdocs\green-groves-backend" -ForegroundColor White
+Write-Host "   - Frontend: C:\xampp\htdocs\frontend" -ForegroundColor White
+Write-Host "   - Backend: C:\xampp\htdocs\backend" -ForegroundColor White
 Write-Host "4. Test URLs:" -ForegroundColor White
 Write-Host "   - Frontend: http://103.252.93.249:80" -ForegroundColor White
 Write-Host "   - Backend: http://103.252.93.249:8080" -ForegroundColor White
