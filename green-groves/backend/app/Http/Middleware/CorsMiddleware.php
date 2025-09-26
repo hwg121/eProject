@@ -17,7 +17,7 @@ class CorsMiddleware
     {
         // Handle preflight requests
         if ($request->isMethod('OPTIONS')) {
-            return response('', 200, [
+            return response()->json([], 200, [
                 'Access-Control-Allow-Origin' => '*',
                 'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
                 'Access-Control-Allow-Headers' => 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-CSRF-TOKEN',
@@ -26,7 +26,16 @@ class CorsMiddleware
             ]);
         }
 
-        $response = $next($request);
+        try {
+            $response = $next($request);
+        } catch (\Exception $e) {
+            // Log the error but don't let it break CORS
+            \Log::error('API Error: ' . $e->getMessage());
+            $response = response()->json([
+                'message' => 'Internal Server Error',
+                'error' => $e->getMessage()
+            ], 500);
+        }
 
         // Add CORS headers to response
         $response->headers->set('Access-Control-Allow-Origin', '*');
