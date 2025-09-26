@@ -22,8 +22,17 @@ Route::middleware(['cors'])->group(function () {
 
 // Test route
 Route::get('/test', function () {
-    return response()->json(['message' => 'API is working']);
+    return response()->json(['message' => 'API is working', 'timestamp' => now()]);
 });
+
+// Simple CORS test route
+Route::options('/{any}', function () {
+    return response('', 200);
+})->where('any', '.*');
+
+// Test controller routes
+Route::get('/cors-test', [App\Http\Controllers\Api\TestController::class, 'test']);
+Route::options('/cors-test', [App\Http\Controllers\Api\TestController::class, 'options']);
 
 // Public API Routes
 Route::get('/articles', [App\Http\Controllers\Api\ArticleController::class, 'index']);
