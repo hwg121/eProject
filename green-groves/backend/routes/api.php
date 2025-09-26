@@ -34,6 +34,33 @@ Route::options('/{any}', function () {
 Route::get('/cors-test', [App\Http\Controllers\Api\TestController::class, 'test']);
 Route::options('/cors-test', [App\Http\Controllers\Api\TestController::class, 'options']);
 
+// Debug routes
+Route::get('/debug', function () {
+    return response()->json([
+        'message' => 'API is working',
+        'timestamp' => now(),
+        'status' => 'ok'
+    ]);
+});
+
+Route::get('/debug/tools', function () {
+    try {
+        $tools = \App\Models\Tool::all();
+        return response()->json([
+            'message' => 'Tools endpoint working',
+            'count' => $tools->count(),
+            'tools' => $tools->take(3), // First 3 tools
+            'status' => 'ok'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Tools endpoint error',
+            'error' => $e->getMessage(),
+            'status' => 'error'
+        ], 500);
+    }
+});
+
 // Public API Routes
 Route::get('/articles', [App\Http\Controllers\Api\ArticleController::class, 'index']);
 Route::get('/articles/{id}', [App\Http\Controllers\Api\ArticleController::class, 'show']);

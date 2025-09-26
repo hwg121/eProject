@@ -13,7 +13,13 @@ class Tool extends Model
         'name',
         'slug',
         'description',
+        'usage',
+        'category',
+        'price_range',
+        'image',
         'video_url',
+        'affiliate_link',
+        'rating',
         'images_json',
     ];
 }
