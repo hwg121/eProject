@@ -101,166 +101,17 @@ Route::get('/simple-tools', [App\Http\Controllers\Api\SimpleController::class, '
 Route::get('/simple-videos', [App\Http\Controllers\Api\SimpleController::class, 'videos']);
 Route::get('/simple-books', [App\Http\Controllers\Api\SimpleController::class, 'books']);
 
-// Public API Routes (with error handling)
-Route::get('/articles', function() {
-    try {
-        return response()->json([
-            'message' => 'Articles endpoint working',
-            'data' => [],
-            'status' => 'ok'
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Articles error',
-            'error' => $e->getMessage(),
-            'status' => 'error'
-        ], 500);
-    }
-});
-
-Route::get('/tools', function() {
-    try {
-        return response()->json([
-            'message' => 'Tools endpoint working',
-            'data' => [],
-            'status' => 'ok'
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Tools error',
-            'error' => $e->getMessage(),
-            'status' => 'error'
-        ], 500);
-    }
-});
-
-Route::get('/videos', function() {
-    try {
-        return response()->json([
-            'message' => 'Videos endpoint working',
-            'data' => [],
-            'status' => 'ok'
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Videos error',
-            'error' => $e->getMessage(),
-            'status' => 'error'
-        ], 500);
-    }
-});
-
-Route::get('/books', function() {
-    try {
-        return response()->json([
-            'message' => 'Books endpoint working',
-            'data' => [],
-            'status' => 'ok'
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Books error',
-            'error' => $e->getMessage(),
-            'status' => 'error'
-        ], 500);
-    }
-});
-
-Route::get('/essentials', function() {
-    try {
-        return response()->json([
-            'message' => 'Essentials endpoint working',
-            'data' => [],
-            'status' => 'ok'
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Essentials error',
-            'error' => $e->getMessage(),
-            'status' => 'error'
-        ], 500);
-    }
-});
-
-Route::get('/pots', function() {
-    try {
-        return response()->json([
-            'message' => 'Pots endpoint working',
-            'data' => [],
-            'status' => 'ok'
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Pots error',
-            'error' => $e->getMessage(),
-            'status' => 'error'
-        ], 500);
-    }
-});
-
-Route::get('/accessories', function() {
-    try {
-        return response()->json([
-            'message' => 'Accessories endpoint working',
-            'data' => [],
-            'status' => 'ok'
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Accessories error',
-            'error' => $e->getMessage(),
-            'status' => 'error'
-        ], 500);
-    }
-});
-
-Route::get('/suggestions', function() {
-    try {
-        return response()->json([
-            'message' => 'Suggestions endpoint working',
-            'data' => [],
-            'status' => 'ok'
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Suggestions error',
-            'error' => $e->getMessage(),
-            'status' => 'error'
-        ], 500);
-    }
-});
-
-Route::get('/about-us', function() {
-    try {
-        return response()->json([
-            'message' => 'About Us endpoint working',
-            'data' => [],
-            'status' => 'ok'
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'About Us error',
-            'error' => $e->getMessage(),
-            'status' => 'error'
-        ], 500);
-    }
-});
-
-Route::get('/contact-messages', function() {
-    try {
-        return response()->json([
-            'message' => 'Contact Messages endpoint working',
-            'data' => [],
-            'status' => 'ok'
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Contact Messages error',
-            'error' => $e->getMessage(),
-            'status' => 'error'
-        ], 500);
-    }
-});
+        // Public API Routes (with real controllers)
+        Route::get('/articles', [App\Http\Controllers\Api\ArticleController::class, 'index']);
+        Route::get('/tools', [App\Http\Controllers\Api\ToolController::class, 'index']);
+        Route::get('/videos', [App\Http\Controllers\Api\VideoController::class, 'index']);
+        Route::get('/books', [App\Http\Controllers\Api\BookController::class, 'index']);
+        Route::get('/essentials', [App\Http\Controllers\Api\EssentialController::class, 'index']);
+        Route::get('/pots', [App\Http\Controllers\Api\PotController::class, 'index']);
+        Route::get('/accessories', [App\Http\Controllers\Api\AccessoryController::class, 'index']);
+        Route::get('/suggestions', [App\Http\Controllers\Api\SuggestionController::class, 'index']);
+        Route::get('/about-us', [App\Http\Controllers\Api\AboutUsController::class, 'index']);
+        Route::get('/contact-messages', [App\Http\Controllers\Api\ContactController::class, 'index']);
 
 // Contact - Public routes
 Route::post('/contact', [App\Http\Controllers\Api\ContactController::class, 'store']);
