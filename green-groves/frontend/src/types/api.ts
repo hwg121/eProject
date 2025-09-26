@@ -63,18 +63,6 @@ export interface Article {
   updated_at: string;
 }
 
-export interface CreateArticleRequest {
-  title: string;
-  content: string;
-  excerpt?: string;
-  category: string;
-  tags?: string[];
-  featured_image?: string;
-  status: 'published' | 'draft';
-  meta_title?: string;
-  meta_description?: string;
-}
-
 // Video Types
 export interface Video {
   id: string;
@@ -97,20 +85,6 @@ export interface Video {
   published_at?: string;
   created_at: string;
   updated_at: string;
-}
-
-export interface CreateVideoRequest {
-  title: string;
-  description: string;
-  duration: string;
-  category: string;
-  tags?: string[];
-  thumbnail: string;
-  video_url: string;
-  embed_code?: string;
-  status: 'published' | 'draft';
-  meta_title?: string;
-  meta_description?: string;
 }
 
 // Tool Types
@@ -146,31 +120,88 @@ export interface Book {
   updated_at: string;
 }
 
-// Site Settings Types
-export interface SiteSettings {
+// Essential Types
+export interface Essential {
   id: string;
-  site_name: string;
-  site_description: string;
-  site_keywords?: string;
-  logo?: string;
-  favicon?: string;
-  hero_title: string;
-  hero_subtitle: string;
-  primary_color: string;
-  secondary_color: string;
-  contact_email: string;
-  contact_phone: string;
-  contact_address?: string;
-  social_links: {
-    facebook?: string;
-    instagram?: string;
-    twitter?: string;
-    youtube?: string;
-    linkedin?: string;
-  };
-  analytics_code?: string;
-  meta_title?: string;
-  meta_description?: string;
+  name: string;
+  description: string;
+  usage: string;
+  category: string;
+  price_range?: string;
+  image: string;
+  video_url?: string;
+  affiliate_link?: string;
+  rating?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Pot Types
+export interface Pot {
+  id: string;
+  name: string;
+  description: string;
+  material: string;
+  size: string;
+  category: string;
+  price_range?: string;
+  image: string;
+  video_url?: string;
+  affiliate_link?: string;
+  rating?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Accessory Types
+export interface Accessory {
+  id: string;
+  name: string;
+  description: string;
+  usage: string;
+  category: string;
+  price_range?: string;
+  image: string;
+  video_url?: string;
+  affiliate_link?: string;
+  rating?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Suggestion Types
+export interface Suggestion {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  tags?: string[];
+  image?: string;
+  status: 'published' | 'draft';
+  views: number;
+  likes?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// About Us Types
+export interface AboutUs {
+  id: string;
+  title: string;
+  content: string;
+  image?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Contact Message Types
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: 'unread' | 'read' | 'replied';
   created_at: string;
   updated_at: string;
 }
@@ -187,41 +218,6 @@ export interface DashboardStats {
   monthly_growth: number;
   weekly_growth: number;
   daily_growth: number;
-}
-
-// Analytics Types
-export interface AnalyticsData {
-  page_views: {
-    total: number;
-    data: Array<{
-      date: string;
-      views: number;
-    }>;
-  };
-  popular_content: Array<{
-    id: string;
-    title: string;
-    type: 'article' | 'video';
-    views: number;
-  }>;
-  user_activity: Array<{
-    date: string;
-    new_users: number;
-    active_users: number;
-  }>;
-  top_categories: Array<{
-    category: string;
-    count: number;
-  }>;
-}
-
-// File Upload Types
-export interface UploadResponse {
-  url: string;
-  path: string;
-  filename: string;
-  size: number;
-  mime_type: string;
 }
 
 // Search and Filter Types

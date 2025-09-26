@@ -1,4 +1,24 @@
 // API Configuration and Services for Laravel Backend
+import type { 
+  ApiResponse, 
+  PaginatedResponse, 
+  User, 
+  AuthResponse, 
+  Article, 
+  Video, 
+  Tool, 
+  Book, 
+  Essential, 
+  Pot, 
+  Accessory, 
+  Suggestion, 
+  AboutUs, 
+  ContactMessage, 
+  DashboardStats, 
+  SearchParams, 
+  ApiError 
+} from '../types/api';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 // API Client Configuration
