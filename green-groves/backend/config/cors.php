@@ -28,10 +28,15 @@ return [
         'http://127.0.0.1:5173',
         'http://localhost:80',
         'http://127.0.0.1:80',
+        'http://localhost:8080',
+        'http://127.0.0.1:8080',
         'http://103.252.93.249:80',
         'http://103.252.93.249',
+        'http://103.252.93.249:8080',
         'https://103.252.93.249:80',
         'https://103.252.93.249',
+        'https://103.252.93.249:8080',
+        '*', // Temporary for testing
     ],
 
     'allowed_origins_patterns' => [],

@@ -14,9 +14,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// Add CORS headers to all API routes
+Route::middleware(['cors'])->group(function () {
+    Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+        return $request->user();
+    });
 
 // Test route
 Route::get('/test', function () {
@@ -166,3 +168,4 @@ Route::middleware(['api.auth', 'admin.auth'])->group(function () {
 //     // File Upload
 //     Route::post('/upload', [App\Http\Controllers\Api\Admin\FileUploadController::class, 'upload']);
 // });
+});
