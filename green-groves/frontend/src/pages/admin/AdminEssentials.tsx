@@ -99,29 +99,41 @@ const AdminEssentials: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    setEssentials(essentials.filter(essential => essential.id !== id));
-    setShowDeleteConfirm(null);
+  const handleDelete = async (id: string) => {
+    try {
+      await publicService.deleteItem(id, 'essentials');
+      setEssentials(essentials.filter(essential => essential.id !== id));
+      setShowDeleteConfirm(null);
+      console.log('Essential deleted successfully');
+    } catch (error) {
+      console.error('Error deleting essential:', error);
+      alert('Failed to delete essential. Please try again.');
+    }
   };
 
-  const handleSave = (formData: Partial<Essential>) => {
-    if (editingEssential) {
-      setEssentials(essentials.map(essential =>
-        essential.id === editingEssential.id
-          ? { ...essential, ...formData, updatedAt: new Date().toISOString().split('T')[0] }
-          : essential
-      ));
-    } else {
-      const newEssential: Essential = {
-        id: Date.now().toString(),
-        ...formData as Essential,
-        createdAt: new Date().toISOString().split('T')[0],
-        updatedAt: new Date().toISOString().split('T')[0]
-      };
-      setEssentials([...essentials, newEssential]);
+  const handleSave = async (formData: Partial<Essential>) => {
+    try {
+      if (editingEssential) {
+        // Update existing essential
+        await publicService.updateItem(editingEssential.id, formData, 'essentials');
+        setEssentials(essentials.map(essential =>
+          essential.id === editingEssential.id
+            ? { ...essential, ...formData, updatedAt: new Date().toISOString().split('T')[0] }
+            : essential
+        ));
+        console.log('Essential updated successfully');
+      } else {
+        // Create new essential
+        const newEssential = await publicService.createItem(formData, 'essentials');
+        setEssentials([newEssential, ...essentials]);
+        console.log('Essential created successfully');
+      }
+      setIsModalOpen(false);
+      setEditingEssential(null);
+    } catch (error) {
+      console.error('Error saving essential:', error);
+      alert('Failed to save essential. Please try again.');
     }
-    setIsModalOpen(false);
-    setEditingEssential(null);
   };
 
   return (

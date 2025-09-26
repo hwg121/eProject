@@ -36,4 +36,49 @@ class AccessoryController extends Controller
         $accessory = Accessory::findOrFail($id);
         return new AccessoryResource($accessory);
     }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'category' => 'nullable|string|max:100',
+            'tags' => 'nullable|string',
+            'is_featured' => 'boolean',
+            'views' => 'integer|min:0',
+            'rating' => 'numeric|min:0|max:5',
+        ]);
+
+        $Accessory = Accessory::create($request->all());
+        return new AccessoryResource($Accessory);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $Accessory = Accessory::findOrFail($id);
+        
+        $request->validate([
+            'title' => 'sometimes|required|string|max:255',
+            'description' => 'nullable|string',
+            'category' => 'nullable|string|max:100',
+            'tags' => 'nullable|string',
+            'is_featured' => 'boolean',
+            'views' => 'integer|min:0',
+            'rating' => 'numeric|min:0|max:5',
+        ]);
+
+        $Accessory->update($request->all());
+        return new AccessoryResource($Accessory);
+    }
+
+    public function destroy($id)
+    {
+        $Accessory = Accessory::findOrFail($id);
+        $Accessory->delete();
+        
+        return response()->json([
+            'message' => 'Accessory deleted successfully'
+        ], 200);
+    }
+
 }

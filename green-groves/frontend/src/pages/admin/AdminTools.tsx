@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Plus, Search, Edit, Trash2, Eye, Filter, 
-  Wrench, DollarSign, Star, Package, AlertCircle,
-  CheckCircle, X, Save, Upload, Image as ImageIcon
+  Plus, Search, Edit, Trash2, 
+  DollarSign, AlertCircle,
+  X, Save
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import Card from '../../components/UI/Card';
@@ -24,6 +24,16 @@ interface Tool {
   inStock: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+interface ApiTool {
+  id: number;
+  name: string;
+  description: string;
+  slug: string;
+  images_json?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 const AdminTools: React.FC = () => {
@@ -50,7 +60,7 @@ const AdminTools: React.FC = () => {
         const data = await publicService.getTools();
         
         // Transform data to Tool interface
-        const transformedTools: Tool[] = data.map((tool: any) => ({
+        const transformedTools: Tool[] = (data as ApiTool[]).map((tool: ApiTool) => ({
           id: tool.id.toString(),
           name: tool.name,
           description: tool.description,
@@ -106,29 +116,41 @@ const AdminTools: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    setTools(tools.filter(tool => tool.id !== id));
-    setShowDeleteConfirm(null);
+  const handleDelete = async (id: string) => {
+    try {
+      await publicService.deleteItem(id, 'tools');
+      setTools(tools.filter(tool => tool.id !== id));
+      setShowDeleteConfirm(null);
+      console.log('Tool deleted successfully');
+    } catch (error) {
+      console.error('Error deleting tool:', error);
+      alert('Failed to delete tool. Please try again.');
+    }
   };
 
-  const handleSave = (formData: Partial<Tool>) => {
-    if (editingTool) {
-      setTools(tools.map(tool =>
-        tool.id === editingTool.id
-          ? { ...tool, ...formData, updatedAt: new Date().toISOString().split('T')[0] }
-          : tool
-      ));
-    } else {
-      const newTool: Tool = {
-        id: Date.now().toString(),
-        ...formData as Tool,
-        createdAt: new Date().toISOString().split('T')[0],
-        updatedAt: new Date().toISOString().split('T')[0]
-      };
-      setTools([...tools, newTool]);
+  const handleSave = async (formData: Partial<Tool>) => {
+    try {
+      if (editingTool) {
+        // Update existing tool
+        await publicService.updateItem(editingTool.id, formData, 'tools');
+        setTools(tools.map(tool =>
+          tool.id === editingTool.id
+            ? { ...tool, ...formData, updatedAt: new Date().toISOString().split('T')[0] }
+            : tool
+        ));
+        console.log('Tool updated successfully');
+      } else {
+        // Create new tool
+        const newTool = await publicService.createItem(formData, 'tools') as Tool;
+        setTools([newTool, ...tools]);
+        console.log('Tool created successfully');
+      }
+      setIsModalOpen(false);
+      setEditingTool(null);
+    } catch (error) {
+      console.error('Error saving tool:', error);
+      alert('Failed to save tool. Please try again.');
     }
-    setIsModalOpen(false);
-    setEditingTool(null);
   };
 
   if (loading) {

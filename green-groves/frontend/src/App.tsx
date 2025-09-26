@@ -23,6 +23,10 @@ import AdminPots from './pages/admin/AdminPots';
 import AdminAccessories from './pages/admin/AdminAccessories';
 import AdminAbout from './pages/admin/AdminAbout';
 import AdminAboutUs from './pages/AdminAboutUs';
+import AdminArticles from './pages/admin/AdminArticles';
+import AdminVideos from './pages/admin/AdminVideos';
+import AdminBooks from './pages/admin/AdminBooks';
+import AdminSuggestions from './pages/admin/AdminSuggestions';
 
 function App() {
   return (
@@ -79,6 +83,26 @@ function App() {
                       <Route path="/admin/about-us" element={
                         <ProtectedRoute requireAdmin={true}>
                           <AdminAboutUs />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/admin/articles" element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <AdminArticles />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/admin/videos" element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <AdminVideos />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/admin/books" element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <AdminBooks />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/admin/suggestions" element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <AdminSuggestions />
                         </ProtectedRoute>
                       } />
                     </Routes>

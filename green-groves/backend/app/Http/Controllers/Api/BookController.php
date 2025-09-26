@@ -33,5 +33,61 @@ class BookController extends Controller
         $book = Book::findOrFail($id);
         return new BookResource($book);
     }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'author' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'isbn' => 'nullable|string|max:20',
+            'publication_year' => 'nullable|integer|min:1900|max:' . date('Y'),
+            'pages' => 'nullable|integer|min:1',
+            'cover_image_url' => 'nullable|url',
+            'pdf_url' => 'nullable|url',
+            'category' => 'nullable|string|max:100',
+            'tags' => 'nullable|string',
+            'is_featured' => 'boolean',
+            'views' => 'integer|min:0',
+            'rating' => 'numeric|min:0|max:5',
+        ]);
+
+        $book = Book::create($request->all());
+        return new BookResource($book);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $book = Book::findOrFail($id);
+        
+        $request->validate([
+            'title' => 'sometimes|required|string|max:255',
+            'author' => 'sometimes|required|string|max:255',
+            'description' => 'nullable|string',
+            'isbn' => 'nullable|string|max:20',
+            'publication_year' => 'nullable|integer|min:1900|max:' . date('Y'),
+            'pages' => 'nullable|integer|min:1',
+            'cover_image_url' => 'nullable|url',
+            'pdf_url' => 'nullable|url',
+            'category' => 'nullable|string|max:100',
+            'tags' => 'nullable|string',
+            'is_featured' => 'boolean',
+            'views' => 'integer|min:0',
+            'rating' => 'numeric|min:0|max:5',
+        ]);
+
+        $book->update($request->all());
+        return new BookResource($book);
+    }
+
+    public function destroy($id)
+    {
+        $book = Book::findOrFail($id);
+        $book->delete();
+        
+        return response()->json([
+            'message' => 'Book deleted successfully'
+        ], 200);
+    }
 }
 

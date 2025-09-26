@@ -28,5 +28,49 @@ class PotController extends Controller
         $pot = Pot::findOrFail($id);
         return new PotResource($pot);
     }
-}
 
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'category' => 'nullable|string|max:100',
+            'tags' => 'nullable|string',
+            'is_featured' => 'boolean',
+            'views' => 'integer|min:0',
+            'rating' => 'numeric|min:0|max:5',
+        ]);
+
+        $Pot = Pot::create($request->all());
+        return new PotResource($Pot);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $Pot = Pot::findOrFail($id);
+        
+        $request->validate([
+            'title' => 'sometimes|required|string|max:255',
+            'description' => 'nullable|string',
+            'category' => 'nullable|string|max:100',
+            'tags' => 'nullable|string',
+            'is_featured' => 'boolean',
+            'views' => 'integer|min:0',
+            'rating' => 'numeric|min:0|max:5',
+        ]);
+
+        $Pot->update($request->all());
+        return new PotResource($Pot);
+    }
+
+    public function destroy($id)
+    {
+        $Pot = Pot::findOrFail($id);
+        $Pot->delete();
+        
+        return response()->json([
+            'message' => 'Pot deleted successfully'
+        ], 200);
+    }
+
+}

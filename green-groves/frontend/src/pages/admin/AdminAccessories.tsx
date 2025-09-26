@@ -109,29 +109,41 @@ const AdminAccessories: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    setAccessories(accessories.filter(accessory => accessory.id !== id));
-    setShowDeleteConfirm(null);
+  const handleDelete = async (id: string) => {
+    try {
+      await publicService.deleteItem(id, 'accessories');
+      setAccessories(accessories.filter(accessory => accessory.id !== id));
+      setShowDeleteConfirm(null);
+      console.log('Accessory deleted successfully');
+    } catch (error) {
+      console.error('Error deleting accessory:', error);
+      alert('Failed to delete accessory. Please try again.');
+    }
   };
 
-  const handleSave = (formData: Partial<Accessory>) => {
-    if (editingAccessory) {
-      setAccessories(accessories.map(accessory =>
-        accessory.id === editingAccessory.id
-          ? { ...accessory, ...formData, updatedAt: new Date().toISOString().split('T')[0] }
-          : accessory
-      ));
-    } else {
-      const newAccessory: Accessory = {
-        id: Date.now().toString(),
-        ...formData as Accessory,
-        createdAt: new Date().toISOString().split('T')[0],
-        updatedAt: new Date().toISOString().split('T')[0]
-      };
-      setAccessories([...accessories, newAccessory]);
+  const handleSave = async (formData: Partial<Accessory>) => {
+    try {
+      if (editingAccessory) {
+        // Update existing accessory
+        await publicService.updateItem(editingAccessory.id, formData, 'accessories');
+        setAccessories(accessories.map(accessory =>
+          accessory.id === editingAccessory.id
+            ? { ...accessory, ...formData, updatedAt: new Date().toISOString().split('T')[0] }
+            : accessory
+        ));
+        console.log('Accessory updated successfully');
+      } else {
+        // Create new accessory
+        const newAccessory = await publicService.createItem(formData, 'accessories');
+        setAccessories([newAccessory, ...accessories]);
+        console.log('Accessory created successfully');
+      }
+      setIsModalOpen(false);
+      setEditingAccessory(null);
+    } catch (error) {
+      console.error('Error saving accessory:', error);
+      alert('Failed to save accessory. Please try again.');
     }
-    setIsModalOpen(false);
-    setEditingAccessory(null);
   };
 
   return (

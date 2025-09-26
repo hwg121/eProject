@@ -1,13 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { Wrench, Play, ExternalLink } from 'lucide-react';
+import { Wrench, Play } from 'lucide-react';
 import Card from '../components/UI/Card';
 import PageHeader from '../components/UI/PageHeader';
 import Carousel from '../components/UI/Carousel';
 import { publicService } from '../services/api.ts';
 
+interface Tool {
+  id: string;
+  name: string;
+  description: string;
+  brand: string;
+  model: string;
+  price: number;
+  category: string;
+  specifications: string;
+  imageUrl: string;
+  images_json?: string;
+  video_url?: string;
+  status: 'active' | 'inactive';
+  rating: number;
+  inStock: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const Tools: React.FC = () => {
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
-  const [tools, setTools] = useState<any[]>([]);
+  const [tools, setTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -16,7 +35,7 @@ const Tools: React.FC = () => {
       try {
         setLoading(true);
         const data = await publicService.getTools();
-        setTools(data);
+        setTools(data as Tool[]);
       } catch (err) {
         setError('Failed to load tools');
         console.error('Error loading tools:', err);
@@ -95,7 +114,7 @@ const Tools: React.FC = () => {
               </p>
               {tool.video_url && (
                 <button
-                  onClick={() => setSelectedVideo(tool.video_url)}
+                  onClick={() => setSelectedVideo(tool.video_url || null)}
                   className="flex items-center space-x-2 text-emerald-600 hover:text-emerald-800 transition-colors mb-4"
                 >
                   <Play className="h-4 w-4" />

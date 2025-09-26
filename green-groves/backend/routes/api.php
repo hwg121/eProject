@@ -89,6 +89,49 @@ Route::middleware(['api.auth', 'admin.auth'])->group(function () {
     Route::delete('/about-us/{id}', [App\Http\Controllers\Api\AboutUsController::class, 'destroy']);
 });
 
+// Admin CRUD routes for all content types
+Route::middleware(['api.auth', 'admin.auth'])->group(function () {
+    // Articles CRUD
+    Route::post('/articles', [App\Http\Controllers\Api\ArticleController::class, 'store']);
+    Route::put('/articles/{id}', [App\Http\Controllers\Api\ArticleController::class, 'update']);
+    Route::delete('/articles/{id}', [App\Http\Controllers\Api\ArticleController::class, 'destroy']);
+    
+    // Videos CRUD
+    Route::post('/videos', [App\Http\Controllers\Api\VideoController::class, 'store']);
+    Route::put('/videos/{id}', [App\Http\Controllers\Api\VideoController::class, 'update']);
+    Route::delete('/videos/{id}', [App\Http\Controllers\Api\VideoController::class, 'destroy']);
+    
+    // Books CRUD
+    Route::post('/books', [App\Http\Controllers\Api\BookController::class, 'store']);
+    Route::put('/books/{id}', [App\Http\Controllers\Api\BookController::class, 'update']);
+    Route::delete('/books/{id}', [App\Http\Controllers\Api\BookController::class, 'destroy']);
+    
+    // Tools CRUD
+    Route::post('/tools', [App\Http\Controllers\Api\ToolController::class, 'store']);
+    Route::put('/tools/{id}', [App\Http\Controllers\Api\ToolController::class, 'update']);
+    Route::delete('/tools/{id}', [App\Http\Controllers\Api\ToolController::class, 'destroy']);
+    
+    // Essentials CRUD
+    Route::post('/essentials', [App\Http\Controllers\Api\EssentialController::class, 'store']);
+    Route::put('/essentials/{id}', [App\Http\Controllers\Api\EssentialController::class, 'update']);
+    Route::delete('/essentials/{id}', [App\Http\Controllers\Api\EssentialController::class, 'destroy']);
+    
+    // Pots CRUD
+    Route::post('/pots', [App\Http\Controllers\Api\PotController::class, 'store']);
+    Route::put('/pots/{id}', [App\Http\Controllers\Api\PotController::class, 'update']);
+    Route::delete('/pots/{id}', [App\Http\Controllers\Api\PotController::class, 'destroy']);
+    
+    // Accessories CRUD
+    Route::post('/accessories', [App\Http\Controllers\Api\AccessoryController::class, 'store']);
+    Route::put('/accessories/{id}', [App\Http\Controllers\Api\AccessoryController::class, 'update']);
+    Route::delete('/accessories/{id}', [App\Http\Controllers\Api\AccessoryController::class, 'destroy']);
+    
+    // Suggestions CRUD
+    Route::post('/suggestions', [App\Http\Controllers\Api\SuggestionController::class, 'store']);
+    Route::put('/suggestions/{id}', [App\Http\Controllers\Api\SuggestionController::class, 'update']);
+    Route::delete('/suggestions/{id}', [App\Http\Controllers\Api\SuggestionController::class, 'destroy']);
+});
+
 // Admin API Routes (Protected) - Commented out for now
 // Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
 //     // Auth

@@ -40,4 +40,49 @@ class ToolController extends Controller
         $tool = Tool::findOrFail($id);
         return new ToolResource($tool);
     }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'category' => 'nullable|string|max:100',
+            'tags' => 'nullable|string',
+            'is_featured' => 'boolean',
+            'views' => 'integer|min:0',
+            'rating' => 'numeric|min:0|max:5',
+        ]);
+
+        $Tool = Tool::create($request->all());
+        return new ToolResource($Tool);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $Tool = Tool::findOrFail($id);
+        
+        $request->validate([
+            'title' => 'sometimes|required|string|max:255',
+            'description' => 'nullable|string',
+            'category' => 'nullable|string|max:100',
+            'tags' => 'nullable|string',
+            'is_featured' => 'boolean',
+            'views' => 'integer|min:0',
+            'rating' => 'numeric|min:0|max:5',
+        ]);
+
+        $Tool->update($request->all());
+        return new ToolResource($Tool);
+    }
+
+    public function destroy($id)
+    {
+        $Tool = Tool::findOrFail($id);
+        $Tool->delete();
+        
+        return response()->json([
+            'message' => 'Tool deleted successfully'
+        ], 200);
+    }
+
 }

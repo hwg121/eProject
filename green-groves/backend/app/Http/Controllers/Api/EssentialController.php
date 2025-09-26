@@ -32,5 +32,49 @@ class EssentialController extends Controller
         $essential = Essential::findOrFail($id);
         return new EssentialResource($essential);
     }
-}
 
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'category' => 'nullable|string|max:100',
+            'tags' => 'nullable|string',
+            'is_featured' => 'boolean',
+            'views' => 'integer|min:0',
+            'rating' => 'numeric|min:0|max:5',
+        ]);
+
+        $Essential = Essential::create($request->all());
+        return new EssentialResource($Essential);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $Essential = Essential::findOrFail($id);
+        
+        $request->validate([
+            'title' => 'sometimes|required|string|max:255',
+            'description' => 'nullable|string',
+            'category' => 'nullable|string|max:100',
+            'tags' => 'nullable|string',
+            'is_featured' => 'boolean',
+            'views' => 'integer|min:0',
+            'rating' => 'numeric|min:0|max:5',
+        ]);
+
+        $Essential->update($request->all());
+        return new EssentialResource($Essential);
+    }
+
+    public function destroy($id)
+    {
+        $Essential = Essential::findOrFail($id);
+        $Essential->delete();
+        
+        return response()->json([
+            'message' => 'Essential deleted successfully'
+        ], 200);
+    }
+
+}

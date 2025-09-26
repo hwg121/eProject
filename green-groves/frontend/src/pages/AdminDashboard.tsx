@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BarChart3, Users, BookOpen, Video, Lightbulb, Star, 
-  Plus, Search, Filter, Edit, Trash2, Eye, Calendar, Wrench, Leaf, Package, Sparkles,
-  TrendingUp, Activity, Globe, Clock, Award, Target,
-  FileText, Image, Link, Tag, DollarSign, Heart,
-  Settings, Bell, Download, Upload, RefreshCw, MessageSquare,
+  Plus, Search, Edit, Trash2, Eye, Wrench, Leaf, Package, Sparkles,
+  TrendingUp, Activity,
+  FileText, DollarSign, Heart,
+  MessageSquare,
   Shield, AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -88,6 +88,7 @@ const AdminDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Real content data from database
+  const [articles, setArticles] = useState<ContentItem[]>([]);
   const [techniques, setTechniques] = useState<ContentItem[]>([]);
   const [books, setBooks] = useState<ContentItem[]>([]);
   const [suggestions, setSuggestions] = useState<ContentItem[]>([]);
@@ -154,32 +155,28 @@ const AdminDashboard: React.FC = () => {
         setAccessories(safeAccessories.map(transformAccessoryToContentItem));
         setSuggestions(safeSuggestions.map(transformSuggestionToContentItem));
         setAboutUs(safeAboutUs.map(transformAboutUsToContentItem));
-        setContactMessages(Array.isArray(contactMessagesData) ? contactMessagesData : []);
+        setContactMessages(Array.isArray(contactMessagesData) ? contactMessagesData as ContactMessage[] : []);
 
         // Calculate stats
         const totalArticles = safeArticles.length;
         const totalVideos = safeVideos.length;
         const totalBooks = safeBooks.length;
-        const totalTools = safeTools.length;
-        const totalEssentials = safeEssentials.length;
-        const totalPots = safePots.length;
-        const totalAccessories = safeAccessories.length;
         const totalSuggestions = safeSuggestions.length;
         const totalAboutUs = safeAboutUs.length;
         const totalContactMessages = contactMessages.length;
 
         // Calculate total views from real data
         const totalViews = [
-          ...safeArticles.map(a => a.views || 0),
-          ...safeVideos.map(v => v.views || 0),
-          ...safeBooks.map(b => b.views || 0)
+          ...safeArticles.map((a: any) => a.views || 0),
+          ...safeVideos.map((v: any) => v.views || 0),
+          ...safeBooks.map((b: any) => b.views || 0)
         ].reduce((sum, views) => sum + views, 0);
 
         // Calculate average rating from real data
         const allRatings = [
-          ...safeArticles.map(a => a.rating || 4.5),
-          ...safeVideos.map(v => v.rating || 4.5),
-          ...safeBooks.map(b => b.rating || 4.5)
+          ...safeArticles.map((a: any) => a.rating || 4.5),
+          ...safeVideos.map((v: any) => v.rating || 4.5),
+          ...safeBooks.map((b: any) => b.rating || 4.5)
         ];
         const avgRating = allRatings.length > 0 ? 
           allRatings.reduce((sum, rating) => sum + rating, 0) / allRatings.length : 4.5;
@@ -208,39 +205,39 @@ const AdminDashboard: React.FC = () => {
 
         // Generate recent activity from content
         const recentItems = [
-          ...safeArticles.slice(0, 2).map(item => ({
+          ...safeArticles.slice(0, 2).map((item: any) => ({
             id: `article-${item.id}`,
             action: 'Article published',
             user: item.author?.name || 'Admin',
-            time: formatTimeAgo(item.created_at),
+            time: formatTimeAgo(item.createdAt),
             type: 'content'
           })),
-          ...safeVideos.slice(0, 2).map(item => ({
+          ...safeVideos.slice(0, 2).map((item: any) => ({
             id: `video-${item.id}`,
             action: 'Video uploaded',
             user: 'Admin',
-            time: formatTimeAgo(item.created_at),
+            time: formatTimeAgo(item.createdAt),
             type: 'media'
           })),
-          ...safeBooks.slice(0, 1).map(item => ({
+          ...safeBooks.slice(0, 1).map((item: any) => ({
             id: `book-${item.id}`,
             action: 'Book added',
             user: item.author || 'Admin',
-            time: formatTimeAgo(item.created_at),
+            time: formatTimeAgo(item.createdAt),
             type: 'content'
           })),
-          ...safeSuggestions.slice(0, 1).map(item => ({
+          ...safeSuggestions.slice(0, 1).map((item: any) => ({
             id: `suggestion-${item.id}`,
             action: 'Suggestion added',
             user: 'Admin',
-            time: formatTimeAgo(item.created_at),
+            time: formatTimeAgo(item.createdAt),
             type: 'suggestion'
           })),
-          ...contactMessages.slice(0, 1).map(item => ({
+          ...contactMessages.slice(0, 1).map((item: any) => ({
             id: `contact-${item.id}`,
             action: 'New contact message',
             user: item.name,
-            time: formatTimeAgo(item.created_at),
+            time: formatTimeAgo(item.createdAt),
             type: 'contact'
           }))
         ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
@@ -249,35 +246,35 @@ const AdminDashboard: React.FC = () => {
 
         // Generate top content
         const topItems = [
-          ...safeArticles.slice(0, 2).map(item => ({
+          ...safeArticles.slice(0, 2).map((item: any) => ({
             id: `article-${item.id}`,
             title: item.title,
             views: Math.floor(Math.random() * 10000) + 1000,
             likes: Math.floor(Math.random() * 500) + 50,
             type: 'article'
           })),
-          ...safeVideos.slice(0, 1).map(item => ({
+          ...safeVideos.slice(0, 1).map((item: any) => ({
             id: `video-${item.id}`,
             title: item.title,
             views: Math.floor(Math.random() * 8000) + 1000,
             likes: Math.floor(Math.random() * 400) + 50,
             type: 'video'
           })),
-          ...safeBooks.slice(0, 1).map(item => ({
+          ...safeBooks.slice(0, 1).map((item: any) => ({
             id: `book-${item.id}`,
             title: item.title,
             views: Math.floor(Math.random() * 6000) + 1000,
             likes: Math.floor(Math.random() * 300) + 50,
             type: 'book'
           })),
-          ...safeSuggestions.slice(0, 1).map(item => ({
+          ...safeSuggestions.slice(0, 1).map((item: any) => ({
             id: `suggestion-${item.id}`,
             title: item.title,
             views: item.views || Math.floor(Math.random() * 5000) + 1000,
             likes: item.likes || Math.floor(Math.random() * 200) + 30,
             type: 'suggestion'
           })),
-          ...contactMessages.slice(0, 1).map(item => ({
+          ...contactMessages.slice(0, 1).map((item: any) => ({
             id: `contact-${item.id}`,
             title: item.subject,
             views: 1,
@@ -326,8 +323,8 @@ const AdminDashboard: React.FC = () => {
     status: article.status || 'published',
     views: Math.floor(Math.random() * 10000) + 1000,
     likes: Math.floor(Math.random() * 500) + 50,
-    createdAt: article.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-    updatedAt: article.updated_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+    createdAt: article.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+    updatedAt: article.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
     featured: false,
     description: article.excerpt || article.body?.substring(0, 150) + '...',
     tags: [],
@@ -342,8 +339,8 @@ const AdminDashboard: React.FC = () => {
     status: 'published',
     views: Math.floor(Math.random() * 8000) + 1000,
     likes: Math.floor(Math.random() * 400) + 50,
-    createdAt: video.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-    updatedAt: video.updated_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+    createdAt: video.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+    updatedAt: video.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
     description: video.description,
     videoUrl: video.embed_url,
     imageUrl: video.thumbnail || '/image.png'
@@ -357,8 +354,8 @@ const AdminDashboard: React.FC = () => {
     status: 'published',
     rating: book.rating || 4.5,
     price: book.price || 0,
-    createdAt: book.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-    updatedAt: book.updated_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+    createdAt: book.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+    updatedAt: book.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
     description: book.description,
     imageUrl: book.image || '/image.png'
   });
@@ -369,8 +366,8 @@ const AdminDashboard: React.FC = () => {
     category: 'Tools',
     status: 'published',
     price: 0,
-    createdAt: tool.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-    updatedAt: tool.updated_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+    createdAt: tool.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+    updatedAt: tool.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
     description: tool.description,
     imageUrl: tool.images_json ? JSON.parse(tool.images_json)[0] : '/image.png'
   });
@@ -381,8 +378,8 @@ const AdminDashboard: React.FC = () => {
     category: essential.category || 'Essentials',
     status: 'published',
     price: essential.price || 0,
-    createdAt: essential.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-    updatedAt: essential.updated_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+    createdAt: essential.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+    updatedAt: essential.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
     description: essential.description,
     imageUrl: essential.image || '/image.png'
   });
@@ -393,8 +390,8 @@ const AdminDashboard: React.FC = () => {
     category: pot.material || 'Pots',
     status: 'published',
     price: pot.price || 0,
-    createdAt: pot.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-    updatedAt: pot.updated_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+    createdAt: pot.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+    updatedAt: pot.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
     description: pot.description,
     imageUrl: pot.image || '/image.png'
   });
@@ -406,8 +403,8 @@ const AdminDashboard: React.FC = () => {
     status: 'published',
     price: accessory.price || 0,
     rating: accessory.rating || 4.5,
-    createdAt: accessory.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-    updatedAt: accessory.updated_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+    createdAt: accessory.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+    updatedAt: accessory.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
     description: accessory.description,
     imageUrl: accessory.image || '/image.png'
   });
@@ -420,8 +417,8 @@ const AdminDashboard: React.FC = () => {
     rating: suggestion.rating || 4.5,
     views: suggestion.views || 0,
     likes: suggestion.likes || 0,
-    createdAt: suggestion.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-    updatedAt: suggestion.updated_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+    createdAt: suggestion.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+    updatedAt: suggestion.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
     description: suggestion.description,
     imageUrl: suggestion.image || '/image.png',
     featured: suggestion.is_featured || false,
@@ -437,8 +434,8 @@ const AdminDashboard: React.FC = () => {
     rating: 5.0,
     views: 0,
     likes: 0,
-    createdAt: aboutUs.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-    updatedAt: aboutUs.updated_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+    createdAt: aboutUs.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+    updatedAt: aboutUs.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
     description: aboutUs.description,
     imageUrl: aboutUs.image || '/image.png',
     featured: aboutUs.is_active || false,
@@ -458,6 +455,7 @@ const AdminDashboard: React.FC = () => {
   };
 
   const categories = {
+    articles: ['Gardening', 'Plants', 'Techniques', 'Tools', 'Tips', 'Reviews'],
     techniques: ['Beginner', 'Intermediate', 'Advanced', 'Seasonal', 'Indoor', 'Outdoor'],
     books: ['Beginner Guides', 'Advanced Techniques', 'Plant Science', 'Garden Design', 'Organic Gardening'],
     suggestions: ['Tools', 'Accessories', 'Books', 'Seeds', 'Fertilizers'],
@@ -471,6 +469,7 @@ const AdminDashboard: React.FC = () => {
 
   const getContentData = (type: string) => {
     switch (type) {
+      case 'articles': return articles;
       case 'techniques': return techniques;
       case 'books': return books;
       case 'suggestions': return suggestions;
@@ -486,6 +485,7 @@ const AdminDashboard: React.FC = () => {
 
   const setContentData = (type: string, data: ContentItem[]) => {
     switch (type) {
+      case 'articles': setArticles(data); break;
       case 'techniques': setTechniques(data); break;
       case 'books': setBooks(data); break;
       case 'suggestions': setSuggestions(data); break;
@@ -498,7 +498,7 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const filteredContent = getContentData(activeTab).filter(item => {
+  const filteredContent = getContentData(activeTab).filter((item: ContentItem) => {
     const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (item.author && item.author.toLowerCase().includes(searchTerm.toLowerCase())) ||
                          (item.instructor && item.instructor.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -518,11 +518,22 @@ const AdminDashboard: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string, type: string) => {
+  const handleDelete = async (id: string, type: string) => {
     if (window.confirm('Are you sure you want to delete this item?')) {
-      const currentData = getContentData(type);
-      const updatedData = currentData.filter(item => item.id !== id);
-      setContentData(type, updatedData);
+      try {
+        // Call API to delete from database
+        await publicService.deleteItem(id, type);
+        
+        // Update frontend state
+        const currentData = getContentData(type);
+        const updatedData = currentData.filter((item: ContentItem) => item.id !== id);
+        setContentData(type, updatedData);
+        
+        console.log(`${type} deleted successfully`);
+      } catch (error) {
+        console.error(`Error deleting ${type}:`, error);
+        alert(`Failed to delete ${type}. Please try again.`);
+      }
     }
   };
 
@@ -531,7 +542,7 @@ const AdminDashboard: React.FC = () => {
     
     if (editingItem) {
       // Update existing item
-      const updatedData = currentData.map(item =>
+      const updatedData = currentData.map((item: ContentItem) =>
         item.id === editingItem.id
           ? { ...item, ...formData, updatedAt: new Date().toISOString().split('T')[0] }
           : item
@@ -819,6 +830,7 @@ const AdminDashboard: React.FC = () => {
           <div className="flex flex-wrap gap-3 mb-6">
             {[
               { id: 'overview', label: 'Overview', icon: BarChart3, color: 'from-blue-500 to-indigo-600', description: 'Dashboard overview' },
+              { id: 'articles', label: 'Articles', icon: FileText, color: 'from-emerald-500 to-green-600', description: 'Gardening articles' },
               { id: 'techniques', label: 'Techniques', icon: Lightbulb, color: 'from-green-500 to-emerald-600', description: 'Gardening techniques' },
               { id: 'books', label: 'Books', icon: BookOpen, color: 'from-purple-500 to-violet-600', description: 'Educational books' },
               { id: 'suggestions', label: 'Suggestions', icon: Star, color: 'from-yellow-500 to-orange-600', description: 'Plant suggestions' },
@@ -1068,7 +1080,7 @@ const AdminDashboard: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredContent.map((item) => (
+                {filteredContent.map((item: ContentItem) => (
                   <motion.tr
                     key={item.id}
                     className={`border-b hover:bg-opacity-50 transition-colors ${

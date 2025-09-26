@@ -109,29 +109,41 @@ const AdminPots: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    setPots(pots.filter(pot => pot.id !== id));
-    setShowDeleteConfirm(null);
+  const handleDelete = async (id: string) => {
+    try {
+      await publicService.deleteItem(id, 'pots');
+      setPots(pots.filter(pot => pot.id !== id));
+      setShowDeleteConfirm(null);
+      console.log('Pot deleted successfully');
+    } catch (error) {
+      console.error('Error deleting pot:', error);
+      alert('Failed to delete pot. Please try again.');
+    }
   };
 
-  const handleSave = (formData: Partial<Pot>) => {
-    if (editingPot) {
-      setPots(pots.map(pot =>
-        pot.id === editingPot.id
-          ? { ...pot, ...formData, updatedAt: new Date().toISOString().split('T')[0] }
-          : pot
-      ));
-    } else {
-      const newPot: Pot = {
-        id: Date.now().toString(),
-        ...formData as Pot,
-        createdAt: new Date().toISOString().split('T')[0],
-        updatedAt: new Date().toISOString().split('T')[0]
-      };
-      setPots([...pots, newPot]);
+  const handleSave = async (formData: Partial<Pot>) => {
+    try {
+      if (editingPot) {
+        // Update existing pot
+        await publicService.updateItem(editingPot.id, formData, 'pots');
+        setPots(pots.map(pot =>
+          pot.id === editingPot.id
+            ? { ...pot, ...formData, updatedAt: new Date().toISOString().split('T')[0] }
+            : pot
+        ));
+        console.log('Pot updated successfully');
+      } else {
+        // Create new pot
+        const newPot = await publicService.createItem(formData, 'pots');
+        setPots([newPot, ...pots]);
+        console.log('Pot created successfully');
+      }
+      setIsModalOpen(false);
+      setEditingPot(null);
+    } catch (error) {
+      console.error('Error saving pot:', error);
+      alert('Failed to save pot. Please try again.');
     }
-    setIsModalOpen(false);
-    setEditingPot(null);
   };
 
   return (
