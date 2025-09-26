@@ -160,7 +160,10 @@ class VideoSeeder extends Seeder
         ];
 
         foreach ($videos as $video) {
-            Video::create($video);
+            Video::firstOrCreate(
+                ['title' => $video['title']],
+                $video
+            );
         }
     }
 }

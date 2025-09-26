@@ -144,7 +144,10 @@ class SuggestionSeeder extends Seeder
         ];
 
         foreach ($suggestions as $suggestion) {
-            Suggestion::create($suggestion);
+            Suggestion::firstOrCreate(
+                ['title' => $suggestion['title']],
+                $suggestion
+            );
         }
     }
 }

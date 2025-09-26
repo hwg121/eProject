@@ -189,7 +189,10 @@ class EssentialSeeder extends Seeder
         ];
 
         foreach ($essentials as $essential) {
-            Essential::create($essential);
+            Essential::firstOrCreate(
+                ['name' => $essential['name']],
+                $essential
+            );
         }
     }
 }

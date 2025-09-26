@@ -274,7 +274,10 @@ class PotSeeder extends Seeder
         ];
 
         foreach ($pots as $pot) {
-            Pot::create($pot);
+            Pot::firstOrCreate(
+                ['slug' => $pot['slug']],
+                $pot
+            );
         }
     }
 }

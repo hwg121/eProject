@@ -296,7 +296,10 @@ class AccessorySeeder extends Seeder
         ];
 
         foreach ($accessories as $accessory) {
-            Accessory::create($accessory);
+            Accessory::firstOrCreate(
+                ['slug' => $accessory['slug']],
+                $accessory
+            );
         }
     }
 }

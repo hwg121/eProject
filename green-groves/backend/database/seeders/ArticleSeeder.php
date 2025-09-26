@@ -178,7 +178,10 @@ class ArticleSeeder extends Seeder
         ];
 
         foreach ($articles as $article) {
-            Article::create($article);
+            Article::firstOrCreate(
+                ['slug' => $article['slug']],
+                $article
+            );
         }
     }
 }

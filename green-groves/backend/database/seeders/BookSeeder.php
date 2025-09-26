@@ -292,7 +292,10 @@ class BookSeeder extends Seeder
         ];
 
         foreach ($books as $book) {
-            Book::create($book);
+            Book::firstOrCreate(
+                ['slug' => $book['slug']],
+                $book
+            );
         }
     }
 }

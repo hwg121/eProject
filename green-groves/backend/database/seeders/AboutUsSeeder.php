@@ -78,6 +78,9 @@ Green Groves không chỉ là nơi mua sắm mà còn là cộng đồng học h
             'is_active' => true
         ];
 
-        AboutUs::create($aboutUs);
+        AboutUs::firstOrCreate(
+            ['title' => $aboutUs['title']],
+            $aboutUs
+        );
     }
 }
