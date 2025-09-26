@@ -72,4 +72,4 @@ Write-Host "🔐 Setting permissions..." -ForegroundColor Yellow
 icacls $WebRoot /grant "Everyone:(OI)(CI)F" /T
 
 Write-Host "✅ Frontend deployment completed!" -ForegroundColor Green
-Write-Host "🌐 Frontend URL: http://103.252.93.249" -ForegroundColor Cyan
+Write-Host "🌐 Frontend URL: http://103.252.93.249:80" -ForegroundColor Cyan

@@ -16,7 +16,7 @@ Write-Host "🧪 Testing deployment..." -ForegroundColor Yellow
 
 # Test backend
 try {
-    $backendResponse = Invoke-WebRequest -Uri "http://103.252.93.249/green-groves-backend/api/test" -Method GET
+    $backendResponse = Invoke-WebRequest -Uri "http://103.252.93.249:8080/api/test" -Method GET
     if ($backendResponse.StatusCode -eq 200) {
         Write-Host "✅ Backend is running!" -ForegroundColor Green
     }
@@ -26,7 +26,7 @@ try {
 
 # Test frontend
 try {
-    $frontendResponse = Invoke-WebRequest -Uri "http://103.252.93.249" -Method GET
+    $frontendResponse = Invoke-WebRequest -Uri "http://103.252.93.249:80" -Method GET
     if ($frontendResponse.StatusCode -eq 200) {
         Write-Host "✅ Frontend is running!" -ForegroundColor Green
     }
@@ -35,5 +35,5 @@ try {
 }
 
 Write-Host "🎉 Deployment completed!" -ForegroundColor Green
-Write-Host "🌐 Backend: http://103.252.93.249/green-groves-backend" -ForegroundColor Cyan
-Write-Host "🌐 Frontend: http://103.252.93.249" -ForegroundColor Cyan
+Write-Host "🌐 Backend: http://103.252.93.249:8080" -ForegroundColor Cyan
+Write-Host "🌐 Frontend: http://103.252.93.249:80" -ForegroundColor Cyan

@@ -71,5 +71,5 @@ Write-Host "📊 Running database optimization..." -ForegroundColor Yellow
 # This will be handled by the new migration we created
 
 Write-Host "✅ Backend deployment completed!" -ForegroundColor Green
-Write-Host "🌐 Backend URL: http://103.252.93.249/green-groves-backend" -ForegroundColor Cyan
-Write-Host "🌐 API URL: http://103.252.93.249/green-groves-backend/api" -ForegroundColor Cyan
+Write-Host "🌐 Backend URL: http://103.252.93.249:8080" -ForegroundColor Cyan
+Write-Host "🌐 API URL: http://103.252.93.249:8080/api" -ForegroundColor Cyan
