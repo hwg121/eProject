@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Tool;
 use App\Http\Resources\ToolResource;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class ToolController extends Controller
 {
@@ -14,33 +16,68 @@ class ToolController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Tool::query();
+        $cacheKey = 'tools_' . md5(serialize($request->all()));
+        
+        return Cache::remember($cacheKey, 300, function () use ($request) {
+            $query = Tool::query();
 
-        // Search
-        if ($request->has('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
+            // Search with optimized query
+            if ($request->has('search')) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
 
-        // Pagination
-        $perPage = $request->get('per_page', 10);
-        $tools = $query->paginate($perPage);
+            // Featured filter
+            if ($request->has('featured') && $request->featured) {
+                $query->where('featured', true);
+            }
 
-        return ToolResource::collection($tools);
+            // Category filter
+            if ($request->has('category')) {
+                $query->where('category', $request->category);
+            }
+
+            // Rating filter
+            if ($request->has('min_rating')) {
+                $query->where('rating', '>=', $request->min_rating);
+            }
+
+            // Order by performance
+            $orderBy = $request->get('order_by', 'featured');
+            $orderDirection = $request->get('order_direction', 'desc');
+            
+            switch ($orderBy) {
+                case 'rating':
+                    $query->orderBy('rating', $orderDirection);
+                    break;
+                case 'views':
+                    $query->orderBy('views', $orderDirection);
+                    break;
+                case 'newest':
+                    $query->orderBy('created_at', $orderDirection);
+                    break;
+                case 'featured':
+                default:
+                    $query->orderBy('featured', 'desc')
+                          ->orderBy('rating', 'desc')
+                          ->orderBy('views', 'desc');
+                    break;
+            }
+
+            // Pagination with optimized limit
+            $perPage = min($request->get('per_page', 12), 50); // Max 50 items per page
+            $tools = $query->paginate($perPage);
+
+            return ToolResource::collection($tools);
+        });
     }
 
     /**
-     * Display the specified tool.
+     * Store a newly created tool.
      */
-    public function show($id)
-    {
-        $tool = Tool::findOrFail($id);
-        return new ToolResource($tool);
-    }
-
     public function store(Request $request)
     {
         $request->validate([
@@ -56,13 +93,33 @@ class ToolController extends Controller
         ]);
 
         $tool = Tool::create($request->all());
+        
+        // Clear cache
+        Cache::forget('tools_*');
+        
         return new ToolResource($tool);
     }
 
-    public function update(Request $request, $id)
+    /**
+     * Display the specified tool.
+     */
+    public function show(Tool $tool)
     {
-        $tool = Tool::findOrFail($id);
+        $cacheKey = "tool_{$tool->id}";
         
+        return Cache::remember($cacheKey, 600, function () use ($tool) {
+            // Increment views
+            DB::table('tools')->where('id', $tool->id)->increment('views');
+            
+            return new ToolResource($tool);
+        });
+    }
+
+    /**
+     * Update the specified tool.
+     */
+    public function update(Request $request, Tool $tool)
+    {
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
@@ -76,17 +133,78 @@ class ToolController extends Controller
         ]);
 
         $tool->update($request->all());
+        
+        // Clear cache
+        Cache::forget('tools_*');
+        Cache::forget("tool_{$tool->id}");
+        
         return new ToolResource($tool);
     }
 
-    public function destroy($id)
+    /**
+     * Remove the specified tool.
+     */
+    public function destroy(Tool $tool)
     {
-        $tool = Tool::findOrFail($id);
         $tool->delete();
         
-        return response()->json([
-            'message' => 'Tool deleted successfully'
-        ], 200);
+        // Clear cache
+        Cache::forget('tools_*');
+        Cache::forget("tool_{$tool->id}");
+        
+        return response()->json(['message' => 'Tool deleted successfully']);
     }
 
+    /**
+     * Get featured tools.
+     */
+    public function featured()
+    {
+        $cacheKey = 'tools_featured';
+        
+        return Cache::remember($cacheKey, 300, function () {
+            $tools = Tool::where('featured', true)
+                        ->orderBy('rating', 'desc')
+                        ->orderBy('views', 'desc')
+                        ->limit(8)
+                        ->get();
+            
+            return ToolResource::collection($tools);
+        });
+    }
+
+    /**
+     * Get popular tools.
+     */
+    public function popular()
+    {
+        $cacheKey = 'tools_popular';
+        
+        return Cache::remember($cacheKey, 300, function () {
+            $tools = Tool::orderBy('views', 'desc')
+                        ->orderBy('rating', 'desc')
+                        ->limit(8)
+                        ->get();
+            
+            return ToolResource::collection($tools);
+        });
+    }
+
+    /**
+     * Get tools by category.
+     */
+    public function byCategory(Request $request)
+    {
+        $category = $request->get('category');
+        $cacheKey = "tools_category_{$category}";
+        
+        return Cache::remember($cacheKey, 300, function () use ($category) {
+            $tools = Tool::where('category', $category)
+                        ->orderBy('featured', 'desc')
+                        ->orderBy('rating', 'desc')
+                        ->paginate(12);
+            
+            return ToolResource::collection($tools);
+        });
+    }
 }
