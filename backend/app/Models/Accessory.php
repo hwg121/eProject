@@ -13,6 +13,7 @@ class Accessory extends Model
         'name',
         'slug',
         'description',
+        'featured_image',
         'price',
         'image',
         'category',

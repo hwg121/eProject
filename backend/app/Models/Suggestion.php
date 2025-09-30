@@ -14,6 +14,7 @@ class Suggestion extends Model
         'slug',
         'description',
         'content',
+        'featured_image',
         'category',
         'difficulty_level',
         'season',

@@ -39,3 +39,4 @@ const IconLoader: React.FC<IconLoaderProps> = ({ name, className = '', size = 24
 
 export default IconLoader;
 
+

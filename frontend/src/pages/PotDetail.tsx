@@ -214,3 +214,4 @@ const PotDetail: React.FC = () => {
 };
 
 export default PotDetail;
+

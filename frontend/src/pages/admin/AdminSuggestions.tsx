@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import Card from '../../components/UI/Card';
+import ImageUpload from '../../components/ImageUpload';
 import { publicService } from '../../services/api.ts';
 
 interface Suggestion {

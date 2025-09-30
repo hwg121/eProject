@@ -12,6 +12,7 @@ class Pot extends Model
     protected $fillable = [
         'name',
         'description',
+        'featured_image',
         'dimensions',
         'material',
         'image',

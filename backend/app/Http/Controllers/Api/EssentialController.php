@@ -38,6 +38,7 @@ class EssentialController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'featured_image' => 'nullable|string',
             'category' => 'nullable|string|max:100',
             'tags' => 'nullable|string',
             'is_featured' => 'boolean',
@@ -56,6 +57,7 @@ class EssentialController extends Controller
         $request->validate([
             'title' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
+            'featured_image' => 'nullable|string',
             'category' => 'nullable|string|max:100',
             'tags' => 'nullable|string',
             'is_featured' => 'boolean',

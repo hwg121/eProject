@@ -214,3 +214,4 @@ const AccessoryDetail: React.FC = () => {
 };
 
 export default AccessoryDetail;
+

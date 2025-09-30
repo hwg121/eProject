@@ -92,3 +92,4 @@ Tạo file `frontend/src/types/api.ts` với các interface:
 - Lỗi cuối cùng `(window as any).gtag` là cách hợp lệ để truy cập Google Analytics
 - Có thể bỏ qua lỗi này hoặc thêm `// eslint-disable-next-line @typescript-eslint/no-explicit-any`
 - Tất cả functionality vẫn hoạt động bình thường
+

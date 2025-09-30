@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import Card from '../../components/UI/Card';
+import ImageUpload from '../../components/ImageUpload';
 
 interface ContentBlock {
   id: string;
@@ -716,13 +717,13 @@ const AboutPageModal: React.FC<AboutPageModalProps> = ({ page, onSave, onCancel,
           </div>
 
           <div>
-            <label className={labelClass}>Hero Image URL</label>
-            <input
-              type="url"
+            <label className={labelClass}>Hero Image</label>
+            <ImageUpload
               value={formData.heroImage || ''}
-              onChange={(e) => setFormData({ ...formData, heroImage: e.target.value })}
-              className={inputClass}
-              placeholder="https://example.com/hero-image.jpg"
+              onChange={(url) => setFormData({ ...formData, heroImage: url })}
+              onError={(error) => alert(error)}
+              className="mt-1"
+              placeholder="Upload hero image"
             />
           </div>
 
@@ -877,13 +878,13 @@ const ContentBlockModal: React.FC<ContentBlockModalProps> = ({ block, onSave, on
 
           {formData.type === 'image' && (
             <div>
-              <label className={labelClass}>Image URL *</label>
-              <input
-                type="url"
+              <label className={labelClass}>Image *</label>
+              <ImageUpload
                 value={formData.imageUrl || ''}
-                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                className={`${inputClass} ${errors.imageUrl ? 'border-red-500' : ''}`}
-                placeholder="https://example.com/image.jpg"
+                onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+                onError={(error) => alert(error)}
+                className="mt-1"
+                placeholder="Upload image"
               />
               {errors.imageUrl && <p className="text-red-500 text-sm mt-1">{errors.imageUrl}</p>}
             </div>

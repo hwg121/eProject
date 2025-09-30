@@ -12,6 +12,8 @@ class Essential extends Model
     protected $fillable = [
         'type',
         'name',
+        'description',
+        'featured_image',
         'details_json',
         'season',
     ];

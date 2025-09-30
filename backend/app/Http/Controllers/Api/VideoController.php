@@ -38,6 +38,7 @@ class VideoController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'featured_image' => 'nullable|string',
             'video_url' => 'required|url',
             'thumbnail_url' => 'nullable|url',
             'duration' => 'nullable|integer',
@@ -59,6 +60,7 @@ class VideoController extends Controller
         $request->validate([
             'title' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
+            'featured_image' => 'nullable|string',
             'video_url' => 'sometimes|required|url',
             'thumbnail_url' => 'nullable|url',
             'duration' => 'nullable|integer',

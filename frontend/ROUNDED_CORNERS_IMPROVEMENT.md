@@ -328,3 +328,4 @@ Tất cả detail pages đã được cải thiện với:
 - ✅ **Performance optimized** code
 
 **Detail pages bây giờ có giao diện đẹp với rounded corners và transparent backgrounds!** 🎉
+

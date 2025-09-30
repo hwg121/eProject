@@ -17,7 +17,8 @@ use App\Http\Controllers\Api\{
     EssentialController,
     PotController,
     AccessoryController,
-    SuggestionController
+    SuggestionController,
+    UploadController
 };
 
 /*
@@ -68,6 +69,12 @@ Route::middleware(['cors'])->group(function () {
 
     // Geolocation
     Route::get('/geolocation', [GeolocationController::class, 'getLocation']);
+
+    // File Upload (Protected)
+    Route::middleware(['api.auth', 'admin.auth'])->group(function () {
+        Route::post('/admin/upload', [UploadController::class, 'upload']);
+        Route::delete('/admin/upload', [UploadController::class, 'delete']);
+    });
 
     // Admin CRUD (Protected)
     Route::middleware(['api.auth', 'admin.auth'])->group(function () {

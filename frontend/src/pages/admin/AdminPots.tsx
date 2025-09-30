@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import Card from '../../components/UI/Card';
+import ImageUpload from '../../components/ImageUpload';
 
 interface Pot {
   id: string;
@@ -659,13 +660,13 @@ const PotModal: React.FC<PotModalProps> = ({ pot, materials, shapes, colors, onS
           </div>
 
           <div>
-            <label className={labelClass}>Image URL</label>
-            <input
-              type="url"
+            <label className={labelClass}>Featured Image</label>
+            <ImageUpload
               value={formData.imageUrl || ''}
-              onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-              className={inputClass}
-              placeholder="https://example.com/image.jpg"
+              onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+              onError={(error) => alert(error)}
+              className="mt-1"
+              placeholder="Upload featured image"
             />
           </div>
 

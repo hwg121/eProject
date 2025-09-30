@@ -65,3 +65,4 @@ detailPages.forEach(pageName => {
 console.log(`\n🎉 Updated ${updatedCount} out of ${detailPages.length} detail pages`);
 console.log('✅ All mock data fallbacks have been removed!');
 console.log('✅ Now only real API data will be used!');
+

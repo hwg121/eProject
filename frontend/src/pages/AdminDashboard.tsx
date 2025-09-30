@@ -8,6 +8,7 @@ import {
   MessageSquare,
   Shield, AlertTriangle
 } from 'lucide-react';
+import ImageUpload from '../components/ImageUpload';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import Card from '../components/UI/Card';
@@ -1549,12 +1550,13 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
         </div>
 
         <div>
-          <label className={labelClass}>Image URL</label>
-          <input
-            type="url"
+          <label className={labelClass}>Featured Image</label>
+          <ImageUpload
             value={formData.imageUrl}
-            onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-            className={inputClass}
+            onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+            onError={(error) => alert(error)}
+            className="mt-1"
+            placeholder="Upload featured image"
           />
         </div>
 

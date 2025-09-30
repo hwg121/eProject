@@ -46,6 +46,7 @@ class ToolController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'featured_image' => 'nullable|string',
             'usage' => 'nullable|string',
             'category' => 'nullable|string|max:100',
             'price_range' => 'nullable|string|max:50',
@@ -66,6 +67,7 @@ class ToolController extends Controller
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
+            'featured_image' => 'nullable|string',
             'usage' => 'nullable|string',
             'category' => 'nullable|string|max:100',
             'price_range' => 'nullable|string|max:50',
