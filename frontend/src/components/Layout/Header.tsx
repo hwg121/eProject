@@ -1,0 +1,440 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, Clock, Users, MapPin, LogIn, LogOut } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useNavigation } from '../../contexts/NavigationContext';
+import DarkModeToggle from '../UI/DarkModeToggle';
+import useGeolocation from '../../hooks/useGeolocation';
+import { animationConfig, getAnimationConfig, performanceUtils } from '../../utils/animations';
+import { visitorService } from '../../services/visitorService';
+
+const Header: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { isDarkMode } = useTheme();
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [visitorCount, setVisitorCount] = useState<number>(0);
+  const [visitorInfo, setVisitorInfo] = useState<{city?: string, country?: string} | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [userTimezone, setUserTimezone] = useState<string>('');
+  const { user, logout } = useAuth();
+  
+  // Use geolocation hook
+  const { 
+    latitude, 
+    longitude, 
+    city, 
+    country, 
+    error: geoError, 
+    loading: geoLoading 
+  } = useGeolocation({
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 300000, // 5 minutes
+  });
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    // Get user timezone from geolocation or browser
+    const getUserTimezone = async () => {
+      try {
+        // First try to get timezone from geolocation
+        if (latitude && longitude) {
+          const response = await fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+          );
+          const data = await response.json();
+          if (data.timezone) {
+            setUserTimezone(data.timezone);
+            return;
+          }
+        }
+        
+        // Fallback to browser timezone
+        const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        setUserTimezone(browserTimezone);
+      } catch (error) {
+        console.error('Error getting timezone:', error);
+        // Fallback to browser timezone
+        const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        setUserTimezone(browserTimezone);
+      }
+    };
+
+    getUserTimezone();
+
+    // Load visitor data
+    const loadVisitorData = async () => {
+      try {
+        // Track current visitor session
+        await visitorService.trackVisitorSession();
+        
+        const [visitorInfoData, visitorStats] = await Promise.all([
+          visitorService.getVisitorInfo(),
+          visitorService.getVisitorStatistics(),
+        ]);
+        
+        setVisitorInfo(visitorInfoData);
+        setVisitorCount(visitorStats.totalVisitors);
+        // setOnlineUsers(visitorStats.onlineUsers);
+      } catch (error) {
+        console.error('Error loading visitor data:', error);
+        // Fallback values
+        setVisitorCount(1247);
+        // setOnlineUsers(42);
+      }
+    };
+
+    loadVisitorData();
+
+    // Update visitor count periodically with real data
+    const countTimer = setInterval(async () => {
+      try {
+        const visitorStats = await visitorService.getVisitorStatistics();
+        setVisitorCount(visitorStats.totalVisitors);
+        // setOnlineUsers(visitorStats.onlineUsers);
+      } catch (error) {
+        console.error('Error updating visitor count:', error);
+      }
+    }, 30000); // Update every 30 seconds
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearInterval(timer);
+      clearInterval(countTimer);
+    };
+  }, [latitude, longitude]);
+
+  const { navItems } = useNavigation();
+  
+  // Add admin item if user is logged in
+  const displayNavItems = [
+    ...navItems,
+    ...(user ? [{ 
+      path: '/admin', 
+      icon: Users, 
+      label: 'Admin', 
+      emoji: '⚙️',
+      color: 'from-gray-500 to-slate-600',
+      isVisible: true,
+      order: 999
+    }] : []),
+  ];
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+
+  return (
+    <>
+      {/* Top Info Bar */}
+      <motion.div 
+        className={`py-2 relative overflow-hidden ${
+          isDarkMode 
+            ? 'bg-gradient-to-r from-gray-900 via-emerald-900/50 to-gray-900 text-emerald-100' 
+            : 'bg-gradient-to-r from-emerald-900 via-green-800 to-teal-900 text-white'
+        }`}
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8 }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse"></div>
+        <div className="container mx-auto px-4 flex justify-center items-center space-x-8 text-sm relative z-10">
+          <div className="flex items-center space-x-2">
+            <Clock className={`h-4 w-4 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-300'}`} />
+            <span className="font-medium">
+              {userTimezone ? 
+                currentTime.toLocaleTimeString('en-US', { 
+                  timeZone: userTimezone,
+                  hour12: true,
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit'
+                }) : 
+                currentTime.toLocaleTimeString()
+              }
+            </span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Users className={`h-4 w-4 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-300'}`} />
+            <span className="font-medium">{visitorCount.toLocaleString()} visitors</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <MapPin className={`h-4 w-4 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-300'}`} />
+            <span className="font-medium">
+              {geoLoading ? (
+                'Loading location...'
+              ) : geoError ? (
+                visitorInfo?.city && visitorInfo?.country 
+                  ? `${visitorInfo.city}, ${visitorInfo.country}`
+                  : 'Worldwide Community'
+              ) : city && country ? (
+                `${city}, ${country}`
+              ) : visitorInfo?.city && visitorInfo?.country ? (
+                `${visitorInfo.city}, ${visitorInfo.country}`
+              ) : (
+                'Worldwide Community'
+              )}
+            </span>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Main Header */}
+      <motion.header 
+        className={`sticky top-0 z-50 transition-all duration-500 ${
+          scrolled 
+            ? isDarkMode 
+              ? 'bg-gray-900/20 backdrop-blur-2xl shadow-2xl border-b border-emerald-500/20' 
+              : 'bg-white/95 backdrop-blur-xl shadow-2xl border-b border-emerald-100'
+            : isDarkMode 
+              ? 'bg-gray-900/40 backdrop-blur-xl shadow-lg border-b border-gray-700/20' 
+              : 'bg-white shadow-lg'
+        }`}
+        {...getAnimationConfig(animationConfig.headerSlide)}
+        style={performanceUtils.willChange('transform')}
+      >
+        <div className="container mx-auto px-2 lg:px-4">
+          <div className="flex justify-between items-center py-2 lg:py-3 xl:py-4">
+            {/* Logo */}
+            <Link to="/" className="flex items-center space-x-2 lg:space-x-3 group">
+              <motion.div
+                className="relative"
+                whileHover={getAnimationConfig(animationConfig.logoHover)}
+                whileTap={getAnimationConfig(animationConfig.buttonTap)}
+                style={performanceUtils.willChange('transform')}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-green-500 rounded-2xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity duration-500"></div>
+                <img 
+                  src="/logo.svg" 
+                  alt="Green Groves Logo" 
+                  className="relative h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 lg:h-16 lg:w-16 xl:h-18 xl:w-18 2xl:h-20 2xl:w-20 object-contain"
+                />
+              </motion.div>
+              <div>
+                <motion.h1 
+                  className="text-lg lg:text-xl xl:text-2xl 2xl:text-3xl font-black bg-gradient-to-r from-emerald-700 to-green-600 bg-clip-text text-transparent"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  Green Groves
+                </motion.h1>
+                <div className={`text-xs lg:text-xs xl:text-xs font-semibold tracking-wider ${
+                  isDarkMode ? 'text-emerald-400' : 'text-emerald-600'
+                }`}>
+                  GARDENING PARADISE
+                </div>
+              </div>
+            </Link>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center space-x-0.5 xl:space-x-1 2xl:space-x-2">
+              {displayNavItems.map((item, index) => {
+                return (
+                <motion.div
+                  key={item.path}
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Link
+                    to={item.path}
+                    className={`relative px-1.5 lg:px-2 xl:px-3 2xl:px-4 py-1.5 lg:py-2 text-xs lg:text-xs xl:text-sm font-semibold rounded-lg xl:rounded-xl transition-all duration-300 flex items-center space-x-1 lg:space-x-1 xl:space-x-2 group whitespace-nowrap ${
+                      location.pathname === item.path
+                        ? 'text-white bg-gradient-to-r from-emerald-500 to-green-500 shadow-lg shadow-emerald-500/30'
+                        : isDarkMode
+                          ? 'text-emerald-300 hover:text-white hover:bg-gradient-to-r hover:from-emerald-600/20 hover:to-green-600/20 hover:shadow-md'
+                          : 'text-emerald-700 hover:text-emerald-800 hover:bg-gradient-to-r hover:from-emerald-50 hover:to-green-50 hover:shadow-md'
+                    }`}
+                  >
+                    {/* Active indicator */}
+                    {location.pathname === item.path && (
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-green-500 rounded-lg xl:rounded-xl shadow-lg shadow-emerald-500/30 -z-10"
+                        layoutId="activeTab"
+                        initial={false}
+                        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                      />
+                    )}
+                    
+                    <span className="text-xs lg:text-xs xl:text-sm">{item.label}</span>
+                  </Link>
+                </motion.div>
+              );
+              })}
+            </nav>
+
+            {/* User Actions */}
+            <div className="hidden lg:flex items-center space-x-1 xl:space-x-2 2xl:space-x-3">
+              <DarkModeToggle />
+              {user ? (
+                <motion.button
+                  onClick={handleLogout}
+                  className="flex items-center justify-center bg-red-500 text-white p-2 lg:p-3 xl:p-4 rounded-lg xl:rounded-xl hover:bg-red-600 transition-colors"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  title="Logout"
+                >
+                  <LogOut className="h-4 w-4" />
+                </motion.button>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <Link
+                    to="/login"
+                    className="flex items-center justify-center bg-emerald-500 text-white p-2 lg:p-3 xl:p-4 rounded-lg xl:rounded-xl hover:bg-emerald-600 transition-colors"
+                    title="Login"
+                  >
+                    <LogIn className="h-4 w-4" />
+                  </Link>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Mobile Menu Button */}
+            <motion.button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className={`lg:hidden p-2 lg:p-3 rounded-xl transition-colors duration-300 ${
+                isDarkMode 
+                  ? 'bg-emerald-900/30 text-emerald-300 hover:bg-emerald-800/40' 
+                  : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+              }`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <AnimatePresence mode="wait">
+                {isMenuOpen ? (
+                  <motion.div
+                    key="close"
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <X className="h-5 lg:h-6 w-5 lg:w-6" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="menu"
+                    initial={{ rotate: 90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: -90, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Menu className="h-5 lg:h-6 w-5 lg:w-6" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.button>
+          </div>
+
+          {/* Mobile Navigation */}
+          <AnimatePresence>
+            {isMenuOpen && (
+              <motion.div
+                className="lg:hidden pb-6"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className={`rounded-2xl p-6 space-y-3 ${
+                  isDarkMode 
+                    ? 'bg-gradient-to-r from-gray-800 to-emerald-900/20' 
+                    : 'bg-gradient-to-r from-emerald-50 to-green-50'
+                }`}>
+                  {displayNavItems.map((item, index) => (
+                    <motion.div
+                      key={item.path}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <Link
+                        to={item.path}
+                        onClick={() => setIsMenuOpen(false)}
+                        className={`flex items-center space-x-4 px-6 py-4 rounded-xl transition-all duration-300 text-lg ${
+                          location.pathname === item.path
+                            ? 'text-white bg-gradient-to-r from-emerald-500 to-green-500 shadow-lg'
+                            : isDarkMode
+                              ? 'text-emerald-300 hover:bg-gray-700/50 hover:shadow-md'
+                              : 'text-emerald-700 hover:bg-white hover:shadow-md'
+                        }`}
+                      >
+                        <span className="text-2xl">{item.emoji}</span>
+                        <span className="font-semibold text-lg">{item.label}</span>
+                      </Link>
+                    </motion.div>
+                  ))}
+                  
+                  {/* Mobile Login/User Info */}
+                  <div className="pt-4 border-t border-gray-200/20">
+                    <div className="flex justify-center space-x-4 mb-4">
+                      <DarkModeToggle />
+                    </div>
+                    {!user && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: displayNavItems.length * 0.1 }}
+                      >
+                        <Link
+                          to="/login"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="flex items-center justify-center px-6 py-4 rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 transition-colors"
+                          title="Login"
+                        >
+                          <LogIn className="h-5 w-5" />
+                        </Link>
+                      </motion.div>
+                    )}
+                    {user && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: displayNavItems.length * 0.1 }}
+                      >
+                        <button
+                          onClick={() => {
+                            setIsMenuOpen(false);
+                            handleLogout();
+                          }}
+                          className="flex items-center justify-center px-6 py-4 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors w-full"
+                          title="Logout"
+                        >
+                          <LogOut className="h-5 w-5" />
+                        </button>
+                      </motion.div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.header>
+    </>
+  );
+};
+
+export default Header;
