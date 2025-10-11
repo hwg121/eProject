@@ -11,7 +11,7 @@ interface FormData {
   author?: string;
   instructor?: string;
   category: string;
-  status: 'draft' | 'published' | 'archived';
+  status: 'published' | 'archived';
   description?: string;
   excerpt?: string;
   tags?: string | string[];
@@ -58,7 +58,7 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
       author: '',
       instructor: '',
       category: type === 'Technique' || type === 'techniques' || type === 'article' ? 'Technique' : type === 'Video' || type === 'videos' || type === 'video' ? 'Video' : (categories && categories.length > 0 ? categories[0] : ''),
-      status: 'draft',
+      status: 'published',
       description: '',
       tags: '',
       featured_image: '',
@@ -150,7 +150,7 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
         ...formData,
         // Ensure required fields have values
         title: formData.title || '',
-        status: formData.status || 'draft',
+        status: formData.status || 'published',
         // Ensure content is saved properly to both content and body fields
         content: formData.content || '',
         body: formData.content || formData.body || '',
@@ -287,10 +287,9 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
             size="small"
             label="Status"
             value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value as 'draft' | 'published' | 'archived' })}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value as 'published' | 'archived' })}
             sx={textFieldStyles}
           >
-            <MenuItem value="draft">Draft</MenuItem>
             <MenuItem value="published">Published</MenuItem>
             <MenuItem value="archived">Archived</MenuItem>
           </TextField>

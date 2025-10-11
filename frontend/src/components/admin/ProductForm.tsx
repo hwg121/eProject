@@ -11,7 +11,7 @@ interface Product {
   description: string;
   category: 'tool' | 'book' | 'pot' | 'accessory' | 'suggestion';
   subcategory?: string;
-  status: 'published' | 'draft' | 'archived';
+  status: 'published' | 'archived';
   price?: number;
   brand?: string;
   material?: string;
@@ -72,7 +72,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       title: '',
       category: 'tool',
       subcategory: '',
-      status: 'draft',
+      status: 'published',
       description: '',
       brand: '',
       material: '',
@@ -235,7 +235,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       // Ensure link is included
       link: formData.link || undefined,
       // Ensure status and is_published are in sync
-      status: formData.status || 'draft',
+      status: formData.status || 'published',
       is_published: formData.is_published !== undefined ? formData.is_published : formData.status === 'published'
     };
     
@@ -632,10 +632,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
           </label>
           <select
             id="status"
-            value={formData.status || 'draft'}
+            value={formData.status || 'published'}
             onChange={(e) => setFormData({ 
               ...formData, 
-              status: e.target.value as 'published' | 'draft' | 'archived',
+              status: e.target.value as 'published' | 'archived',
               is_published: e.target.value === 'published' // Auto-set is_published based on status
             })}
             className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
@@ -644,7 +644,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 : 'bg-white border-gray-300 text-gray-900'
             }`}
           >
-            <option value="draft">Draft</option>
             <option value="published">Published</option>
             <option value="archived">Archived</option>
           </select>
