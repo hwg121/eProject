@@ -12,6 +12,7 @@ class VideoResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
+            'slug' => $this->slug,
             'description' => $this->description,
             'status' => $this->status ?? 'published',
             'embed_url' => $this->embed_url,

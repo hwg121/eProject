@@ -4,6 +4,7 @@ import { ContentItem } from '../types/admin';
 export const transformArticleToContentItem = (article: any): ContentItem => ({
   id: article.id.toString(),
   title: article.title,
+  slug: article.slug, // Add slug for proper URL routing
   author: article.author?.name || 'Admin',
   category: 'Technique',
   status: article.status || 'published',
@@ -23,6 +24,7 @@ export const transformArticleToContentItem = (article: any): ContentItem => ({
 export const transformVideoToContentItem = (video: any): ContentItem & { embedUrl?: string } => ({
   id: video.id.toString(),
   title: video.title,
+  slug: video.slug, // Add slug for proper URL routing
   instructor: video.instructor || 'Admin',
   category: 'Video',
   status: video.status || 'published',

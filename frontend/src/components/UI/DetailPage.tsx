@@ -85,9 +85,9 @@ const DetailPage: React.FC<DetailPageProps> = ({
   const [activeTab, setActiveTab] = useState('overview');
   const [isLiked, setIsLiked] = useState(false);
   const [userRating, setUserRating] = useState(0);
-  const [currentLikeCount, setCurrentLikeCount] = useState(likes || 0);
-  const [currentRating, setCurrentRating] = useState(rating || 0);
-  const [currentViewCount, setCurrentViewCount] = useState(views || 0);
+  const [currentLikeCount, setCurrentLikeCount] = useState(Number(likes) || 0);
+  const [currentRating, setCurrentRating] = useState(Number(rating) || 0);
+  const [currentViewCount, setCurrentViewCount] = useState(Number(views) || 0);
 
   const loadUserInteractions = useCallback(async () => {
     try {
@@ -108,9 +108,9 @@ const DetailPage: React.FC<DetailPageProps> = ({
     try {
       const response = await interactionService.getContentStats(type, contentId!);
       if (response.success && 'like_count' in response) {
-        setCurrentLikeCount(response.like_count || 0);
-        setCurrentRating(response.average_rating || 0);
-        setCurrentViewCount(response.view_count || 0);
+        setCurrentLikeCount(Number(response.like_count) || 0);
+        setCurrentRating(Number(response.average_rating) || 0);
+        setCurrentViewCount(Number(response.view_count) || 0);
       } else {
 
         // Keep existing values from props
@@ -126,7 +126,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
     try {
       const response = await interactionService.trackView(type, contentId);
       if (response.success && 'view_count' in response) {
-        setCurrentViewCount(response.view_count || 0);
+        setCurrentViewCount(Number(response.view_count) || 0);
       } else {
 
       }
@@ -155,7 +155,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
 
       if (response.success && 'is_liked' in response) {
         setIsLiked(response.is_liked || false);
-        setCurrentLikeCount(response.like_count || 0);
+        setCurrentLikeCount(Number(response.like_count) || 0);
       } else {
         console.error('Failed to toggle like:', response.message);
         // Don't update state if API call failed
@@ -176,8 +176,8 @@ const DetailPage: React.FC<DetailPageProps> = ({
       const response = await interactionService.submitRating(type, contentId, rating);
 
       if (response.success && 'rating' in response) {
-        setUserRating(response.rating || 0);
-        setCurrentRating(response.average_rating || 0);
+        setUserRating(Number(response.rating) || 0);
+        setCurrentRating(Number(response.average_rating) || 0);
       } else {
         console.error('Failed to submit rating:', response.message);
         // Don't update state if API call failed
@@ -1003,7 +1003,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
                     <span className="text-yellow-700 dark:text-yellow-200 font-medium">Rating</span>
                     <div className="flex items-center">
                       <Star className="h-4 w-4 text-yellow-400 dark:text-yellow-500 fill-current mr-1" />
-                      <span className="text-yellow-800 dark:text-yellow-200 font-bold">{currentRating.toFixed(1)}/5</span>
+                      <span className="text-yellow-800 dark:text-yellow-200 font-bold">{(Number(currentRating) || 0).toFixed(1)}/5</span>
                     </div>
                   </div>
                 </div>
