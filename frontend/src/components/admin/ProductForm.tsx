@@ -160,10 +160,12 @@ const ProductForm: React.FC<ProductFormProps> = ({
     if (item) {
       const processedItem = {
         ...item,
-        // Ensure subcategory is loaded
-        subcategory: item.subcategory || '',
-        // Ensure price is number (backend might return string)
-        price: item.price ? (typeof item.price === 'string' ? parseFloat(item.price) : item.price) : 0,
+        // Ensure subcategory is loaded (keep original value, even if empty string)
+        subcategory: item.subcategory !== undefined && item.subcategory !== null ? item.subcategory : '',
+        // Ensure price is number (backend might return string or null)
+        price: item.price !== undefined && item.price !== null && item.price !== '' 
+          ? (typeof item.price === 'string' ? parseFloat(item.price) : item.price) 
+          : null,
         // Ensure rating is number
         rating: item.rating ? (typeof item.rating === 'string' ? parseFloat(item.rating) : item.rating) : 0,
         // Convert tags array to comma-separated string for input display
@@ -173,6 +175,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             : (typeof item.tags === 'string' ? item.tags : []))
           : []
       };
+      
       setFormData(processedItem);
     }
   }, [item]);
