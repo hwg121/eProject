@@ -62,6 +62,8 @@ export interface TopContentItem {
   views: number;
   likes: number;
   type: string;
+  slug?: string;
+  link?: string;
 }
 
 export interface ContentFormProps {

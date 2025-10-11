@@ -570,7 +570,9 @@ const AdminDashboard: React.FC = () => {
           title: item.title,
           views: item.views || 0,
           likes: item.likes || 0,
-          type: item.category?.toLowerCase() || 'unknown'
+          type: item.category?.toLowerCase() || 'unknown',
+          slug: item.slug,
+          link: item.link
         }));
       
       // If no content with views, show most recent content
@@ -587,7 +589,9 @@ const AdminDashboard: React.FC = () => {
             title: item.title,
             views: item.views || 0,
             likes: item.likes || 0,
-            type: item.category?.toLowerCase() || 'unknown'
+            type: item.category?.toLowerCase() || 'unknown',
+            slug: item.slug,
+            link: item.link
           }));
         setTopContent(recentContent);
       } else {

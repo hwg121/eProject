@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Eye, ChevronLeft, ChevronRight,
-  FileText, Star, Heart
+  FileText, Star
 } from 'lucide-react';
 import { ContentItem } from '../../types/admin';
 import {
@@ -37,7 +37,8 @@ import {
   Delete as DeleteIcon,
   Article as ArticleIcon,
   VideoLibrary as VideoIcon,
-  Assessment as AllIcon
+  Assessment as AllIcon,
+  Favorite as FavoriteIcon
 } from '@mui/icons-material';
 
 interface ContentListProps {
@@ -464,22 +465,20 @@ const ContentList: React.FC<ContentListProps> = ({
                       />
                     </TableCell>
                     <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <Heart 
-                          className="w-4 h-4" 
-                          style={{ 
+                      <Chip
+                        icon={<FavoriteIcon sx={{ fontSize: 16, color: '#ec4899' }} />}
+                        label={item.likes || 0}
+                        size="small"
+                        sx={{
+                          bgcolor: isDarkMode ? '#374151' : '#e2e8f0',
+                          color: isDarkMode ? '#d1d5db' : '#475569',
+                          fontWeight: 600,
+                          fontSize: '0.75rem',
+                          '& .MuiChip-icon': {
                             color: '#ec4899',
-                            fill: (item.likes || 0) > 0 ? '#ec4899' : 'transparent'
-                          }} 
-                        />
-                        <Typography 
-                          variant="body2" 
-                          fontWeight={600}
-                          sx={{ color: isDarkMode ? '#f9a8d4' : '#ec4899' }}
-                        >
-                          {item.likes || 0}
-                        </Typography>
-                      </Box>
+                          }
+                        }}
+                      />
                     </TableCell>
                     <TableCell>
                       <Chip
