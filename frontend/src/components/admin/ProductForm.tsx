@@ -204,6 +204,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
       name: formData.name || formData.title,
       // Remove title field - backend only uses 'name'
       title: undefined,
+      // Ensure subcategory is sent (even if empty string)
+      subcategory: formData.subcategory || '',
       // Convert tags to array if it's a string
       tags: formData.tags 
         ? (Array.isArray(formData.tags) 
@@ -221,7 +223,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
         });
         return ratingValue;
       })(),
-      price: parseFloat(formData.price as any) || undefined,
+      // Fix price: parseFloat can return 0, which is valid
+      price: formData.price !== undefined && formData.price !== null && formData.price !== '' 
+        ? parseFloat(formData.price as any) 
+        : null,
       pages: parseInt(formData.pages as any) || undefined,
       published_year: parseInt(formData.published_year as any) || undefined,
       // Ensure link is included
