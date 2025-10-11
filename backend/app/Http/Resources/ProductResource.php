@@ -21,8 +21,10 @@ class ProductResource extends JsonResource
             'slug' => $this->slug,
             'description' => $this->description,
             'category' => $this->category,
-            'subcategory' => $this->subcategory ?? '', // Ensure always string
-            'price' => is_numeric($this->price) ? (float) $this->price : null, // Return actual price or null
+            'subcategory' => (string) ($this->subcategory ?? ''), // Ensure always string, cast explicitly
+            'price' => $this->price !== null && $this->price !== '' 
+                ? (float) $this->price 
+                : null, // Return actual price as float or null
             'brand' => $this->brand,
             'material' => $this->material,
             'size' => $this->size,
