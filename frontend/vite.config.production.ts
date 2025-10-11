@@ -13,9 +13,6 @@ export default defineConfig({
     exclude: ['lucide-react'],
     include: ['react', 'react-dom', 'react-router-dom', 'axios', 'framer-motion'],
     force: true,
-    esbuildOptions: {
-      target: 'es2015',
-    },
   },
   resolve: {
     dedupe: ['react', 'react-dom'],

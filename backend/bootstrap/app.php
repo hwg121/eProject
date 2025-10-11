@@ -17,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.auth' => \App\Http\Middleware\ApiAuth::class,
             'admin.auth' => \App\Http\Middleware\AdminAuth::class,
             'cors' => \App\Http\Middleware\CorsMiddleware::class,
+            'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'check.banned' => \App\Http\Middleware\CheckBanned::class,
+            'check.role' => \App\Http\Middleware\CheckRole::class,
         ]);
 
         // Apply CORS middleware globally - MUST be first
