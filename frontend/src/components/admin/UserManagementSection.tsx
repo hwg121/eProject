@@ -1,5 +1,6 @@
 import React, { useState, memo } from 'react';
 import { Search } from 'lucide-react';
+import { useTheme } from '../../contexts/ThemeContext';
 import Card from '../UI/Card';
 import UserCreate from './UserCreate';
 import UserProfileComponent from './UserProfileComponent';
@@ -34,6 +35,8 @@ const UserManagementSection: React.FC<UserManagementSectionProps> = memo(({
   userSearchTerm,
   currentUserRole = 'admin'
 }) => {
+  const { isDarkMode } = useTheme();
+  
   // Local state for profile form - hoàn toàn độc lập
   const [profileData, setProfileData] = useState(() => ({
     id: userProfile?.id || '',
@@ -58,7 +61,7 @@ const UserManagementSection: React.FC<UserManagementSectionProps> = memo(({
   const UsersListComponent = () => (
     <Card>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">All Users</h2>
+        <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>All Users</h2>
         <button
           onClick={() => onLoadUsers()}
           className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
@@ -77,7 +80,11 @@ const UserManagementSection: React.FC<UserManagementSectionProps> = memo(({
               placeholder="Search users..."
               value={userSearchTerm}
               onChange={(e) => onUserSearchTermChange(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-0 focus:border-emerald-500 bg-white border-gray-300 text-gray-900"
+              className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-0 focus:border-emerald-500 ${
+                isDarkMode 
+                  ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400' 
+                  : 'bg-white border-gray-300 text-gray-900'
+              }`}
             />
           </div>
         </div>
@@ -87,20 +94,22 @@ const UserManagementSection: React.FC<UserManagementSectionProps> = memo(({
       <div className="overflow-x-auto hide-scrollbar touch-optimized">
         <table className="w-full min-w-[800px]">
           <thead>
-            <tr className="border-b border-gray-200">
-              <th className="text-left py-3 px-4 font-medium text-gray-600">Avatar</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-600">Name</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-600">Email</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-600">Role</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-600">Status</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-600">Actions</th>
+            <tr className={`border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+              <th className={`text-left py-3 px-4 font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Avatar</th>
+              <th className={`text-left py-3 px-4 font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Name</th>
+              <th className={`text-left py-3 px-4 font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Email</th>
+              <th className={`text-left py-3 px-4 font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Role</th>
+              <th className={`text-left py-3 px-4 font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Status</th>
+              <th className={`text-left py-3 px-4 font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredUsers.map((userItem) => (
-              <tr key={userItem.id} className="border-b border-gray-200">
+              <tr key={userItem.id} className={`border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                 <td className="py-3 px-4">
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center overflow-hidden">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center overflow-hidden ${
+                    isDarkMode ? 'bg-emerald-900/30' : 'bg-emerald-100'
+                  }`}>
                     {userItem.avatar ? (
                       <img 
                         src={userItem.avatar} 
@@ -108,15 +117,15 @@ const UserManagementSection: React.FC<UserManagementSectionProps> = memo(({
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span className="text-sm font-bold text-emerald-600">
+                      <span className={`text-sm font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
                         {userItem.name?.charAt(0)?.toUpperCase() || 'U'}
                       </span>
                     )}
                   </div>
                 </td>
-                <td className="py-3 px-4 text-gray-900">{userItem.name}</td>
-                <td className="py-3 px-4 text-gray-600">{userItem.email}</td>
-                <td className="py-3 px-4 text-gray-600">
+                <td className={`py-3 px-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{userItem.name}</td>
+                <td className={`py-3 px-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{userItem.email}</td>
+                <td className={`py-3 px-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                     userItem.role === 'admin' 
                       ? 'bg-purple-100 text-purple-800' 
@@ -127,7 +136,7 @@ const UserManagementSection: React.FC<UserManagementSectionProps> = memo(({
                     {userItem.role}
                   </span>
                 </td>
-                <td className="py-3 px-4 text-gray-600">
+                <td className={`py-3 px-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                     userItem.status === 'active' 
                       ? 'bg-green-100 text-green-800' 

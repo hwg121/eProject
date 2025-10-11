@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Save, X, Monitor, CheckCircle } from 'lucide-react';
 import { Card, TextField, Checkbox, FormControlLabel, Snackbar, Alert } from '@mui/material';
+import { useTheme } from '../../contexts/ThemeContext';
 import PageHeader from '../../components/UI/PageHeader';
 import { heroSectionService } from '../../services/api';
 import { validateText, hasErrors } from '../../utils/validation';
@@ -16,6 +17,8 @@ interface HeroSection {
 }
 
 const AdminHeroSection: React.FC = () => {
+  const { isDarkMode } = useTheme();
+  
   const [heroSections, setHeroSections] = useState<HeroSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,14 +49,21 @@ const AdminHeroSection: React.FC = () => {
   
   const textFieldStyles = {
     '& .MuiOutlinedInput-root': {
+      color: isDarkMode ? '#fff' : '#000',
+      '& .MuiOutlinedInput-notchedOutline': {
+        borderColor: isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.23)'
+      },
       '&.Mui-focused': {
         '& .MuiOutlinedInput-notchedOutline': {
           borderColor: '#10b981'
         }
       }
     },
-    '& .MuiInputLabel-root.Mui-focused': {
-      color: '#10b981'
+    '& .MuiInputLabel-root': {
+      color: isDarkMode ? '#94a3b8' : '#64748b',
+      '&.Mui-focused': {
+        color: '#10b981'
+      }
     }
   };
 
@@ -189,11 +199,20 @@ const AdminHeroSection: React.FC = () => {
       {/* Hero Sections List */}
       <div className="grid grid-cols-1 gap-6">
         {heroSections.map((item) => (
-          <Card key={item.id} className="p-6">
+          <Card 
+            key={item.id} 
+            sx={{
+              p: 3,
+              background: isDarkMode ? 'rgba(30, 41, 59, 0.6)' : 'white',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid',
+              borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'
+            }}
+          >
             <div className="flex justify-between items-start">
               <div className="flex-1">
                 <div className="flex items-center space-x-3 mb-3">
-                  <h3 className="text-xl font-semibold text-emerald-800">{item.title}</h3>
+                  <h3 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-emerald-800'}`}>{item.title}</h3>
                   {item.is_active && (
                     <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium flex items-center space-x-1">
                       <CheckCircle className="h-4 w-4" />
@@ -201,9 +220,9 @@ const AdminHeroSection: React.FC = () => {
                     </span>
                   )}
                 </div>
-                <p className="text-emerald-600 mb-2 leading-relaxed">{item.description}</p>
+                <p className={`mb-2 leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-emerald-600'}`}>{item.description}</p>
                 {item.created_at && (
-                  <p className="text-sm text-gray-500">
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     Created: {new Date(item.created_at).toLocaleDateString()}
                   </p>
                 )}
@@ -211,14 +230,22 @@ const AdminHeroSection: React.FC = () => {
               <div className="flex space-x-2 ml-4">
                 <button
                   onClick={() => handleEdit(item)}
-                  className="p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors"
+                  className={`p-2 rounded-lg transition-colors ${
+                    isDarkMode 
+                      ? 'text-emerald-400 hover:bg-emerald-900/30' 
+                      : 'text-emerald-600 hover:bg-emerald-100'
+                  }`}
                   title="Edit"
                 >
                   <Edit className="h-5 w-5" />
                 </button>
                 <button
                   onClick={() => handleDelete(item.id!)}
-                  className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                  className={`p-2 rounded-lg transition-colors ${
+                    isDarkMode 
+                      ? 'text-red-400 hover:bg-red-900/30' 
+                      : 'text-red-600 hover:bg-red-100'
+                  }`}
                   title="Delete"
                 >
                   <Trash2 className="h-5 w-5" />
@@ -232,15 +259,22 @@ const AdminHeroSection: React.FC = () => {
       {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className={`rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto ${
+            isDarkMode ? 'bg-gray-800' : 'bg-white'
+          }`} style={{
+            background: isDarkMode ? 'rgba(30, 41, 59, 0.95)' : 'white',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid',
+            borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'
+          }}>
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold text-emerald-800">
+                <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-emerald-800'}`}>
                   {isEditing ? 'Edit Hero Section' : 'Create Hero Section'}
                 </h3>
                 <button
                   onClick={() => setShowForm(false)}
-                  className="p-2 text-gray-500 hover:text-gray-700"
+                  className={`p-2 ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
                 >
                   <X className="h-6 w-6" />
                 </button>
@@ -293,7 +327,11 @@ const AdminHeroSection: React.FC = () => {
                       }}
                     />
                   }
-                  label="Set as active (will deactivate other hero sections)"
+                  label={
+                    <span className={isDarkMode ? 'text-gray-300' : 'text-gray-900'}>
+                      Set as active (will deactivate other hero sections)
+                    </span>
+                  }
                 />
 
                 {/* Form Actions */}
@@ -301,7 +339,11 @@ const AdminHeroSection: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowForm(false)}
-                    className="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                    className={`px-6 py-2 transition-colors ${
+                      isDarkMode 
+                        ? 'text-gray-400 hover:text-gray-200' 
+                        : 'text-gray-600 hover:text-gray-800'
+                    }`}
                   >
                     Cancel
                   </button>

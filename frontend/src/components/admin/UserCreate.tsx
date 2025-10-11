@@ -153,7 +153,13 @@ const UserCreate: React.FC<UserCreateProps> = ({
       </div>
 
       {/* Form */}
-      <Card className={`p-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+      <Card sx={{ 
+        p: 3,
+        background: isDarkMode ? 'rgba(30, 41, 59, 0.6)' : 'white',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid',
+        borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'
+      }}>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
           <div>

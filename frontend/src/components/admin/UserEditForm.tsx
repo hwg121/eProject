@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
 import { apiClient } from '../../services/api';
 import ImageUpload from '../ImageUpload';
 import SecurityPasswordModal from './SecurityPasswordModal';
@@ -39,6 +40,30 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
   onCancel,
   currentUserRole = 'admin'
 }) => {
+  const { isDarkMode } = useTheme();
+  
+  // Dark mode TextField styles
+  const textFieldStyles = {
+    '& .MuiOutlinedInput-root': {
+      color: isDarkMode ? '#fff' : '#000',
+      '& .MuiOutlinedInput-notchedOutline': {
+        borderColor: isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.23)'
+      },
+      '&:hover .MuiOutlinedInput-notchedOutline': {
+        borderColor: '#10b981'
+      },
+      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+        borderColor: '#10b981'
+      }
+    },
+    '& .MuiInputLabel-root': {
+      color: isDarkMode ? '#94a3b8' : '#64748b',
+      '&.Mui-focused': {
+        color: '#10b981'
+      }
+    }
+  };
+  
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -150,11 +175,17 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
           elevation={3}
           sx={{ 
             borderRadius: 3,
-            background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-            border: '1px solid rgba(16, 185, 129, 0.1)',
+            background: isDarkMode 
+              ? 'rgba(30, 41, 59, 0.6)' 
+              : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid',
+            borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(16, 185, 129, 0.1)',
             transition: 'all 0.3s ease',
             '&:hover': {
-              boxShadow: '0 12px 40px rgba(16, 185, 129, 0.15)',
+              boxShadow: isDarkMode 
+                ? '0 12px 40px rgba(16, 185, 129, 0.3)' 
+                : '0 12px 40px rgba(16, 185, 129, 0.15)',
               transform: 'translateY(-4px)',
             }
           }}
@@ -171,7 +202,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
 
             {/* Profile Picture */}
             <Box sx={{ mb: 4 }}>
-              <Typography variant="h6" fontWeight={700} sx={{ mb: 2, color: '#1e293b' }}>
+              <Typography variant="h6" fontWeight={700} sx={{ mb: 2, color: isDarkMode ? '#fff' : '#1e293b' }}>
                 Profile Picture
               </Typography>
               <ImageUpload
@@ -188,7 +219,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
 
             {/* Account Settings */}
             <Box sx={{ mb: 4 }}>
-              <Typography variant="h6" fontWeight={700} sx={{ mb: 2, color: '#1e293b' }}>
+              <Typography variant="h6" fontWeight={700} sx={{ mb: 2, color: isDarkMode ? '#fff' : '#1e293b' }}>
                 Account Settings
               </Typography>
               <FormControlLabel
@@ -214,8 +245,8 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                 }
                 label={
                   <Box>
-                    <Typography variant="body2" fontWeight={600}>Banned</Typography>
-                    <Typography variant="caption" sx={{ color: '#64748b' }}>Disable account access</Typography>
+                    <Typography variant="body2" fontWeight={600} sx={{ color: isDarkMode ? '#fff' : '#000' }}>Banned</Typography>
+                    <Typography variant="caption" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b' }}>Disable account access</Typography>
                   </Box>
                 }
               />
@@ -245,11 +276,11 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                 variant="outlined"
                 fullWidth
                 sx={{
-                  borderColor: '#d1d5db',
-                  color: '#6b7280',
+                  borderColor: isDarkMode ? '#4b5563' : '#d1d5db',
+                  color: isDarkMode ? '#9ca3af' : '#6b7280',
                   '&:hover': { 
-                    borderColor: '#9ca3af',
-                    bgcolor: '#f3f4f6'
+                    borderColor: isDarkMode ? '#6b7280' : '#9ca3af',
+                    bgcolor: isDarkMode ? 'rgba(55, 65, 81, 0.5)' : '#f3f4f6'
                   },
                   textTransform: 'none',
                   fontWeight: 700,
@@ -267,17 +298,23 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
           elevation={3}
           sx={{ 
             borderRadius: 3,
-            background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-            border: '1px solid rgba(16, 185, 129, 0.1)',
+            background: isDarkMode 
+              ? 'rgba(30, 41, 59, 0.6)' 
+              : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid',
+            borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(16, 185, 129, 0.1)',
             transition: 'all 0.3s ease',
             '&:hover': {
-              boxShadow: '0 12px 40px rgba(16, 185, 129, 0.15)',
+              boxShadow: isDarkMode 
+                ? '0 12px 40px rgba(16, 185, 129, 0.3)' 
+                : '0 12px 40px rgba(16, 185, 129, 0.15)',
               transform: 'translateY(-4px)',
             }
           }}
         >
           <CardContent sx={{ p: 3 }}>
-            <Typography variant="h6" fontWeight={700} sx={{ mb: 3, color: '#1e293b' }}>
+            <Typography variant="h6" fontWeight={700} sx={{ mb: 3, color: isDarkMode ? '#fff' : '#1e293b' }}>
               User Details
             </Typography>
             
@@ -290,13 +327,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Full name"
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      '&:hover fieldset': { borderColor: '#10b981' },
-                      '&.Mui-focused fieldset': { borderColor: '#10b981' },
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': { color: '#047857' },
-                  }}
+                  sx={textFieldStyles}
                 />
 
                 <TextField
@@ -307,13 +338,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="Email address"
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      '&:hover fieldset': { borderColor: '#10b981' },
-                      '&.Mui-focused fieldset': { borderColor: '#10b981' },
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': { color: '#047857' },
-                  }}
+                  sx={textFieldStyles}
                 />
 
                 <TextField
@@ -324,13 +349,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                   placeholder="Enter new password (leave blank to keep current)"
                   helperText="Leave blank to keep current password"
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      '&:hover fieldset': { borderColor: '#10b981' },
-                      '&.Mui-focused fieldset': { borderColor: '#10b981' },
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': { color: '#047857' },
-                  }}
+                  sx={textFieldStyles}
                 />
 
                 <TextField
@@ -340,13 +359,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                   value={formData.phone}
                   onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                   placeholder="Enter phone number"
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      '&:hover fieldset': { borderColor: '#10b981' },
-                      '&.Mui-focused fieldset': { borderColor: '#10b981' },
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': { color: '#047857' },
-                  }}
+                  sx={textFieldStyles}
                 />
 
                 <FormControl fullWidth>
@@ -374,13 +387,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                   value={formData.city}
                   onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
                   placeholder="City"
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      '&:hover fieldset': { borderColor: '#10b981' },
-                      '&.Mui-focused fieldset': { borderColor: '#10b981' },
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': { color: '#047857' },
-                  }}
+                  sx={textFieldStyles}
                 />
 
                 <TextField
@@ -389,13 +396,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                   value={formData.address}
                   onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
                   placeholder="Address"
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      '&:hover fieldset': { borderColor: '#10b981' },
-                      '&.Mui-focused fieldset': { borderColor: '#10b981' },
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': { color: '#047857' },
-                  }}
+                  sx={textFieldStyles}
                 />
 
                 <TextField
@@ -404,13 +405,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                   value={formData.zip_code}
                   onChange={(e) => setFormData(prev => ({ ...prev, zip_code: e.target.value }))}
                   placeholder="Zip/code"
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      '&:hover fieldset': { borderColor: '#10b981' },
-                      '&.Mui-focused fieldset': { borderColor: '#10b981' },
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': { color: '#047857' },
-                  }}
+                  sx={textFieldStyles}
                 />
 
                 {currentUserRole === 'admin' && (

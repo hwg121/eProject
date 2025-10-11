@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Save, X, Users, Upload, Image as ImageIcon, ArrowUp, ArrowDown } from 'lucide-react';
+import { useTheme } from '../../contexts/ThemeContext';
 import PageHeader from '../../components/UI/PageHeader';
 import { staffMemberService } from '../../services/api.ts';
 import {
@@ -41,6 +42,8 @@ interface StaffMember {
 }
 
 const AdminStaffManagement: React.FC = () => {
+  const { isDarkMode } = useTheme();
+  
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,14 +78,21 @@ const AdminStaffManagement: React.FC = () => {
   
   const textFieldStyles = {
     '& .MuiOutlinedInput-root': {
+      color: isDarkMode ? '#fff' : '#000',
+      '& .MuiOutlinedInput-notchedOutline': {
+        borderColor: isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.23)'
+      },
       '&.Mui-focused': {
         '& .MuiOutlinedInput-notchedOutline': {
           borderColor: '#10b981'
         }
       }
     },
-    '& .MuiInputLabel-root.Mui-focused': {
-      color: '#10b981'
+    '& .MuiInputLabel-root': {
+      color: isDarkMode ? '#94a3b8' : '#64748b',
+      '&.Mui-focused': {
+        color: '#10b981'
+      }
     }
   };
 
@@ -318,17 +328,26 @@ const AdminStaffManagement: React.FC = () => {
       </Box>
 
       {/* MUI Table for Staff Members */}
-      <TableContainer component={Paper} elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+      <TableContainer 
+        component={Paper} 
+        elevation={3} 
+        sx={{ 
+          borderRadius: 2, 
+          overflow: 'hidden',
+          background: isDarkMode ? 'rgba(30, 41, 59, 0.6)' : 'white',
+          backdropFilter: 'blur(10px)'
+        }}
+      >
         <Table>
           <TableHead>
-            <TableRow sx={{ bgcolor: '#f3f4f6' }}>
-              <TableCell sx={{ fontWeight: 700, fontSize: '0.875rem' }}>Order</TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: '0.875rem' }}>Avatar</TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: '0.875rem' }}>Name</TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: '0.875rem' }}>Role</TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: '0.875rem' }}>Bio</TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: '0.875rem' }}>Status</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 700, fontSize: '0.875rem' }}>Actions</TableCell>
+            <TableRow sx={{ bgcolor: isDarkMode ? 'rgba(51, 65, 85, 0.8)' : '#f3f4f6' }}>
+              <TableCell sx={{ fontWeight: 700, fontSize: '0.875rem', color: isDarkMode ? '#e2e8f0' : '#334155' }}>Order</TableCell>
+              <TableCell sx={{ fontWeight: 700, fontSize: '0.875rem', color: isDarkMode ? '#e2e8f0' : '#334155' }}>Avatar</TableCell>
+              <TableCell sx={{ fontWeight: 700, fontSize: '0.875rem', color: isDarkMode ? '#e2e8f0' : '#334155' }}>Name</TableCell>
+              <TableCell sx={{ fontWeight: 700, fontSize: '0.875rem', color: isDarkMode ? '#e2e8f0' : '#334155' }}>Role</TableCell>
+              <TableCell sx={{ fontWeight: 700, fontSize: '0.875rem', color: isDarkMode ? '#e2e8f0' : '#334155' }}>Bio</TableCell>
+              <TableCell sx={{ fontWeight: 700, fontSize: '0.875rem', color: isDarkMode ? '#e2e8f0' : '#334155' }}>Status</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 700, fontSize: '0.875rem', color: isDarkMode ? '#e2e8f0' : '#334155' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -337,7 +356,7 @@ const AdminStaffManagement: React.FC = () => {
                 key={item.id}
                 sx={{ 
                   '&:hover': { 
-                    bgcolor: '#f9fafb' 
+                    bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#f9fafb' 
                   },
                   transition: 'background-color 0.2s'
                 }}
@@ -365,12 +384,12 @@ const AdminStaffManagement: React.FC = () => {
                   />
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body1" fontWeight={600} sx={{ color: '#047857' }}>
+                  <Typography variant="body1" fontWeight={600} sx={{ color: isDarkMode ? '#fff' : '#047857' }}>
                     {item.name}
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body2" sx={{ color: '#059669', fontWeight: 500 }}>
+                  <Typography variant="body2" sx={{ color: isDarkMode ? '#94a3b8' : '#059669', fontWeight: 500 }}>
                     {item.role}
                   </Typography>
                 </TableCell>
@@ -378,7 +397,7 @@ const AdminStaffManagement: React.FC = () => {
                   <Typography 
                     variant="body2" 
                     sx={{ 
-                      color: '#6b7280',
+                      color: isDarkMode ? '#94a3b8' : '#6b7280',
                       maxWidth: 300,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -469,16 +488,21 @@ const AdminStaffManagement: React.FC = () => {
         PaperProps={{
           sx: {
             borderRadius: 3,
-            maxHeight: '90vh'
+            maxHeight: '90vh',
+            background: isDarkMode ? 'rgba(30, 41, 59, 0.95)' : 'white',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid',
+            borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'
           }
         }}
       >
         <DialogTitle sx={{ 
-          bgcolor: '#f0fdf4', 
-          color: '#047857',
+          bgcolor: isDarkMode ? 'rgba(51, 65, 85, 0.8)' : '#f0fdf4', 
+          color: isDarkMode ? '#fff' : '#047857',
           fontWeight: 700,
           fontSize: '1.5rem',
-          borderBottom: '2px solid #d1fae5',
+          borderBottom: '2px solid',
+          borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : '#d1fae5',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
@@ -501,7 +525,7 @@ const AdminStaffManagement: React.FC = () => {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               {/* Avatar Upload */}
               <Box>
-                <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2, color: '#047857' }}>
+                <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2, color: isDarkMode ? '#fff' : '#047857' }}>
                   Avatar
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
