@@ -11,7 +11,7 @@ interface FormData {
   author?: string;
   instructor?: string;
   category: string;
-  status: 'draft' | 'published';
+  status: 'draft' | 'published' | 'archived';
   description?: string;
   excerpt?: string;
   tags?: string | string[];
@@ -287,11 +287,12 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
             size="small"
             label="Status"
             value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value as 'draft' | 'published' })}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value as 'draft' | 'published' | 'archived' })}
             sx={textFieldStyles}
           >
             <MenuItem value="draft">Draft</MenuItem>
             <MenuItem value="published">Published</MenuItem>
+            <MenuItem value="archived">Archived</MenuItem>
           </TextField>
         </div>
 

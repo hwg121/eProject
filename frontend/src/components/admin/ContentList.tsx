@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Eye, ChevronLeft, ChevronRight,
-  FileText, Star
+  FileText, Star, Heart
 } from 'lucide-react';
 import { ContentItem } from '../../types/admin';
 import {
@@ -252,7 +252,7 @@ const ContentList: React.FC<ContentListProps> = ({
       {/* Stats */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2, mb: 3 }}>
         {[
-          { label: 'Total Content', value: contentData.length, icon: FileText, color: '#6b7280' },
+          { label: 'Archived', value: contentData.filter(c => c.status === 'archived').length, icon: FileText, color: '#6b7280' },
           { label: 'Published', value: contentData.filter(c => c.status === 'published').length, icon: Eye, color: '#10b981' },
           { label: 'Featured', value: contentData.filter(c => c.featured).length, icon: Star, color: '#fbbf24' },
           { 
@@ -381,6 +381,7 @@ const ContentList: React.FC<ContentListProps> = ({
                 <TableCell sx={{ fontWeight: 700, color: isDarkMode ? '#94a3b8' : '#475569' }}>Type</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: isDarkMode ? '#94a3b8' : '#475569' }}>Status</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: isDarkMode ? '#94a3b8' : '#475569' }}>Views</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: isDarkMode ? '#94a3b8' : '#475569' }}>Likes</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: isDarkMode ? '#94a3b8' : '#475569' }}>Rating</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: isDarkMode ? '#94a3b8' : '#475569' }}>Author</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: isDarkMode ? '#94a3b8' : '#475569' }}>Created</TableCell>
@@ -445,7 +446,7 @@ const ContentList: React.FC<ContentListProps> = ({
                       <Chip
                         label={item.status}
                         size="small"
-                        color={item.status === 'published' ? 'success' : 'warning'}
+                        color={item.status === 'published' ? 'success' : item.status === 'archived' ? 'default' : 'warning'}
                         sx={{ fontWeight: 600, fontSize: '0.75rem', textTransform: 'capitalize' }}
                       />
                     </TableCell>
@@ -461,6 +462,24 @@ const ContentList: React.FC<ContentListProps> = ({
                           fontSize: '0.75rem',
                         }}
                       />
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Heart 
+                          className="w-4 h-4" 
+                          style={{ 
+                            color: '#ec4899',
+                            fill: (item.likes || 0) > 0 ? '#ec4899' : 'transparent'
+                          }} 
+                        />
+                        <Typography 
+                          variant="body2" 
+                          fontWeight={600}
+                          sx={{ color: isDarkMode ? '#f9a8d4' : '#ec4899' }}
+                        >
+                          {item.likes || 0}
+                        </Typography>
+                      </Box>
                     </TableCell>
                     <TableCell>
                       <Chip

@@ -1,0 +1,1555 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Shield, AlertTriangle, Loader2
+} from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
+import Card from '../components/UI/Card';
+import AdminSidebar from '../components/admin/AdminSidebar';
+import DashboardCharts from '../components/admin/DashboardCharts';
+
+// Import new components
+import StatisticsSection from '../components/admin/StatisticsSection';
+import RecentActivitySection from '../components/admin/RecentActivitySection';
+import TopContentSection from '../components/admin/TopContentSection';
+import UserManagementSection from '../components/admin/UserManagementSection';
+import UserEditForm from '../components/admin/UserEditForm';
+import ContentManagementSection from '../components/admin/ContentManagementSection';
+import ContentForm from '../components/admin/ContentForm';
+import ProductManagement from '../components/admin/ProductManagement';
+import MobileAdminNav from '../components/admin/MobileAdminNav';
+import { ContentItem } from '../types/admin';
+
+// Import Site Settings components
+import AdminHeroSection from './admin/AdminHeroSection';
+import AdminStaffManagement from './admin/AdminStaffManagement';
+import AdminMapSettings from './admin/AdminMapSettings';
+import AdminContactSettings from './admin/AdminContactSettings';
+import AdminContactMessages from './admin/AdminContactMessages';
+
+// Import types and utils
+import { 
+  ContactMessage, 
+  ActivityItem, 
+  TopContentItem, 
+  AdminStats, 
+  User 
+} from '../types/admin';
+import { 
+  transformArticleToContentItem,
+  transformVideoToContentItem,
+  transformBookToContentItem,
+  transformToolToContentItem,
+  transformPotToContentItem,
+  transformAccessoryToContentItem,
+  transformSuggestionToContentItem,
+  validateAvatarFile
+} from '../utils/adminUtils';
+
+import { contactService, userService, articlesService, videosService, booksService, toolsService, potsService, accessoriesService, suggestionsService, productService, activityLogService } from '../services/api.ts';
+
+const AdminDashboard: React.FC = () => {
+  const { user, logout, isAuthenticated } = useAuth();
+  const { isDarkMode } = useTheme();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [sortBy, setSortBy] = useState('latest');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Removed isLoggedOut state - using authentication context instead
+  
+  // User profile state
+  const [userProfile, setUserProfile] = useState({
+    id: user?.id || '',
+    name: user?.name || '',
+    email: user?.email || '',
+    password: '', // Only for admin to change user passwords
+    phone: user?.phone || '',
+    phone_country_code: user?.phone_country_code || '',
+    country: user?.country || '',
+    address: user?.address || '',
+    city: user?.city || '',
+    zip_code: user?.zip_code || '',
+    role: (user?.role === 'admin' || user?.role === 'moderator') ? user.role : 'admin',
+    status: user?.status || 'active',
+    is_banned: user?.is_banned || false,
+    avatar: user?.avatar || null,
+    avatar_public_id: user?.avatar_public_id || null,
+    avatarPreview: user?.avatar || null
+  });
+
+  // User management state
+  const [users, setUsers] = useState<User[]>([]);
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [userStatusFilter, setUserStatusFilter] = useState('all');
+  const [userRoleFilter, setUserRoleFilter] = useState('all');
+  const [userSortBy, setUserSortBy] = useState('name-asc');
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [editingUser, setEditingUser] = useState<any>(null);
+
+  // Content state
+  const [articles, setArticles] = useState<ContentItem[]>([]);
+  const [videos, setVideos] = useState<ContentItem[]>([]);
+  const [editingItem, setEditingItem] = useState<ContentItem | null>(null);
+  const [currentContentType, setCurrentContentType] = useState('');
+
+  // Product state
+  const [products, setProducts] = useState<any[]>([]);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [productSearchTerm, setProductSearchTerm] = useState('');
+  const [productSelectedCategory, setProductSelectedCategory] = useState('all');
+  const [productSortBy, setProductSortBy] = useState('latest');
+
+  // Contact messages state
+
+  // UI state
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [avatarDropdownOpen, setAvatarDropdownOpen] = useState(false);
+
+  // Navigation handler for Quick Actions
+  const handleSectionChange = (section: string, action?: string) => {
+    if (section === 'content') {
+      if (action === 'create-article') {
+        setActiveTab('content-create');
+        setCurrentContentType('article');
+      } else if (action === 'create-video') {
+        setActiveTab('content-create');
+        setCurrentContentType('video');
+      } else if (action === 'create-product') {
+        setActiveTab('product-create');
+      }
+    }
+  };
+
+  // Stats state
+  const [stats, setStats] = useState<AdminStats>({
+    totalUsers: 0,
+    totalViews: 0,
+    totalArticles: 0,
+    totalVideos: 0,
+    totalBooks: 0,
+    totalSuggestions: 0,
+    totalAboutUs: 0,
+    totalContactMessages: 0,
+    monthlyGrowth: 0,
+    weeklyGrowth: 0,
+    avgRating: 0
+  });
+
+  // Recent activity and top content
+  const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
+  const [publicActivities, setPublicActivities] = useState<any[]>([]);
+  const [securityActivities, setSecurityActivities] = useState<any[]>([]);
+  const [topContent, setTopContent] = useState<TopContentItem[]>([]);
+
+  // Categories
+  const [categories, setCategories] = useState<{[key: string]: string[]}>({
+    articles: [],
+    techniques: [],
+    books: [],
+    suggestions: [],
+    videos: [],
+    tools: [],
+    pots: [],
+    accessories: [],
+    'about-us': []
+  });
+
+  // Click outside handler for avatar dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.avatar-dropdown')) {
+        setAvatarDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [avatarDropdownOpen]);
+
+  // Helper functions for time calculations
+  const getTimeAgo = (dateString: string | undefined): string => {
+    if (!dateString) return 'Unknown time';
+    
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours} hours ago`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays} days ago`;
+    
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    return `${diffInWeeks} weeks ago`;
+  };
+
+  const getTimeInMinutes = (timeString: string): number => {
+    if (timeString.includes('minutes ago')) {
+      return parseInt(timeString.replace(' minutes ago', ''));
+    }
+    if (timeString.includes('hours ago')) {
+      return parseInt(timeString.replace(' hours ago', '')) * 60;
+    }
+    if (timeString.includes('days ago')) {
+      return parseInt(timeString.replace(' days ago', '')) * 60 * 24;
+    }
+    if (timeString.includes('weeks ago')) {
+      return parseInt(timeString.replace(' weeks ago', '')) * 60 * 24 * 7;
+    }
+    return 999999; // For "Just now" or unknown times
+  };
+
+  // Load categories
+  const loadCategories = async () => {
+    try {
+      // Load categories from API - for now empty until API is ready
+      setCategories({
+        articles: [],
+        techniques: [],
+        books: [],
+        suggestions: [],
+        videos: [],
+        tools: [],
+        pots: [],
+        accessories: [],
+        'about-us': []
+      });
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
+
+  // Load data with fallback and timeout
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Check if user has logged out or no token
+      const token = localStorage.getItem('auth_token');
+      const hasLoggedOut = localStorage.getItem('user_logged_out') === 'true';
+      
+      if (!token || hasLoggedOut) {
+        setLoading(false);
+        return;
+      }
+
+      // Add timeout wrapper for the entire loadData operation
+      const loadDataWithTimeout = async () => {
+        return Promise.race([
+          loadDataInternal(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Loading timeout after 30 seconds')), 30000)
+          )
+        ]);
+      };
+
+      await loadDataWithTimeout();
+      
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Internal load data function
+  const loadDataInternal = async () => {
+    try {
+      const loadDataWithFallback = async (serviceCall: () => Promise<unknown>) => {
+        try {
+          const response = await serviceCall() as {success?: boolean, data?: unknown[]};
+          if (response && response.success && Array.isArray(response.data)) {
+            return response.data;
+          } else if (Array.isArray(response)) {
+            return response;
+          } else if (response && response.data && Array.isArray(response.data)) {
+            return response.data;
+          }
+          return [];
+          } catch (error) {
+            return [];
+          }
+        };
+
+      // Load all content data using admin endpoints
+      const [articlesData, videosData, allProductsData, contactMessagesData, usersData, publicActivitiesData, securityActivitiesData] = await Promise.all([
+          loadDataWithFallback(() => articlesService.getAll()),
+          loadDataWithFallback(() => videosService.getAll()),
+          loadDataWithFallback(() => productService.getAll()),
+          loadDataWithFallback(() => contactService.getAll()),
+          loadDataWithFallback(() => userService.getAll()),
+          loadDataWithFallback(() => activityLogService.getPublicActivities(20)),
+          loadDataWithFallback(() => activityLogService.getSecurityActivities(20))
+      ]);
+
+      // Split products by category
+      const booksData = allProductsData.filter((product: any) => product.category === 'book');
+      const toolsData = allProductsData.filter((product: any) => product.category === 'tool');
+      const potsData = allProductsData.filter((product: any) => product.category === 'pot');
+      const accessoriesData = allProductsData.filter((product: any) => product.category === 'accessory');
+      const suggestionsData = allProductsData.filter((product: any) => product.category === 'suggestion');
+
+      // Transform data
+      setArticles(Array.isArray(articlesData) ? articlesData.map(transformArticleToContentItem) : []);
+      setVideos(Array.isArray(videosData) ? videosData.map(transformVideoToContentItem) : []);
+      
+      // Set products for Product Management (Tools/Pots/Accessories/Suggestions/Books)
+      setProducts([
+        ...(Array.isArray(toolsData) ? toolsData.map(transformToolToContentItem) : []),
+        ...(Array.isArray(potsData) ? potsData.map(transformPotToContentItem) : []),
+        ...(Array.isArray(accessoriesData) ? accessoriesData.map(transformAccessoryToContentItem) : []),
+        ...(Array.isArray(suggestionsData) ? suggestionsData.map(transformSuggestionToContentItem) : []),
+        ...(Array.isArray(booksData) ? booksData.map(transformBookToContentItem) : [])
+      ]);
+      
+      // Handle users data structure (has data and meta properties)
+      if (usersData && typeof usersData === 'object' && 'data' in usersData) {
+        setUsers((usersData as any).data as User[]);
+      } else {
+        setUsers(usersData as User[]);
+      }
+
+      // Calculate stats from real API data
+      const totalArticles = Array.isArray(articlesData) ? articlesData.length : 0;
+      const totalVideos = Array.isArray(videosData) ? videosData.length : 0;
+      const totalBooks = Array.isArray(booksData) ? booksData.length : 0;
+      const totalTools = Array.isArray(toolsData) ? toolsData.length : 0;
+      const totalPots = Array.isArray(potsData) ? potsData.length : 0;
+      const totalAccessories = Array.isArray(accessoriesData) ? accessoriesData.length : 0;
+      const totalSuggestions = Array.isArray(suggestionsData) ? suggestionsData.length : 0;
+      const totalAboutUs = 0; // No about-us data yet
+      const totalContactMessages = Array.isArray(contactMessagesData) ? contactMessagesData.length : 0;
+      const totalUsers = Array.isArray(usersData) ? usersData.length : 0;
+
+      // Calculate total views from all content
+      const totalViews = [
+        ...(Array.isArray(articlesData) ? articlesData : []),
+        ...(Array.isArray(videosData) ? videosData : []),
+        ...(Array.isArray(booksData) ? booksData : []),
+        ...(Array.isArray(toolsData) ? toolsData : []),
+        ...(Array.isArray(potsData) ? potsData : []),
+        ...(Array.isArray(accessoriesData) ? accessoriesData : []),
+        ...(Array.isArray(suggestionsData) ? suggestionsData : [])
+      ].reduce((sum, item) => sum + (item.views || 0), 0);
+
+      // Calculate average rating from rated content
+      const ratedContent = [
+        ...(Array.isArray(booksData) ? booksData : []),
+        ...(Array.isArray(suggestionsData) ? suggestionsData : []),
+        ...(Array.isArray(accessoriesData) ? accessoriesData : []),
+        ...(Array.isArray(toolsData) ? toolsData : [])
+      ].filter(item => {
+        const rating = parseFloat(item.rating);
+        return !isNaN(rating) && rating > 0;
+      });
+      
+      const avgRating = ratedContent.length > 0 
+        ? ratedContent.reduce((sum, item) => {
+            const rating = parseFloat(item.rating);
+            return sum + (isNaN(rating) ? 0 : rating);
+          }, 0) / ratedContent.length 
+        : 0;
+
+      // Calculate growth percentages (should be calculated from historical data)
+      const totalContent = totalArticles + totalVideos + totalBooks + totalSuggestions + totalTools + totalPots + totalAccessories;
+      const monthlyGrowth = totalContent > 0 ? 12.5 : 0;
+      const weeklyGrowth = totalContent > 0 ? 8.3 : 0;
+
+      setStats({
+        totalUsers,
+        totalViews,
+        totalArticles,
+        totalVideos,
+        totalBooks,
+        totalSuggestions,
+        totalAboutUs,
+        totalContactMessages,
+        monthlyGrowth,
+        weeklyGrowth,
+        avgRating,
+        // Add product counts for charts
+        totalTools,
+        totalPots,
+        totalAccessories
+      } as AdminStats);
+
+      // Set activity logs from API
+
+      setPublicActivities(Array.isArray(publicActivitiesData) ? publicActivitiesData : []);
+      setSecurityActivities(Array.isArray(securityActivitiesData) ? securityActivitiesData : []);
+
+      // Generate recent activity from real data (legacy - keeping for compatibility)
+      const activity: ActivityItem[] = [];
+      
+      // Add recent articles
+      if (Array.isArray(articlesData) && articlesData.length > 0) {
+        const recentArticles = articlesData
+          .sort((a: any, b: any) => new Date(b.created_at || b.updated_at || 0).getTime() - new Date(a.created_at || a.updated_at || 0).getTime())
+          .slice(0, 2);
+        recentArticles.forEach(article => {
+          activity.push({
+            id: `article-${article.id}`,
+            action: `New article published: ${article.title}`,
+            user: 'Admin',
+            time: getTimeAgo(article.created_at || article.updated_at),
+            type: 'content'
+          });
+        });
+      }
+      
+      // Add recent videos
+      if (Array.isArray(videosData) && videosData.length > 0) {
+        const recentVideos = videosData
+          .sort((a: any, b: any) => new Date(b.created_at || b.updated_at || 0).getTime() - new Date(a.created_at || a.updated_at || 0).getTime())
+          .slice(0, 1);
+        recentVideos.forEach(video => {
+          activity.push({
+            id: `video-${video.id}`,
+            action: `Video uploaded: ${video.title}`,
+            user: 'Admin',
+            time: getTimeAgo(video.created_at || video.updated_at),
+            type: 'media'
+          });
+        });
+      }
+      
+      // Add recent products
+      if (Array.isArray(allProductsData) && allProductsData.length > 0) {
+        const recentProducts = allProductsData
+          .sort((a: any, b: any) => new Date(b.created_at || b.updated_at || 0).getTime() - new Date(a.created_at || a.updated_at || 0).getTime())
+          .slice(0, 2);
+        recentProducts.forEach(product => {
+          activity.push({
+            id: `product-${product.id}`,
+            action: `New ${product.category} added: ${product.name}`,
+            user: 'Admin',
+            time: getTimeAgo(product.created_at || product.updated_at),
+            type: 'content'
+          });
+        });
+      }
+      
+      // Sort by time and take top 5
+      const sortedActivity = activity
+        .sort((a, b) => {
+          const timeA = getTimeInMinutes(a.time);
+          const timeB = getTimeInMinutes(b.time);
+          return timeA - timeB;
+        })
+        .slice(0, 5);
+      
+      setRecentActivity(sortedActivity);
+
+      // Generate top content from real data
+      const allContent = [
+        ...(Array.isArray(articlesData) ? articlesData.map(transformArticleToContentItem) : []),
+        ...(Array.isArray(videosData) ? videosData.map(transformVideoToContentItem) : []),
+        ...(Array.isArray(booksData) ? booksData.map(transformBookToContentItem) : []),
+        ...(Array.isArray(toolsData) ? toolsData.map(transformToolToContentItem) : []),
+        ...(Array.isArray(potsData) ? potsData.map(transformPotToContentItem) : []),
+        ...(Array.isArray(accessoriesData) ? accessoriesData.map(transformAccessoryToContentItem) : []),
+        ...(Array.isArray(suggestionsData) ? suggestionsData.map(transformSuggestionToContentItem) : [])
+      ];
+      
+      const topContentData = allContent
+        .filter(item => (item.views || 0) > 0) // Only show content with views
+        .sort((a, b) => (b.views || 0) - (a.views || 0))
+        .slice(0, 5)
+        .map(item => ({
+          id: item.id,
+          title: item.title,
+          views: item.views || 0,
+          likes: item.likes || 0,
+          type: item.category?.toLowerCase() || 'unknown'
+        }));
+      
+      // If no content with views, show most recent content
+      if (topContentData.length === 0) {
+        const recentContent = allContent
+          .sort((a, b) => {
+            const dateA = new Date(a.createdAt || a.updatedAt || 0).getTime();
+            const dateB = new Date(b.createdAt || b.updatedAt || 0).getTime();
+            return dateB - dateA;
+          })
+          .slice(0, 5)
+          .map(item => ({
+            id: item.id,
+            title: item.title,
+            views: item.views || 0,
+            likes: item.likes || 0,
+            type: item.category?.toLowerCase() || 'unknown'
+          }));
+        setTopContent(recentContent);
+      } else {
+        setTopContent(topContentData);
+      }
+
+    } catch (error) {
+      // Don't show error message, just log it
+    }
+  };
+
+  // Check logout state and refresh token
+  useEffect(() => {
+    // Force refresh API client token on mount
+    const hasLoggedOut = localStorage.getItem('user_logged_out') === 'true';
+    if (!hasLoggedOut) {
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        // Import apiClient and refresh token
+        import('../services/api').then(({ apiClient }) => {
+          apiClient.forceRefreshToken();
+        });
+      }
+    }
+  }, []);
+
+  // Load data on component mount
+  useEffect(() => {
+    if (user && isAuthenticated) {
+      // Double check token before making API calls
+      const token = localStorage.getItem('auth_token');
+      const hasLoggedOut = localStorage.getItem('user_logged_out') === 'true';
+      
+      if (!token || hasLoggedOut) {
+        return;
+      }
+
+      // Add small delay to ensure token is properly set
+      setTimeout(() => {
+        loadData();
+        loadCategories();
+        // Also load users separately to ensure they are loaded
+        loadUsers();
+      }, 100);
+    } else if (!isAuthenticated) {
+    }
+  }, [user, isAuthenticated]);
+
+  // Filtered users
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = (user.name?.toLowerCase() || '').includes(userSearchTerm.toLowerCase()) ||
+                         (user.email?.toLowerCase() || '').includes(userSearchTerm.toLowerCase());
+    const matchesStatus = userStatusFilter === 'all' || user.status === userStatusFilter;
+    const matchesRole = userRoleFilter === 'all' || user.role === userRoleFilter;
+    return matchesSearch && matchesStatus && matchesRole;
+  });
+
+  // Handler functions
+
+  const handleEdit = (item: ContentItem | null, type: string) => {
+    if (item) {
+      setCurrentContentType(type);
+      setEditingItem(item);
+      setActiveTab('content-edit'); // Chuyển sang tab edit thay vì mở modal
+    } else {
+      // Handle cancel case
+      setEditingItem(null);
+      setActiveTab(type); // Switch to the specified tab (e.g., 'content-list')
+    }
+  };
+
+  const handleDelete = async (id: string, type: string) => {
+    if (!confirm('Are you sure you want to delete this item?')) return;
+
+    try {
+      // Delete logic based on type
+      switch (type) {
+        case 'articles':
+          await articlesService.delete(id);
+          break;
+        case 'videos':
+          await videosService.delete(id);
+          break;
+        case 'books':
+          await booksService.delete(id);
+          break;
+        case 'tools':
+          await toolsService.delete(id);
+          break;
+        case 'pots':
+          await potsService.delete(id);
+          break;
+        case 'accessories':
+          await accessoriesService.delete(id);
+          break;
+        case 'suggestions':
+          await suggestionsService.delete(id);
+          break;
+        default:
+          console.error('Unknown content type:', type);
+          return;
+      }
+      
+      // Reload data after deletion
+      await loadData();
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      alert('Failed to delete item. Please try again.');
+    }
+  };
+
+  // Helper function to generate slug from title
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9 -]/g, '') // Remove special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+      .trim();
+  };
+
+  // Handle view content
+  const handleViewContent = (item: ContentItem) => {
+    const slug = item.slug || generateSlug(item.title);
+    const baseUrl = window.location.origin;
+    
+    if (item.category?.toLowerCase() === 'technique' || item.category?.toLowerCase() === 'articles') {
+      window.open(`${baseUrl}/article/${slug}`, '_blank');
+    } else if (item.category?.toLowerCase() === 'video' || item.category?.toLowerCase() === 'videos') {
+      window.open(`${baseUrl}/video/${slug}`, '_blank');
+    } else {
+
+      alert('View functionality not implemented for this content type');
+    }
+  };
+
+  const handleSave = async (formData: Partial<ContentItem>) => {
+    try {
+      // Generate slug if not provided
+      if (!formData.slug && formData.title) {
+        formData.slug = generateSlug(formData.title);
+      }
+      
+      // Save logic based on currentContentType
+      if (editingItem) {
+        // Update existing item
+        switch (currentContentType) {
+          case 'articles':
+            await articlesService.update(editingItem.id, formData);
+            break;
+          case 'videos':
+
+            await videosService.update(editingItem.id, formData);
+            break;
+          case 'books':
+            await booksService.update(editingItem.id, formData);
+            break;
+          case 'tools':
+            await toolsService.update(editingItem.id, formData);
+            break;
+          case 'pots':
+            await potsService.update(editingItem.id, formData);
+            break;
+          case 'accessories':
+            await accessoriesService.update(editingItem.id, formData);
+            break;
+          case 'suggestions':
+            await suggestionsService.update(editingItem.id, formData);
+            break;
+          default:
+            console.error('Unknown content type:', currentContentType);
+            return;
+        }
+      } else {
+        // Create new item
+        switch (currentContentType) {
+          case 'articles':
+            await articlesService.create(formData);
+            break;
+          case 'videos':
+            await videosService.create(formData);
+            break;
+          case 'books':
+            await booksService.create(formData);
+            break;
+          case 'tools':
+            await toolsService.create(formData);
+            break;
+          case 'pots':
+            await potsService.create(formData);
+            break;
+          case 'accessories':
+            await accessoriesService.create(formData);
+            break;
+          case 'suggestions':
+            await suggestionsService.create(formData);
+            break;
+          default:
+            console.error('Unknown content type:', currentContentType);
+            return;
+        }
+      }
+      
+      // Reset editing state
+      setEditingItem(null);
+      
+      // Reload data
+      await loadData();
+      
+      // Redirect to content-list after successful save
+      setActiveTab('content-list');
+      
+      // Show success message
+      alert(editingItem ? 'Content updated successfully!' : 'Content created successfully!');
+    } catch (error) {
+      console.error('Error saving content:', error);
+      alert('Failed to save content. Please try again.');
+    }
+  };
+
+
+  const handleUserProfileChange = useCallback((field: string, value: unknown) => {
+
+    setUserProfile(prev => {
+      const newProfile = {
+        ...prev,
+        [field]: value
+      };
+
+      return newProfile;
+    });
+  }, []);
+
+  // Product handlers
+  const handleProductCreate = async (productData: any) => {
+    try {
+      // Determine the service based on category
+      const category = productData.category?.toLowerCase();
+      let response;
+      
+      switch (category) {
+        case 'tool':
+          response = await toolsService.create(productData);
+          break;
+        case 'pot':
+          response = await potsService.create(productData);
+          break;
+        case 'accessory':
+          response = await accessoriesService.create(productData);
+          break;
+        case 'suggestion':
+          response = await suggestionsService.create(productData);
+          break;
+        case 'book':
+          response = await booksService.create(productData);
+          break;
+        default:
+          console.error('Unknown product category:', category);
+          return;
+      }
+      
+      // Reload products data
+      await loadData();
+    } catch (error) {
+      console.error('Error creating product:', error);
+      alert('Failed to create product. Please try again.');
+    }
+  };
+
+  const handleProductEditClick = (product: any) => {
+    setEditingProduct(product);
+    setActiveTab('product-edit');
+  };
+
+  const handleProductEditCancel = () => {
+    setEditingProduct(null);
+    setActiveTab('product-list');
+  };
+
+  const handleProductEdit = async (updatedProduct: any) => {
+    try {
+      // Use productService directly instead of category-specific services
+      await productService.update(updatedProduct.id, updatedProduct);
+      
+      // Reload products data
+      await loadData();
+      
+      // Reset editing state and go back to list
+      setEditingProduct(null);
+      setActiveTab('product-list');
+      
+      alert('Product updated successfully!');
+    } catch (error) {
+      console.error('Error updating product:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Failed to update product: ${errorMessage}`);
+    }
+  };
+
+  const handleProductDelete = async (id: string, category?: string) => {
+    if (!confirm('Are you sure you want to delete this product?')) return;
+    
+    try {
+      // Find the product to get its category
+      const product = products.find(p => p.id === id);
+      const productCategory = category || product?.category?.toLowerCase();
+      
+      switch (productCategory) {
+        case 'tool':
+          await toolsService.delete(id);
+          break;
+        case 'pot':
+          await potsService.delete(id);
+          break;
+        case 'accessory':
+          await accessoriesService.delete(id);
+          break;
+        case 'suggestion':
+          await suggestionsService.delete(id);
+          break;
+        case 'book':
+          await booksService.delete(id);
+          break;
+        default:
+          console.error('Unknown product category:', productCategory);
+          return;
+      }
+      
+      // Reload products data
+      await loadData();
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      alert('Failed to delete product. Please try again.');
+    }
+  };
+
+  const handleProductView = (product: any) => {
+    // Create a detailed view modal or navigate to product detail page
+    const productInfo = `
+Product Details:
+Name: ${product.name || product.title}
+Category: ${product.category}
+Status: ${product.status}
+Description: ${product.description}
+Price: ${product.price ? `$${product.price}` : 'Free'}
+Rating: ${product.rating || 'N/A'}
+Views: ${product.views || 0}
+Likes: ${product.likes || 0}
+Created: ${product.createdAt}
+Updated: ${product.updatedAt}
+    `;
+    
+    alert(productInfo);
+  };
+
+  const handleSaveUserProfile = useCallback(async () => {
+    try {
+    // Create payload WITHOUT password field (password should be handled separately)
+    const payload: any = {
+      name: userProfile.name || '',
+      email: userProfile.email || '',
+      avatar: userProfile.avatar || null,
+      avatar_public_id: userProfile.avatar_public_id || null
+    };
+    
+    // Add other fields if needed
+    if (userProfile.phone) payload.phone = userProfile.phone;
+    if (userProfile.phone_country_code) payload.phone_country_code = userProfile.phone_country_code;
+    if (userProfile.country) payload.country = userProfile.country;
+    if (userProfile.address) payload.address = userProfile.address;
+    if (userProfile.city) payload.city = userProfile.city;
+    if (userProfile.zip_code) payload.zip_code = userProfile.zip_code;
+    if (userProfile.role) payload.role = userProfile.role;
+    if (userProfile.status) payload.status = userProfile.status;
+    
+    // Only add password if it's provided and not empty
+    if (userProfile.password && userProfile.password.trim() !== '') {
+      payload.password = userProfile.password;
+    }
+
+      // Debug: Check if avatar data is in payload
+
+      // Update user profile
+      const response = await userService.updateProfile(payload);
+
+      alert('User profile updated successfully!');
+      
+      // Reload user data from server to get updated avatar
+      window.location.reload();
+      
+      // Update local state with response data
+      if (response.success && response.data) {
+        setUserProfile(prev => ({
+          ...prev,
+          ...response.data,
+          avatarPreview: response.data.avatar || prev.avatarPreview
+        }));
+      }
+    } catch (error) {
+      console.error('Error saving user profile:', error);
+      
+      // More detailed error handling
+      if (error instanceof Error) {
+        alert(`Failed to save user profile: ${error.message}`);
+      } else {
+        alert('Failed to save user profile. Please check the console for details.');
+      }
+    }
+  }, [userProfile]);
+
+  const handleAvatarUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && validateAvatarFile(file)) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setUserProfile(prev => ({
+          ...prev,
+          avatar: file,
+          avatarPreview: event.target?.result as string
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  }, []);
+
+  const handleRemoveAvatar = useCallback(() => {
+    setUserProfile(prev => ({
+      ...prev,
+      avatar: null,
+      avatarPreview: null
+    }));
+  }, []);
+
+  const handleEditUser = useCallback((userItem: any | null) => {
+    if (!userItem) {
+      // Handle cancel case - switch back to user-list
+      setActiveTab('user-list');
+      setEditingUser(null);
+      return;
+    }
+    
+    // Set the user to edit and switch to edit tab
+    setEditingUser(userItem);
+    setActiveTab('user-edit');
+  }, []);
+
+  const handleCreateUser = useCallback(async (userData: any) => {
+    try {
+      // Clean user data (remove preview fields and confirmPassword)
+      const { avatarPreview, confirmPassword, ...cleanData } = userData;
+      
+      // Create user with JSON data
+      await userService.create(cleanData);
+      alert('User created successfully!');
+      
+      // Reload data
+      await loadData();
+      
+      // Switch back to user list
+      setActiveTab('user-list');
+    } catch (error) {
+      console.error('Error creating user:', error);
+      alert('Failed to create user. Please try again.');
+    }
+  }, [loadData]);
+
+  const handleDeleteUser = useCallback(async (userId: string) => {
+    if (!confirm('Are you sure you want to delete this user?')) return;
+
+    try {
+      // Delete user
+      await userService.delete(userId);
+      alert('User deleted successfully!');
+      
+      // Reload data
+      await loadData();
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('Failed to delete user. Please try again.');
+    }
+  }, []);
+
+  const handleSaveUserEdit = useCallback(async (userData: any) => {
+    try {
+      if (!editingUser?.id) {
+        alert('No user selected for editing');
+        return;
+      }
+
+      // Clean user data (remove preview fields and empty password)
+      const { avatarPreview, password, ...cleanData } = userData;
+      
+      // Only include password if it's provided and not empty
+      const updateData = password && password.trim() !== '' 
+        ? { ...cleanData, password } 
+        : cleanData;
+
+      // Update user with JSON data
+      await userService.update(editingUser.id, updateData);
+      alert('User updated successfully!');
+      
+      // Reload data
+      await loadData();
+      
+      // Switch back to user list
+      setActiveTab('user-list');
+      setEditingUser(null);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      alert('Failed to update user. Please try again.');
+    }
+  }, [editingUser, loadData]);
+
+  const handleCancelUserEdit = useCallback(() => {
+    setEditingUser(null);
+    setActiveTab('user-list');
+  }, []);
+
+  const loadUsers = async () => {
+    try {
+      // Check if user has logged out or no token
+      const token = localStorage.getItem('auth_token');
+      const hasLoggedOut = localStorage.getItem('user_logged_out') === 'true';
+      
+      if (!token || hasLoggedOut) {
+
+        return;
+      }
+
+      const response = await userService.getAll();
+
+      // Handle response structure
+      if (response && typeof response === 'object' && 'data' in response) {
+        setUsers(response.data as User[]);
+      } else if (Array.isArray(response)) {
+        setUsers(response as User[]);
+      } else {
+        setUsers([]);
+      }
+    } catch (error) {
+      console.error('Error loading users:', error);
+      setUsers([]);
+    }
+  };
+
+  // Error states
+  if (!user) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-gray-900' : 'bg-emerald-50'}`}>
+        <Card className="text-center p-8 max-w-md">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="bg-red-100 p-4 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+              <Shield className="h-10 w-10 text-red-500" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Access Denied</h2>
+            <p className="text-gray-600 mb-6">
+              You need to be logged in to access the admin dashboard.
+            </p>
+            <a
+              href="/login"
+              className="bg-emerald-500 text-white px-6 py-3 rounded-lg hover:bg-emerald-600 transition-colors"
+            >
+              Go to Login
+            </a>
+          </motion.div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (user.role !== 'admin' && user.role !== 'moderator') {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-gray-900' : 'bg-emerald-50'}`}>
+        <Card className="text-center p-8 max-w-md">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="relative">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-emerald-200 border-t-emerald-600 mx-auto mb-6"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Shield className="h-8 w-8 text-emerald-600" />
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Checking Permissions...</h2>
+            <p className="text-gray-600">
+              Verifying your access rights to the admin dashboard.
+            </p>
+          </motion.div>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show error if loading failed
+  if (error) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-gray-900' : 'bg-emerald-50'}`}>
+        <Card className="text-center p-8 max-w-md">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="bg-red-100 p-4 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+              <AlertTriangle className="h-10 w-10 text-red-500" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Loading Failed</h2>
+            <p className="text-gray-600 mb-6">
+              {error}
+            </p>
+            <button
+              onClick={() => {
+                setError(null);
+                loadData();
+              }}
+              className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
+            >
+              Retry
+            </button>
+          </motion.div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-gray-900' : 'bg-emerald-50'}`}>
+        <Card className="text-center p-8 max-w-md">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="relative">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-emerald-200 border-t-emerald-600 mx-auto mb-6"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Loader2 className="h-8 w-8 text-emerald-600" />
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Loading Dashboard</h2>
+            <p className="text-gray-600">
+              Please wait while we load your dashboard data...
+            </p>
+          </motion.div>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      {/* Background Effects */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          className={`absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl ${
+            isDarkMode 
+              ? 'bg-gradient-to-br from-emerald-600/8 via-green-500/10 to-teal-600/6' 
+              : 'bg-gradient-to-br from-emerald-300/10 via-green-200/15 to-teal-300/10'
+          }`}
+          animate={{
+            x: [-100, 100, -100],
+            y: [50, -50, 50],
+            scale: [1.2, 0.8, 1.2],
+            rotate: [0, 360, -360],
+          }}
+          transition={{
+            duration: 30,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div
+          className={`absolute top-2/3 right-1/4 w-64 h-64 rounded-full blur-3xl ${
+            isDarkMode 
+              ? 'bg-gradient-to-bl from-emerald-600/8 via-green-500/10 to-teal-600/6' 
+              : 'bg-gradient-to-bl from-emerald-300/10 via-green-200/15 to-teal-300/10'
+          }`}
+          animate={{
+            x: [100, -100, 100],
+            y: [50, -50, 50],
+            scale: [1.2, 0.8, 1.2],
+            rotate: [0, -360, -720],
+          }}
+          transition={{
+            duration: 28,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        
+        {/* Static particles */}
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            className={`absolute w-2 h-2 rounded-full ${
+              isDarkMode ? 'bg-emerald-400/20' : 'bg-emerald-300/30'
+            }`}
+            style={{
+              left: `${20 + i * 15}%`,
+              top: `${30 + i * 10}%`,
+            }}
+          />
+        ))}
+      </div>
+          
+      {/* Admin Content */}
+      <div className="relative z-20 flex min-h-screen">
+        <div className="hidden lg:block">
+          <AdminSidebar 
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            stats={stats}
+            isCollapsed={sidebarCollapsed}
+            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+            userRole={user?.role || 'admin'}
+          />
+        </div>
+        <div className="flex-1 p-6">
+          {/* Mobile Navigation */}
+          <div className="lg:hidden">
+            <MobileAdminNav 
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              isDarkMode={isDarkMode}
+              userRole={user?.role || 'admin'}
+            />
+          </div>
+          
+          <div className="p-3 lg:p-6 space-y-4 lg:space-y-8">
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">
+                    Error loading data
+                  </h3>
+                  <div className="mt-2 text-sm text-red-700">
+                    <p>Some data could not be loaded from the server. The dashboard will show available data.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Loading State */}
+          {loading && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="animate-spin h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-blue-800">
+                    Loading dashboard data...
+                  </h3>
+                  <div className="mt-2 text-sm text-blue-700">
+                    <p>Please wait while we fetch the latest data.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Header */}
+          <motion.div
+            className="mb-8"
+            initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+                  {activeTab === 'overview' ? 'Dashboard Overview' : 
+                   activeTab === 'content-list' ? 'All Content List' :
+                   activeTab === 'content-details' ? 'Content Details' :
+                   activeTab === 'content-create' ? 'Create Content' :
+                   activeTab === 'content-edit' ? 'Edit Content' :
+                   activeTab === 'product-list' ? 'All Products List' :
+                   activeTab === 'product-details' ? 'Product Details' :
+                   activeTab === 'product-create' ? 'Create Product' :
+                   activeTab === 'product-edit' ? 'Edit Product' :
+                   activeTab === 'articles' ? 'Articles Management' :
+                   activeTab === 'techniques' ? 'Techniques Management' :
+                   activeTab === 'books' ? 'Books Management' :
+                   activeTab === 'videos' ? 'Videos Management' :
+                   activeTab === 'suggestions' ? 'Suggestions Management' :
+                   activeTab === 'tools' ? 'Tools Management' :
+                   activeTab === 'pots' ? 'Pots Management' :
+                   activeTab === 'accessories' ? 'Accessories Management' :
+                   activeTab === 'users' ? 'Users Management' :
+                   activeTab === 'user-profile' ? 'User Profile' :
+                   activeTab === 'user-list' ? 'All Users List' :
+                   activeTab === 'user-create' ? 'Create User' :
+                   'Admin Panel'}
+                </h1>
+                <p className={`mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Welcome back, <span className="font-semibold text-emerald-500">{user.name}</span>!
+                </p>
+              </div>
+             {/* Header with Search and Avatar */}
+             <div className={`flex items-center space-x-4 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl p-4 shadow-lg mt-4`}>
+                 {/* Search Bar */}
+                 <div className="flex-1 relative">
+                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                     <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                     </svg>
+                   </div>
+                   <input
+                     type="text"
+                     placeholder="Search..."
+                     className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
+                       isDarkMode 
+                         ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                         : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                     }`}
+                   />
+                 </div>
+
+                 {/* Avatar Dropdown */}
+                 <div className="relative avatar-dropdown">
+                     <button
+                       onClick={() => setAvatarDropdownOpen(!avatarDropdownOpen)}
+                       className="flex items-center space-x-2 p-1 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                     >
+                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold text-sm">
+                         {user?.name?.charAt(0).toUpperCase() || 'A'}
+                       </div>
+                     </button>
+
+                     {/* Dropdown Menu */}
+                     {avatarDropdownOpen && (
+                       <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                         <div className="py-2">
+                           {/* Greeting */}
+                           <div className="px-4 py-2 border-b border-gray-100">
+                             <p className="text-sm font-medium text-gray-900">
+                               👋 Hey, {user?.name || 'Admin'}
+                             </p>
+                           </div>
+                           
+                           {/* Menu Items */}
+                           <button 
+                             onClick={() => {
+                               setActiveTab('user-profile');
+                               setAvatarDropdownOpen(false);
+                             }}
+                             className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                           >
+                             Profile Settings
+                           </button>
+                           
+                           <button 
+                             onClick={async () => {
+                               // Handle logout properly
+                               setAvatarDropdownOpen(false);
+                               // Set logout state immediately
+                               await logout();
+                               // Redirect to home page after logout
+                               window.location.href = '/';
+                             }}
+                             className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                           >
+                             Log Out
+                           </button>
+                         </div>
+                       </div>
+                     )}
+                 </div>
+               </div>
+          </div>
+        </motion.div>
+
+      {/* Quick Stats */}
+      {activeTab === 'overview' && (
+        <StatisticsSection stats={stats} isDarkMode={isDarkMode} />
+      )}
+
+          {/* Charts and Analytics */}
+          {activeTab === 'overview' && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              <DashboardCharts stats={stats} onNavigate={handleSectionChange} />
+            </motion.div>
+          )}
+
+      {/* Overview Content */}
+      {activeTab === 'overview' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Recent Activity */}
+          <RecentActivitySection 
+            publicActivities={publicActivities} 
+            securityActivities={securityActivities}
+            isDarkMode={isDarkMode} 
+          />
+
+          {/* Top Content */}
+          <TopContentSection 
+            topContent={topContent} 
+            isDarkMode={isDarkMode} 
+          />
+        </div>
+      )}
+
+      {/* User Management - Profile for all, List/Create for admin only */}
+      {activeTab === 'user-profile' && (
+        <UserManagementSection
+          activeTab={activeTab}
+          userProfile={userProfile}
+          filteredUsers={filteredUsers}
+          userSearchTerm={userSearchTerm}
+          onUserProfileChange={handleUserProfileChange}
+          onSaveUserProfile={handleSaveUserProfile}
+          onLoadUsers={loadUsers}
+          onUserSearchTermChange={setUserSearchTerm}
+          onEditUser={handleEditUser}
+          onDeleteUser={handleDeleteUser}
+          onCreateUser={handleCreateUser}
+          currentUserRole={user?.role}
+        />
+      )}
+      
+      {/* User Management - Admin only sections */}
+      {(activeTab === 'users' || activeTab === 'user-list' || activeTab === 'user-create') && user?.role === 'admin' && (
+        <UserManagementSection
+          activeTab={activeTab}
+          userProfile={userProfile}
+          filteredUsers={filteredUsers}
+          userSearchTerm={userSearchTerm}
+          onUserProfileChange={handleUserProfileChange}
+          onSaveUserProfile={handleSaveUserProfile}
+          onLoadUsers={loadUsers}
+          onUserSearchTermChange={setUserSearchTerm}
+          onEditUser={handleEditUser}
+          onDeleteUser={handleDeleteUser}
+          onCreateUser={handleCreateUser}
+          currentUserRole={user?.role}
+        />
+      )}
+
+      {/* User Edit Form */}
+      {activeTab === 'user-edit' && user?.role === 'admin' && editingUser && (
+        <UserEditForm
+          userData={editingUser}
+          onSave={handleSaveUserEdit}
+          onCancel={handleCancelUserEdit}
+          currentUserRole={user?.role}
+        />
+      )}
+
+
+      {/* Content Management - Only Techniques and Videos */}
+      {['articles', 'videos', 'content-list', 'content-create', 'content-edit'].includes(activeTab) && (
+        <ContentManagementSection
+          activeTab={activeTab}
+          contentData={[
+            ...articles,
+            ...videos
+          ]}
+          categories={{ 'Technique': [], 'Video': [] }}
+          searchTerm={searchTerm}
+          selectedCategory={selectedCategory}
+          sortBy={sortBy}
+          isDarkMode={isDarkMode}
+          editingItem={editingItem}
+          onSearchTermChange={setSearchTerm}
+          onSelectedCategoryChange={setSelectedCategory}
+          onSortByChange={setSortBy}
+          onEdit={(item, type) => handleEdit(item, type || activeTab)}
+          onDelete={handleDelete}
+          onView={handleViewContent}
+          onCreate={handleSave}
+        />
+      )}
+
+      {/* Product Management - Tools/Pots/Accessories/Suggestions/Books */}
+      {['product-list', 'product-create', 'product-edit', 'tools', 'pots', 'accessories', 'books', 'suggestions'].includes(activeTab) && (
+        <ProductManagement
+          activeTab={activeTab}
+          isDarkMode={isDarkMode}
+          products={products}
+          searchTerm={productSearchTerm}
+          setSearchTerm={setProductSearchTerm}
+          selectedCategory={productSelectedCategory}
+          setSelectedCategory={setProductSelectedCategory}
+          sortBy={productSortBy}
+          setSortBy={setProductSortBy}
+          onEdit={handleProductEdit}
+          onDelete={handleProductDelete}
+          onView={handleProductView}
+          onCreate={handleProductCreate}
+          categories={['tool', 'book', 'pot', 'accessory', 'suggestion']}
+          onEditClick={handleProductEditClick}
+          editingProduct={editingProduct}
+          onEditCancel={handleProductEditCancel}
+        />
+      )}
+
+      {/* Site Settings Pages */}
+      {activeTab === 'hero-section' && <AdminHeroSection />}
+      {activeTab === 'staff-management' && <AdminStaffManagement />}
+      {activeTab === 'map-settings' && <AdminMapSettings />}
+      {activeTab === 'contact-settings' && <AdminContactSettings />}
+      {activeTab === 'contact-messages' && <AdminContactMessages />}
+
+      {/* Modal for Create/Edit */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className={`max-w-2xl w-full max-h-[90vh] overflow-y-auto rounded-xl p-6 ${
+                isDarkMode ? 'bg-gray-800' : 'bg-white'
+              }`}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+            >
+              <ContentForm
+                type={currentContentType}
+                item={editingItem}
+                categories={categories[currentContentType as keyof typeof categories] || []}
+                onSave={handleSave}
+                onCancel={() => setIsModalOpen(false)}
+                isDarkMode={isDarkMode}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AdminDashboard;

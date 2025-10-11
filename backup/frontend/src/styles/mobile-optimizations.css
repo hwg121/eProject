@@ -1,0 +1,52 @@
+/* Mobile Optimizations */
+
+/* Hide scrollbars for better mobile experience */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Optimize touch interactions */
+.touch-optimized {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Smooth scrolling for mobile */
+.smooth-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Performance optimizations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Mobile-specific animations */
+@media (max-width: 768px) {
+  .mobile-optimized-animation {
+    transition-duration: 0.2s !important;
+  }
+  
+  /* Reduce motion for better performance */
+  .reduce-motion {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Backdrop blur fallback for older browsers */
+.backdrop-blur-fallback {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.dark .backdrop-blur-fallback {
+  background: rgba(17, 24, 39, 0.95);
+}

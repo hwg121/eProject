@@ -34,11 +34,11 @@ class ArticleController extends Controller
             $query = Article::query();
 
             // Filter by status
-            if ($request->has('status')) {
+            // Admin can see all, but if status param provided, filter by it
+            if ($request->has('status') && $request->status !== 'all') {
                 $query->where('status', $request->status);
-            } else {
-                $query->where('status', 'published');
             }
+            // If no status param or status=all, show all articles for admin
 
             // Filter by category
             if ($request->has('category_id')) {

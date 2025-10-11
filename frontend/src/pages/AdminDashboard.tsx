@@ -1633,6 +1633,11 @@ Updated: ${product.updatedAt}
           onDelete={handleDelete}
           onView={handleViewContent}
           onCreate={handleSave}
+          onCancelCreate={() => setActiveTab('content-list')}
+          onCancelEdit={() => {
+            setEditingItem(null);
+            setActiveTab('content-list');
+          }}
         />
       )}
 
@@ -1656,6 +1661,7 @@ Updated: ${product.updatedAt}
           onEditClick={handleProductEditClick}
           editingProduct={editingProduct}
           onEditCancel={handleProductEditCancel}
+          onCancelCreate={() => setActiveTab('product-list')}
         />
       )}
 

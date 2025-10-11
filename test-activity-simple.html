@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Activity API</title>
+</head>
+<body>
+    <h1>Test Activity API</h1>
+    <button onclick="testPublicActivities()">Test Public Activities</button>
+    <button onclick="testSecurityActivities()">Test Security Activities</button>
+    <div id="result"></div>
+
+    <script>
+        const API_BASE = 'http://103.252.93.249/api';
+        
+        async function testPublicActivities() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/activity-logs/public?limit=5`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                const data = await response.json();
+                document.getElementById('result').innerHTML = `
+                    <h3>Public Activities Response:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <h3>Error:</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+        
+        async function testSecurityActivities() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/activity-logs/security?limit=5`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                const data = await response.json();
+                document.getElementById('result').innerHTML = `
+                    <h3>Security Activities Response:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <h3>Error:</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
+

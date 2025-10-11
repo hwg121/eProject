@@ -4,7 +4,7 @@ export interface ContentItem {
   author?: string;
   instructor?: string;
   category: string;
-  status: 'published' | 'draft';
+  status: 'published' | 'draft' | 'archived';
   views?: number;
   likes?: number;
   rating?: number;

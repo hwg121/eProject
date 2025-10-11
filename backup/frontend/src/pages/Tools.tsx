@@ -1,0 +1,306 @@
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Wrench, Star, ArrowRight } from 'lucide-react';
+import Card from '../components/UI/Card';
+import PageHeader from '../components/UI/PageHeader';
+import { publicService } from '../services/api.ts';
+import { generateSlug } from '../utils/slug';
+
+interface Product {
+  id: string;
+  name: string;
+  slug?: string;
+  description: string;
+  content?: string;
+  category: 'tool' | 'book' | 'pot' | 'accessory' | 'suggestion';
+  subcategory?: string;
+  status: 'published' | 'draft' | 'archived';
+  price?: number;
+  image?: string;
+  images_json?: string;
+  brand?: string;
+  material?: string;
+  size?: string;
+  color?: string;
+  is_featured?: boolean;
+  is_published?: boolean;
+  views?: number;
+  likes?: number;
+  rating?: number;
+  
+  // Tool specific
+  usage?: string;
+  video_url?: string;
+  affiliate_link?: string;
+  
+  // Book specific
+  author?: string;
+  pages?: number;
+  published_year?: number;
+  buyLink?: string;
+  borrowLink?: string;
+  
+  // Pot specific
+  drainage_holes?: boolean;
+  
+  // Accessory specific
+  is_waterproof?: boolean;
+  is_durable?: boolean;
+  
+  // Suggestion specific
+  difficulty_level?: 'beginner' | 'intermediate' | 'advanced';
+  season?: string;
+  plant_type?: string;
+  estimated_time?: string;
+  tags?: string[];
+  
+  // Generic link
+  link?: string;
+  
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+const Tools: React.FC = () => {
+  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+  const [tools, setTools] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
+
+  useEffect(() => {
+    const loadTools = async () => {
+      try {
+        setLoading(true);
+        const data = await publicService.getTools();
+        console.log('Tools data:', data); // Debug log
+        
+        // Only use real API data
+        if (data && data.length > 0) {
+          setTools(data as Product[]);
+        } else {
+          setError('No tools available');
+        }
+      } catch (err) {
+        setError('Failed to load tools');
+        console.error('Error loading tools:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTools();
+  }, []);
+
+  // Filter tools based on search term
+  const filteredTools = tools.filter(tool => {
+    const matchesSearch = tool.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         tool.description.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
+  });
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredTools.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentTools = filteredTools.slice(startIndex, endIndex);
+
+  return (
+    <div className="space-y-8">
+      <PageHeader
+        title="Gardening Tools"
+        subtitle="Discover the essential tools that make gardening easier and more enjoyable"
+        icon={<Wrench className="h-10 w-10" />}
+      />
+
+      {/* Search Bar */}
+      <Card>
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="Search tools..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            />
+          </div>
+        </div>
+      </Card>
+
+      {/* Tools Grid */}
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-emerald-600">Loading tools...</p>
+        </div>
+      ) : error ? (
+        <div className="text-center py-12">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-emerald-800">
+              Available Tools ({filteredTools.length})
+            </h2>
+          </div>
+          
+          {filteredTools.length === 0 ? (
+            <div className="text-center py-12">
+              <Wrench className="h-16 w-16 text-emerald-300 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-emerald-800 mb-2">No tools found</h3>
+              <p className="text-emerald-600">Try adjusting your search criteria</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {currentTools.map((tool) => (
+                <a 
+                  key={tool.id} 
+                  href={tool.link || '#'} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="block h-full"
+                >
+                  <Card className="h-full group cursor-pointer hover:shadow-xl transition-all duration-300 p-6">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-2">
+                        <div className="text-emerald-600">
+                          <Wrench className="h-5 w-5" />
+                        </div>
+                        <span className="text-sm text-emerald-600 font-medium">{tool.subcategory || 'Tool'}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                        <span className="text-sm font-semibold">{tool.rating || '4.5'}</span>
+                      </div>
+                    </div>
+                    <h3 className="text-lg font-semibold text-emerald-800 mb-2">{tool.name}</h3>
+                    <p className="text-emerald-600 text-sm mb-4 leading-relaxed">{tool.description}</p>
+                    <div className="flex items-center justify-between mt-auto">
+                      <div className="flex items-center space-x-4 text-sm text-emerald-600">
+                        <span>{tool.price ? `$${tool.price}` : 'Free'}</span>
+                        {tool.brand && (
+                          <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs">
+                            {tool.brand}
+                          </span>
+                        )}
+                      </div>
+                      <button className="flex items-center space-x-1 text-emerald-600 hover:text-emerald-800 transition-colors">
+                        <ArrowRight className="h-4 w-4" />
+                        <span className="text-sm">View Details</span>
+                      </button>
+                    </div>
+                  </Card>
+                </a>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center space-x-2 mt-8">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 rounded-lg bg-emerald-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-emerald-700 transition-colors"
+                >
+                  Previous
+                </button>
+                
+                <div className="flex space-x-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-4 py-2 rounded-lg transition-colors ${
+                        currentPage === page
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 rounded-lg bg-emerald-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-emerald-700 transition-colors"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </>
+    )}
+
+      {/* Video Modal */}
+      {selectedVideo && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 max-w-4xl w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold text-emerald-800">Tool Demonstration</h3>
+              <button
+                onClick={() => setSelectedVideo(null)}
+                className="text-emerald-600 hover:text-emerald-800 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <div className="aspect-video">
+              <iframe
+                src={selectedVideo}
+                className="w-full h-full rounded-lg"
+                allowFullScreen
+                title="Tool demonstration video"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Card className="bg-gradient-to-r from-blue-500 to-emerald-500 text-white">
+        <h3 className="text-2xl font-bold mb-4">Tool Care Tips</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h4 className="text-lg font-semibold mb-2">🔧 Maintenance</h4>
+            <ul className="space-y-1 text-blue-100">
+              <li>• Clean tools after each use</li>
+              <li>• Keep cutting edges sharp</li>
+              <li>• Oil moving parts regularly</li>
+              <li>• Store in a dry place</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-lg font-semibold mb-2">💡 Pro Tips</h4>
+            <ul className="space-y-1 text-blue-100">
+              <li>• Invest in quality over quantity</li>
+              <li>• Choose ergonomic handles</li>
+              <li>• Consider tool weight for comfort</li>
+              <li>• Keep a basic repair kit handy</li>
+            </ul>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+};
+
+export default Tools;

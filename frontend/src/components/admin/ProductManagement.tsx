@@ -49,6 +49,7 @@ interface ProductManagementProps {
   onEditClick?: (product: Product) => void;
   editingProduct?: Product | null;
   onEditCancel?: () => void;
+  onCancelCreate?: () => void;
 }
 
 const ProductManagement: React.FC<ProductManagementProps> = ({
@@ -68,7 +69,8 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
   categories,
   onEditClick,
   editingProduct,
-  onEditCancel
+  onEditCancel,
+  onCancelCreate
 }) => {
 
   const handleEditClick = (product: Product) => {
@@ -103,7 +105,9 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
   };
 
   const handleCreateCancel = () => {
-    // This will be handled by parent component
+    if (onCancelCreate) {
+      onCancelCreate();
+    }
   };
 
   return (

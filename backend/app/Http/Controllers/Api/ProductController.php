@@ -19,11 +19,11 @@ class ProductController extends Controller
         $query = Product::query();
 
             // Filter by status
-            if ($request->has('status')) {
+            // Admin can see all, but if status param provided, filter by it
+            if ($request->has('status') && $request->status !== 'all') {
                 $query->where('status', $request->status);
-            } else {
-                $query->published();
-        }
+            }
+            // If no status param or status=all, show all products for admin
 
         // Filter by category
         if ($request->has('category') && $request->category) {

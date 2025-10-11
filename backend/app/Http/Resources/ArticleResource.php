@@ -20,6 +20,7 @@ class ArticleResource extends JsonResource
             'slug' => $this->slug,
             'excerpt' => $this->excerpt,
             'body' => $this->body,
+            'status' => $this->status ?? 'published',
             'category' => new CategoryResource($this->whenLoaded('category')),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
             'author' => new UserResource($this->whenLoaded('author')),

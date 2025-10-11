@@ -21,6 +21,8 @@ interface ContentManagementSectionProps {
   onDelete: (id: string, type: string) => void;
   onView: (item: ContentItem) => void;
   onCreate: (data: Partial<ContentItem>) => void;
+  onCancelCreate?: () => void;
+  onCancelEdit?: () => void;
 }
 
 const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
@@ -38,7 +40,9 @@ const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
   onEdit,
   onDelete,
   onView,
-  onCreate
+  onCreate,
+  onCancelCreate,
+  onCancelEdit
 }) => {
 
   const handleEditClick = (content: ContentItem) => {
@@ -63,7 +67,9 @@ const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
   };
 
   const handleCreateCancel = () => {
-    // This will be handled by parent component
+    if (onCancelCreate) {
+      onCancelCreate();
+    }
   };
 
   return (

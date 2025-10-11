@@ -403,9 +403,9 @@ const ProductList: React.FC<ProductListProps> = ({
         <Card sx={{ background: isDarkMode ? '#1e293b' : '#ffffff', p: 2 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box>
-              <Typography variant="caption" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b', fontWeight: 600 }}>Total Products</Typography>
+              <Typography variant="caption" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b', fontWeight: 600 }}>Archived</Typography>
               <Typography variant="h5" fontWeight={700} sx={{ color: isDarkMode ? '#f1f5f9' : '#1e293b' }}>
-                {products.length}
+                {products.filter(p => p.status === 'archived').length}
               </Typography>
             </Box>
             <Avatar sx={{ bgcolor: '#6b728020', width: 44, height: 44 }}>
