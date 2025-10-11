@@ -162,6 +162,27 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  // Handler for Top Content item click
+  const handleTopContentClick = (item: TopContentItem) => {
+    const baseUrl = import.meta.env.VITE_APP_URL || 'http://103.252.93.249:80';
+    
+    // Check content type and navigate accordingly
+    if (item.type === 'article' || item.type === 'technique' || item.type === 'Technique') {
+      // Navigate to article detail page
+      window.open(`${baseUrl}/article/${item.slug || item.id}`, '_blank');
+    } else if (item.type === 'video' || item.type === 'Video') {
+      // Navigate to video detail page
+      window.open(`${baseUrl}/video/${item.slug || item.id}`, '_blank');
+    } else if (['tool', 'book', 'pot', 'accessory', 'suggestion'].includes(item.type.toLowerCase())) {
+      // Product - open link if available, otherwise show message
+      if (item.link) {
+        window.open(item.link, '_blank');
+      } else {
+        showToast('This product does not have an external link', 'info');
+      }
+    }
+  };
+
   // Stats state
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
@@ -1506,7 +1527,12 @@ Updated: ${product.updatedAt}
 
       {/* Quick Stats */}
       {activeTab === 'overview' && (
-        <StatisticsSection stats={stats} isDarkMode={isDarkMode} campaignStats={campaignStats} />
+        <StatisticsSection 
+          stats={stats} 
+          isDarkMode={isDarkMode} 
+          campaignStats={campaignStats}
+          onCardClick={() => setActiveTab('campaign-settings')}
+        />
       )}
 
           {/* Charts and Analytics */}
@@ -1533,7 +1559,8 @@ Updated: ${product.updatedAt}
           {/* Top Content */}
           <TopContentSection 
             topContent={topContent} 
-            isDarkMode={isDarkMode} 
+            isDarkMode={isDarkMode}
+            onItemClick={handleTopContentClick}
           />
         </div>
       )}

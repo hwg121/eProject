@@ -28,9 +28,10 @@ import {
 interface TopContentSectionProps {
   topContent: TopContentItem[];
   isDarkMode: boolean;
+  onItemClick?: (item: TopContentItem) => void;
 }
 
-const TopContentSection: React.FC<TopContentSectionProps> = ({ topContent, isDarkMode }) => {
+const TopContentSection: React.FC<TopContentSectionProps> = ({ topContent, isDarkMode, onItemClick }) => {
   const getRankBadge = (index: number) => {
     const icons = ['🥇', '🥈', '🥉', '🎯', '⭐'];
     return {
@@ -162,7 +163,9 @@ const TopContentSection: React.FC<TopContentSectionProps> = ({ topContent, isDar
                   return (
                     <Grow key={content.id} in={true} timeout={400 + index * 100}>
                       <TableRow
+                        onClick={() => onItemClick && onItemClick(content)}
                         sx={{
+                          cursor: 'pointer',
                           background: isDarkMode
                             ? 'rgba(30, 41, 59, 0.5)'
                             : 'rgba(248, 250, 252, 0.8)',

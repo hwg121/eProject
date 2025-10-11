@@ -57,7 +57,7 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
       title: '',
       author: '',
       instructor: '',
-      category: type === 'Technique' || type === 'techniques' ? 'Technique' : type === 'Video' || type === 'videos' ? 'Video' : (categories && categories.length > 0 ? categories[0] : ''),
+      category: type === 'Technique' || type === 'techniques' || type === 'article' ? 'Technique' : type === 'Video' || type === 'videos' || type === 'video' ? 'Video' : (categories && categories.length > 0 ? categories[0] : ''),
       status: 'draft',
       description: '',
       tags: '',

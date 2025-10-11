@@ -20,9 +20,10 @@ interface StatisticsSectionProps {
   stats: AdminStats;
   isDarkMode: boolean;
   campaignStats?: CampaignStatsResponse | null;
+  onCardClick?: () => void;
 }
 
-const StatisticsSection: React.FC<StatisticsSectionProps> = ({ stats, isDarkMode, campaignStats }) => {
+const StatisticsSection: React.FC<StatisticsSectionProps> = ({ stats, isDarkMode, campaignStats, onCardClick }) => {
   const statisticsData = [
     { 
       label: 'Total Visitors', 
@@ -88,6 +89,7 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({ stats, isDarkMode
           timeout={500 + index * 200}
         >
           <Card
+            onClick={onCardClick}
             sx={{
               position: 'relative !important',
               overflow: 'visible !important',
