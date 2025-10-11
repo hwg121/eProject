@@ -176,9 +176,17 @@ const ProductList: React.FC<ProductListProps> = ({
     }
   };
 
-  const formatPrice = (price?: number) => {
-    if (!price) return 'Free';
-    return `$${price.toFixed(2)}`;
+  const formatPrice = (price?: number | string | null) => {
+    // Check for null, undefined, or empty string
+    if (price === null || price === undefined || price === '') return 'Free';
+    
+    // Convert to number if it's a string
+    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+    
+    // Check if conversion failed or price is 0
+    if (isNaN(numPrice) || numPrice <= 0) return 'Free';
+    
+    return `$${numPrice.toFixed(2)}`;
   };
 
   return (
