@@ -19,7 +19,9 @@ import {
   Paper,
   Chip,
   ThemeProvider,
-  CssBaseline
+  CssBaseline,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import { createAdminTheme } from '../theme/adminTheme';
 
@@ -129,6 +131,21 @@ const AdminDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [avatarDropdownOpen, setAvatarDropdownOpen] = useState(false);
+
+  // Snackbar state
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success' as 'success' | 'error' | 'warning' | 'info'
+  });
+
+  const showToast = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'success') => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   // Navigation handler for Quick Actions
   const handleSectionChange = (section: string, action?: string) => {
@@ -656,9 +673,10 @@ const AdminDashboard: React.FC = () => {
       
       // Reload data after deletion
       await loadData();
+      showToast('Item deleted successfully!', 'success');
     } catch (error) {
       console.error('Error deleting item:', error);
-      alert('Failed to delete item. Please try again.');
+      showToast('Failed to delete item. Please try again.', 'error');
     }
   };
 
@@ -683,7 +701,7 @@ const AdminDashboard: React.FC = () => {
       window.open(`${baseUrl}/video/${slug}`, '_blank');
     } else {
 
-      alert('View functionality not implemented for this content type');
+      showToast('View functionality not implemented for this content type', 'info');
     }
   };
 
@@ -764,10 +782,10 @@ const AdminDashboard: React.FC = () => {
       setActiveTab('content-list');
       
       // Show success message
-      alert(editingItem ? 'Content updated successfully!' : 'Content created successfully!');
+      showToast(editingItem ? 'Content updated successfully!' : 'Content created successfully!', 'success');
     } catch (error) {
       console.error('Error saving content:', error);
-      alert('Failed to save content. Please try again.');
+      showToast('Failed to save content. Please try again.', 'error');
     }
   };
 
@@ -814,9 +832,10 @@ const AdminDashboard: React.FC = () => {
       
       // Reload products data
       await loadData();
+      showToast('Product created successfully!', 'success');
     } catch (error) {
       console.error('Error creating product:', error);
-      alert('Failed to create product. Please try again.');
+      showToast('Failed to create product. Please try again.', 'error');
     }
   };
 
@@ -846,11 +865,11 @@ const AdminDashboard: React.FC = () => {
       setEditingProduct(null);
       setActiveTab('product-list');
       
-      alert('Product updated successfully!');
+      showToast('Product updated successfully!', 'success');
     } catch (error) {
       console.error('Error updating product:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      alert(`Failed to update product: ${errorMessage}`);
+      showToast(`Failed to update product: ${errorMessage}`, 'error');
     }
   };
 
@@ -885,9 +904,10 @@ const AdminDashboard: React.FC = () => {
       
       // Reload products data
       await loadData();
+      showToast('Product deleted successfully!', 'success');
     } catch (error) {
       console.error('Error deleting product:', error);
-      alert('Failed to delete product. Please try again.');
+      showToast('Failed to delete product. Please try again.', 'error');
     }
   };
 
@@ -907,7 +927,7 @@ Created: ${product.createdAt}
 Updated: ${product.updatedAt}
     `;
     
-    alert(productInfo);
+    showToast(productInfo, 'info');
   };
 
   const handleSaveUserProfile = useCallback(async () => {
@@ -940,7 +960,7 @@ Updated: ${product.updatedAt}
       // Update user profile
       const response = await userService.updateProfile(payload);
 
-      alert('User profile updated successfully!');
+      showToast('User profile updated successfully!', 'success');
       
       // Reload user data from server to get updated avatar
       window.location.reload();
@@ -958,9 +978,9 @@ Updated: ${product.updatedAt}
       
       // More detailed error handling
       if (error instanceof Error) {
-        alert(`Failed to save user profile: ${error.message}`);
+        showToast(`Failed to save user profile: ${error.message}`, 'error');
       } else {
-        alert('Failed to save user profile. Please check the console for details.');
+        showToast('Failed to save user profile. Please check the console for details.', 'error');
       }
     }
   }, [userProfile]);
@@ -1008,7 +1028,7 @@ Updated: ${product.updatedAt}
       
       // Create user with JSON data
       await userService.create(cleanData);
-      alert('User created successfully!');
+      showToast('User created successfully!', 'success');
       
       // Reload data
       await loadData();
@@ -1017,7 +1037,7 @@ Updated: ${product.updatedAt}
       setActiveTab('user-list');
     } catch (error) {
       console.error('Error creating user:', error);
-      alert('Failed to create user. Please try again.');
+      showToast('Failed to create user. Please try again.', 'error');
     }
   }, [loadData]);
 
@@ -1027,20 +1047,20 @@ Updated: ${product.updatedAt}
     try {
       // Delete user
       await userService.delete(userId);
-      alert('User deleted successfully!');
+      showToast('User deleted successfully!', 'success');
       
       // Reload data
       await loadData();
     } catch (error) {
       console.error('Error deleting user:', error);
-      alert('Failed to delete user. Please try again.');
+      showToast('Failed to delete user. Please try again.', 'error');
     }
   }, []);
 
   const handleSaveUserEdit = useCallback(async (userData: any) => {
     try {
       if (!editingUser?.id) {
-        alert('No user selected for editing');
+        showToast('No user selected for editing', 'warning');
         return;
       }
 
@@ -1054,7 +1074,7 @@ Updated: ${product.updatedAt}
 
       // Update user with JSON data
       await userService.update(editingUser.id, updateData);
-      alert('User updated successfully!');
+      showToast('User updated successfully!', 'success');
       
       // Reload data
       await loadData();
@@ -1064,7 +1084,7 @@ Updated: ${product.updatedAt}
       setEditingUser(null);
     } catch (error) {
       console.error('Error updating user:', error);
-      alert('Failed to update user. Please try again.');
+      showToast('Failed to update user. Please try again.', 'error');
     }
   }, [editingUser, loadData]);
 
@@ -1649,6 +1669,23 @@ Updated: ${product.updatedAt}
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Toast Notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
           </div>
         </div>
       </div>
