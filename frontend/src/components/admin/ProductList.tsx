@@ -59,7 +59,8 @@ interface Product {
   link?: string;
   price?: number;
   rating?: number;
-  is_featured?: boolean;
+  featured?: boolean; // Changed from is_featured to match transform functions
+  is_featured?: boolean; // Keep for backward compatibility
   is_published?: boolean;
   brand?: string;
   material?: string;
@@ -431,7 +432,7 @@ const ProductList: React.FC<ProductListProps> = ({
             <Box>
               <Typography variant="caption" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b', fontWeight: 600 }}>Featured</Typography>
               <Typography variant="h5" fontWeight={700} sx={{ color: isDarkMode ? '#f1f5f9' : '#1e293b' }}>
-                {products.filter(p => p.is_featured).length}
+                {products.filter(p => (p as any).featured || p.is_featured).length}
               </Typography>
             </Box>
             <Avatar sx={{ bgcolor: '#fbbf2420', width: 44, height: 44 }}>
