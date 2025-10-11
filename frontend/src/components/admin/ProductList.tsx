@@ -554,9 +554,25 @@ const ProductList: React.FC<ProductListProps> = ({
                         {getProductIcon(product.category)}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h3 className={`font-medium text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'} truncate`}>
-                            {product.name || product.title}
-                          </h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className={`font-medium text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'} truncate`}>
+                              {product.name || product.title}
+                            </h3>
+                            {product.featured && (
+                              <Chip 
+                                label="Featured" 
+                                size="small"
+                                sx={{
+                                  height: 20,
+                                  fontSize: '0.65rem',
+                                  fontWeight: 700,
+                                  bgcolor: '#fbbf24',
+                                  color: '#78350f',
+                                  '& .MuiChip-label': { px: 1, py: 0 }
+                                }}
+                              />
+                            )}
+                          </div>
                           <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} truncate`}>
                             {product.description}
                           </p>
