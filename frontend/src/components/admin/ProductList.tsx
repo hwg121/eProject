@@ -4,6 +4,7 @@ import {
   Search, Edit, Trash2, Eye, ChevronLeft, ChevronRight,
   Package, Star, DollarSign, Tag, Filter
 } from 'lucide-react';
+import { apiClient } from '../../services/api';
 import {
   Box,
   Card,
@@ -618,8 +619,14 @@ const ProductList: React.FC<ProductListProps> = ({
                     <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
                       <Tooltip title={product.link ? "Open Product Link" : "View Product"}>
                         <IconButton
-                          onClick={() => {
+                          onClick={async () => {
                             if (product.link) {
+                              // Track view before opening link
+                              try {
+                                await apiClient.trackView('product', Number(product.id));
+                              } catch (error) {
+                                console.error('Failed to track view:', error);
+                              }
                               window.open(product.link, '_blank');
                             } else {
                               onView(product);

@@ -225,7 +225,7 @@ class InteractionController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'content_type' => 'required|string|in:article,book,tool,video,pot,accessory,suggestion',
+                'content_type' => 'required|string|in:article,book,tool,video,pot,accessory,suggestion,product',
                 'content_id' => 'required|integer|min:1',
             ]);
 
@@ -272,7 +272,7 @@ class InteractionController extends Controller
             // Get view count from content table instead of interactions
             $viewCount = 1; // Default fallback
             try {
-                if (in_array($request->content_type, ['tool', 'book', 'pot', 'accessory', 'suggestion', 'essential'])) {
+                if (in_array($request->content_type, ['tool', 'book', 'pot', 'accessory', 'suggestion', 'essential', 'product'])) {
                     $product = \App\Models\Product::where('id', $request->content_id)->first();
                     $viewCount = $product ? $product->views : 1;
                 } elseif ($request->content_type === 'article') {
@@ -307,7 +307,7 @@ class InteractionController extends Controller
     private function updateContentViewCount($contentType, $contentId)
     {
         try {
-            if (in_array($contentType, ['tool', 'book', 'pot', 'accessory', 'suggestion', 'essential'])) {
+            if (in_array($contentType, ['tool', 'book', 'pot', 'accessory', 'suggestion', 'essential', 'product'])) {
                 // All product types use the unified Product model
                 \App\Models\Product::where('id', $contentId)->increment('views');
             } elseif ($contentType === 'article') {
