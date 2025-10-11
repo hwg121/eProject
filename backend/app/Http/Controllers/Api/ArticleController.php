@@ -75,6 +75,15 @@ class ArticleController extends Controller
                 ]
             ]);
         } catch (\Exception $e) {
+            // Log error for debugging intermittent issues
+            \Log::error('ArticleController::index failed', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'request' => $request->all(),
+                'user_id' => auth()->id(),
+            ]);
+            
             // Return empty data instead of error for better frontend experience
             return response()->json([
                 'success' => true,
@@ -97,14 +106,21 @@ class ArticleController extends Controller
         try {
             $article = Article::findOrFail($id);
             
-            // Increment view count
-            $article->increment('views');
+            // Use atomic increment to prevent race conditions
+            Article::where('id', $id)->increment('views');
+            $article->refresh();
             
             return response()->json([
                 'success' => true,
                 'data' => $article
             ]);
         } catch (\Exception $e) {
+            \Log::error('ArticleController::show failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Error fetching article: ' . $e->getMessage()

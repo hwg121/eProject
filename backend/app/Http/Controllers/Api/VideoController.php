@@ -84,14 +84,21 @@ class VideoController extends Controller
         try {
             $video = Video::findOrFail($id);
             
-            // Increment view count
-            $video->increment('views');
+            // Use atomic increment to prevent race conditions
+            Video::where('id', $id)->increment('views');
+            $video->refresh();
             
             return response()->json([
                 'success' => true,
                 'data' => $video
             ]);
         } catch (\Exception $e) {
+            \Log::error('VideoController::show failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Error fetching video: ' . $e->getMessage()

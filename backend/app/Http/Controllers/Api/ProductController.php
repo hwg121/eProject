@@ -70,6 +70,12 @@ class ProductController extends Controller
             ]
         ]);
         } catch (\Exception $e) {
+            \Log::error('ProductController::index failed', [
+                'error' => $e->getMessage(),
+                'request' => $request->all(),
+                'user_id' => auth()->id(),
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Error fetching products: ' . $e->getMessage()
@@ -85,14 +91,21 @@ class ProductController extends Controller
         try {
             $product = Product::published()->findOrFail($id);
             
-            // Increment views
-            $product->increment('views');
+            // Use atomic increment to prevent race conditions
+            Product::where('id', $id)->increment('views');
+            $product->refresh();
             
             return response()->json([
                 'success' => true,
                 'data' => new ProductResource($product)
             ]);
         } catch (\Exception $e) {
+            \Log::error('ProductController::show failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Product not found'
