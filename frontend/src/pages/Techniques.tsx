@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Lightbulb, User, Calendar, ArrowRight } from 'lucide-react';
 import Card from '../components/UI/Card';
 import PageHeader from '../components/UI/PageHeader';
+import Carousel from '../components/UI/Carousel';
 import { publicService } from '../services/api.ts';
 import { generateSlug } from '../utils/slug';
 
@@ -10,6 +11,8 @@ const Techniques: React.FC = () => {
   const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
 
   useEffect(() => {
     const loadArticles = async () => {
@@ -18,58 +21,15 @@ const Techniques: React.FC = () => {
         const data = await publicService.getArticles();
         console.log('Articles data:', data); // Debug log
         
-        // Fallback data if API fails or returns empty
-        if (!data || data.length === 0) {
-          const mockArticles = [
-            {
-              id: '1',
-              title: 'Complete Guide to Organic Gardening',
-              excerpt: 'Learn everything you need to know about organic gardening, from soil preparation to natural pest control methods.',
-              body: 'This is a comprehensive guide to organic gardening...',
-              author: { name: 'Dr. Sarah Green' },
-              published_at: '2024-01-15',
-              created_at: '2024-01-15'
-            },
-            {
-              id: '2', 
-              title: 'Container Gardening for Beginners',
-              excerpt: 'Start your container garden with this step-by-step guide perfect for small spaces.',
-              body: 'Container gardening is perfect for beginners...',
-              author: { name: 'Mike Garden' },
-              published_at: '2024-01-20',
-              created_at: '2024-01-20'
-            },
-            {
-              id: '3',
-              title: 'Seasonal Planting Calendar',
-              excerpt: 'Know exactly when to plant what with our comprehensive seasonal guide.',
-              body: 'Timing is everything in gardening...',
-              author: { name: 'Green Thumb Expert' },
-              published_at: '2024-01-25',
-              created_at: '2024-01-25'
-            }
-          ];
-          setArticles(mockArticles);
-        } else {
+        // Only use real API data
+        if (data && data.length > 0) {
           setArticles(data);
+        } else {
+          setError('No articles available');
         }
       } catch (err) {
         setError('Failed to load articles');
         console.error('Error loading articles:', err);
-        
-        // Set fallback data even on error
-        const mockArticles = [
-          {
-            id: '1',
-            title: 'Complete Guide to Organic Gardening',
-            excerpt: 'Learn everything you need to know about organic gardening, from soil preparation to natural pest control methods.',
-            body: 'This is a comprehensive guide to organic gardening...',
-            author: { name: 'Dr. Sarah Green' },
-            published_at: '2024-01-15',
-            created_at: '2024-01-15'
-          }
-        ];
-        setArticles(mockArticles);
       } finally {
         setLoading(false);
       }
@@ -78,6 +38,22 @@ const Techniques: React.FC = () => {
     loadArticles();
   }, []);
 
+  // Pagination calculations
+  const totalPages = Math.ceil(articles.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentArticles = articles.slice(startIndex, endIndex);
+
+  // Featured articles will be the first 3 articles from the database
+  const featuredArticles = articles.slice(0, 3).map(article => ({
+    id: article.id.toString(),
+    title: article.title,
+    description: article.excerpt || article.body?.substring(0, 150) + '...',
+    image: article.featured_image || article.cover || '/image.png',
+    badge: 'Featured',
+    link: `/article/${article.slug || generateSlug(article.title)}`
+  }));
+
   return (
     <div className="space-y-8">
       <PageHeader
@@ -85,6 +61,27 @@ const Techniques: React.FC = () => {
         subtitle="Master the art of gardening with our comprehensive guides and expert advice"
         icon={<Lightbulb className="h-10 w-10" />}
       />
+
+      {/* Featured Articles Carousel */}
+      {!loading && !error && articles.length > 0 && (
+        <section className="mb-12">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-emerald-800 mb-4">Featured Techniques</h2>
+            <p className="text-emerald-600 text-lg">
+              Discover our most popular gardening techniques and tips
+            </p>
+          </div>
+          
+          <Carousel 
+            items={featuredArticles}
+            autoPlay={true}
+            interval={6000}
+            showDots={true}
+            showArrows={true}
+            className="shadow-xl"
+          />
+        </section>
+      )}
 
       {loading ? (
         <div className="text-center py-12">
@@ -102,13 +99,14 @@ const Techniques: React.FC = () => {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {articles.map((article) => (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {currentArticles.map((article) => (
             <Link key={article.id} to={`/article/${article.slug || generateSlug(article.title)}`} className="block h-full">
               <Card className="h-full group cursor-pointer hover:shadow-xl transition-all duration-300">
                 <div className="relative overflow-hidden rounded-lg mb-4">
                   <img
-                    src="/image.png"
+                    src={article.featured_image || article.cover || '/image.png'}
                     alt={article.title}
                     className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                   />
@@ -136,7 +134,45 @@ const Techniques: React.FC = () => {
             </Link>
           ))}
         </div>
-      )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center space-x-2 mt-8">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 rounded-lg bg-emerald-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-emerald-700 transition-colors"
+            >
+              Previous
+            </button>
+            
+            <div className="flex space-x-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    currentPage === page
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 rounded-lg bg-emerald-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-emerald-700 transition-colors"
+            >
+              Next
+            </button>
+          </div>
+        )}
+      </>
+    )}
 
       <Card className="bg-gradient-to-r from-emerald-500 to-green-500 text-white">
         <h3 className="text-2xl font-bold mb-4">Quick Gardening Tips</h3>

@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import './styles/performance.css';
+import './styles/responsive.css';
+import './styles/mobile-optimizations.css';
 import { registerServiceWorker } from './utils/registerSW';
 
 createRoot(document.getElementById('root')!).render(

@@ -15,22 +15,20 @@ class AboutUs extends Model
         'description',
         'content',
         'image',
+        'cover',
+        'category',
+        'status',
+        'views',
+        'likes',
+        'rating',
+        'is_featured',
         'mission',
-        'vision',
-        'values',
-        'team_members',
-        'achievements',
-        'contact_email',
-        'contact_phone',
-        'address',
-        'social_links',
-        'is_active',
     ];
 
     protected $casts = [
-        'team_members' => 'array',
-        'achievements' => 'array',
-        'social_links' => 'array',
-        'is_active' => 'boolean',
+        'is_featured' => 'boolean',
+        'rating' => 'decimal:1',
+        'views' => 'integer',
+        'likes' => 'integer',
     ];
 }

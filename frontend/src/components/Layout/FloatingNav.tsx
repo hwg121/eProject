@@ -13,20 +13,28 @@ const FloatingNav: React.FC = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
 
   useEffect(() => {
+    let ticking = false;
+    
     const controlNavbar = () => {
-      const currentScrollY = window.scrollY;
-      
-      // Show floating nav when scrolled down more than 300px
-      if (currentScrollY > 300) {
-        setIsVisible(true);
-      } else {
-        setIsVisible(false);
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY;
+          
+          // Show floating nav when scrolled down more than 300px
+          if (currentScrollY > 300) {
+            setIsVisible(true);
+          } else {
+            setIsVisible(false);
+          }
+          
+          setLastScrollY(currentScrollY);
+          ticking = false;
+        });
+        ticking = true;
       }
-      
-      setLastScrollY(currentScrollY);
     };
 
-    window.addEventListener('scroll', controlNavbar);
+    window.addEventListener('scroll', controlNavbar, { passive: true });
     return () => window.removeEventListener('scroll', controlNavbar);
   }, [lastScrollY]);
 
@@ -50,15 +58,15 @@ const FloatingNav: React.FC = () => {
             duration: 0.3 
           }}
         >
-          <motion.div
-            className={`flex items-center px-4 py-3 rounded-full shadow-2xl backdrop-blur-xl border transition-all duration-300 max-w-full overflow-x-auto ${
-              isDarkMode
-                ? 'bg-gray-900/95 border-gray-700/30 shadow-black/30'
-                : 'bg-white/95 border-gray-200/30 shadow-gray-900/10'
-            }`}
-            whileHover={{ scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 400, damping: 25 }}
-          >
+        <motion.div
+          className={`flex items-center px-3 py-2 rounded-full shadow-2xl backdrop-blur-xl border transition-all duration-300 max-w-full overflow-x-auto hide-scrollbar touch-optimized gpu-accelerated ${
+            isDarkMode
+              ? 'bg-gray-900/95 border-gray-700/30 shadow-black/30'
+              : 'bg-white/95 border-gray-200/30 shadow-gray-900/10'
+          }`}
+          whileHover={{ scale: 1.02 }}
+          transition={{ type: "spring", stiffness: 400, damping: 25 }}
+        >
             {navItems.map((item, index) => {
               const isActive = location.pathname === item.path;
               const Icon = item.icon;
@@ -73,7 +81,7 @@ const FloatingNav: React.FC = () => {
                 >
                   <Link
                     to={item.path}
-                    className={`relative p-2.5 mx-0.5 rounded-full transition-all duration-300 group flex items-center justify-center min-w-[44px] min-h-[44px] ${
+                    className={`relative p-2 mx-0.5 rounded-full transition-all duration-300 group flex items-center justify-center min-w-[40px] min-h-[40px] ${
                       isActive
                         ? `bg-gradient-to-r ${item.color} text-white shadow-lg shadow-emerald-500/30 scale-110`
                         : isDarkMode

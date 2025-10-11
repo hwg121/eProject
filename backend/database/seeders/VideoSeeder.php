@@ -2,168 +2,134 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Video;
+use App\Models\User;
+use App\Models\Category;
 
 class VideoSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
+        $admin = User::where('role', 'admin')->first();
+        $moderator = User::where('role', 'moderator')->first();
+        $category = Category::where('slug', 'video')->first();
+
         $videos = [
-            // Video về trồng trọt cơ bản
             [
-                'title' => 'Hướng dẫn trồng cây từ A-Z cho người mới bắt đầu',
-                'description' => 'Video hướng dẫn chi tiết cách trồng cây từ bước đầu tiên, bao gồm chọn giống, chuẩn bị đất, gieo hạt và chăm sóc cây con. Phù hợp cho những người mới bắt đầu làm vườn.',
+                'title' => 'Complete Beginner\'s Guide to Gardening',
+                'slug' => 'complete-beginners-guide-gardening',
+                'description' => 'Learn the basics of gardening from soil preparation to plant care.',
+                'excerpt' => 'A comprehensive video tutorial for gardening beginners.',
+                'instructor' => 'Sarah Green',
                 'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
+                'video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                'thumbnail' => null,
+                'featured_image' => null,
+                'cover' => null,
+                'content' => '<h1>Complete Beginner\'s Guide to Gardening</h1><p>This comprehensive tutorial covers all the basics you need to start your gardening journey.</p><h2>What You\'ll Learn</h2><ul><li>Soil preparation techniques</li><li>Plant selection and placement</li><li>Watering and fertilizing</li><li>Common problems and solutions</li></ul>',
+                'category' => 'Video',
+                'status' => 'published',
+                'views' => 2150,
+                'likes' => 156,
+                'duration' => 1800, // 30 minutes
+                'is_featured' => true,
+                'category_id' => $category->id,
+                'author_id' => $admin->id,
+                'published_at' => now()->subDays(7),
             ],
             [
-                'title' => 'Cách trồng rau sạch tại nhà - Hướng dẫn từng bước',
-                'description' => 'Học cách trồng rau sạch tại nhà với các kỹ thuật đơn giản và hiệu quả. Video bao gồm cách thiết kế vườn rau mini, chọn giống rau phù hợp và chăm sóc cây trồng.',
+                'title' => 'Indoor Plant Care Masterclass',
+                'slug' => 'indoor-plant-care-masterclass',
+                'description' => 'Master the art of indoor plant care with this detailed video guide.',
+                'excerpt' => 'Advanced techniques for keeping indoor plants healthy and thriving.',
+                'instructor' => 'Dr. Plant Expert',
                 'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
+                'video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                'thumbnail' => null,
+                'featured_image' => null,
+                'cover' => null,
+                'content' => '<h1>Indoor Plant Care Masterclass</h1><p>Advanced techniques for indoor plant enthusiasts.</p><h2>Topics Covered</h2><ul><li>Light requirements and positioning</li><li>Humidity management</li><li>Fertilizer application</li><li>Pest prevention</li></ul>',
+                'category' => 'Video',
+                'status' => 'published',
+                'views' => 1890,
+                'likes' => 134,
+                'duration' => 2400, // 40 minutes
+                'is_featured' => false,
+                'category_id' => $category->id,
+                'author_id' => $moderator->id,
+                'published_at' => now()->subDays(5),
             ],
             [
-                'title' => 'Kỹ thuật trồng cây ăn quả trong chậu',
-                'description' => 'Hướng dẫn chi tiết cách trồng cây ăn quả trong chậu, từ chọn giống đến thu hoạch. Phù hợp cho những ai muốn có trái cây sạch nhưng không có đất vườn rộng.',
+                'title' => 'Organic Vegetable Gardening Techniques',
+                'slug' => 'organic-vegetable-gardening-techniques',
+                'description' => 'Learn sustainable methods for growing organic vegetables.',
+                'excerpt' => 'Sustainable gardening practices for organic vegetable production.',
+                'instructor' => 'Green Thumb Mike',
                 'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
+                'video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                'thumbnail' => null,
+                'featured_image' => null,
+                'cover' => null,
+                'content' => '<h1>Organic Vegetable Gardening Techniques</h1><p>Sustainable methods for growing healthy, organic vegetables.</p><h2>Key Techniques</h2><ul><li>Compost preparation</li><li>Companion planting</li><li>Natural pest control</li><li>Soil health maintenance</li></ul>',
+                'category' => 'Video',
+                'status' => 'published',
+                'views' => 1650,
+                'likes' => 98,
+                'duration' => 2700, // 45 minutes
+                'is_featured' => true,
+                'category_id' => $category->id,
+                'author_id' => $admin->id,
+                'published_at' => now()->subDays(3),
             ],
             [
-                'title' => 'Cách trồng hoa hồng đẹp nhất',
-                'description' => 'Bí quyết trồng và chăm sóc hoa hồng để có những bông hoa đẹp nhất. Video bao gồm cách chọn giống, trồng cây, cắt tỉa và phòng trừ sâu bệnh.',
+                'title' => 'Pruning and Training Fruit Trees',
+                'slug' => 'pruning-training-fruit-trees',
+                'description' => 'Step-by-step guide to pruning and training fruit trees for maximum yield.',
+                'excerpt' => 'Expert techniques for fruit tree maintenance and training.',
+                'instructor' => 'Orchard Master',
                 'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
+                'video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                'thumbnail' => null,
+                'featured_image' => null,
+                'cover' => null,
+                'content' => '<h1>Pruning and Training Fruit Trees</h1><p>Expert techniques for maintaining healthy, productive fruit trees.</p><h2>Training Methods</h2><ul><li>Espalier techniques</li><li>Central leader training</li><li>Open center pruning</li><li>Seasonal maintenance</li></ul>',
+                'category' => 'Video',
+                'status' => 'published',
+                'views' => 1420,
+                'likes' => 87,
+                'duration' => 2100, // 35 minutes
+                'is_featured' => false,
+                'category_id' => $category->id,
+                'author_id' => $moderator->id,
+                'published_at' => now()->subDays(1),
             ],
             [
-                'title' => 'Hướng dẫn trồng cây thủy canh tại nhà',
-                'description' => 'Học cách trồng cây thủy canh - phương pháp trồng cây không cần đất hiện đại. Video hướng dẫn thiết kế hệ thống thủy canh đơn giản tại nhà.',
+                'title' => 'Container Gardening for Small Spaces',
+                'slug' => 'container-gardening-small-spaces',
+                'description' => 'Maximize your small space with creative container gardening solutions.',
+                'excerpt' => 'Creative container gardening ideas for urban dwellers.',
+                'instructor' => 'Urban Gardener',
                 'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
+                'video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                'thumbnail' => null,
+                'featured_image' => null,
+                'cover' => null,
+                'content' => '<h1>Container Gardening for Small Spaces</h1><p>Creative solutions for gardening in limited spaces.</p><h2>Container Options</h2><ul><li>Vertical gardening systems</li><li>Hanging baskets</li><li>Window boxes</li><li>Raised bed alternatives</li></ul>',
+                'category' => 'Video',
+                'status' => 'draft',
+                'views' => 0,
+                'likes' => 0,
+                'duration' => 1800, // 30 minutes
+                'is_featured' => false,
+                'category_id' => $category->id,
+                'author_id' => $admin->id,
+                'published_at' => null,
             ],
-
-            // Video về chăm sóc cây
-            [
-                'title' => 'Cách chăm sóc cây cảnh luôn xanh tươi',
-                'description' => 'Bí quyết chăm sóc cây cảnh để cây luôn xanh tươi và phát triển tốt. Video bao gồm cách tưới nước, bón phân và tạo điều kiện tốt nhất cho cây.',
-                'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
-            ],
-            [
-                'title' => 'Kỹ thuật tưới nước hiệu quả cho cây trồng',
-                'description' => 'Học cách tưới nước đúng cách cho từng loại cây. Video hướng dẫn thời điểm tưới nước, lượng nước cần thiết và các kỹ thuật tưới nước hiệu quả.',
-                'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
-            ],
-            [
-                'title' => 'Cách bón phân cho cây trồng đúng cách',
-                'description' => 'Hướng dẫn chi tiết cách bón phân cho cây trồng để cây phát triển tốt nhất. Video bao gồm các loại phân, thời điểm bón phân và kỹ thuật bón phân.',
-                'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
-            ],
-            [
-                'title' => 'Kỹ thuật cắt tỉa cây cảnh chuyên nghiệp',
-                'description' => 'Học cách cắt tỉa cây cảnh để tạo hình đẹp và kích thích cây phát triển. Video hướng dẫn các kỹ thuật cắt tỉa cơ bản và nâng cao.',
-                'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
-            ],
-            [
-                'title' => 'Cách phòng trừ sâu bệnh cho cây trồng',
-                'description' => 'Hướng dẫn cách phòng trừ sâu bệnh cho cây trồng một cách tự nhiên và hiệu quả. Video bao gồm cách nhận biết sâu bệnh và các phương pháp xử lý.',
-                'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
-            ],
-
-            // Video về dụng cụ làm vườn
-            [
-                'title' => 'Dụng cụ làm vườn cần thiết cho người mới bắt đầu',
-                'description' => 'Giới thiệu các dụng cụ làm vườn cơ bản mà mọi người làm vườn nên có. Video hướng dẫn cách chọn và sử dụng dụng cụ hiệu quả.',
-                'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
-            ],
-            [
-                'title' => 'Cách sử dụng kéo cắt cành an toàn và hiệu quả',
-                'description' => 'Hướng dẫn chi tiết cách sử dụng kéo cắt cành an toàn và hiệu quả. Video bao gồm cách chọn kéo phù hợp và kỹ thuật cắt tỉa đúng cách.',
-                'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
-            ],
-            [
-                'title' => 'Hệ thống tưới nước tự động cho vườn nhà',
-                'description' => 'Hướng dẫn thiết kế và lắp đặt hệ thống tưới nước tự động cho vườn nhà. Video bao gồm cách chọn thiết bị và lắp đặt hệ thống.',
-                'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
-            ],
-
-            // Video về đất trồng và dinh dưỡng
-            [
-                'title' => 'Chọn đất trồng phù hợp cho từng loại cây',
-                'description' => 'Hướng dẫn chọn loại đất trồng tốt nhất cho từng loại cây. Video bao gồm các loại đất khác nhau và cách cải thiện đất trồng.',
-                'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
-            ],
-            [
-                'title' => 'Cách làm phân compost tại nhà',
-                'description' => 'Hướng dẫn chi tiết cách làm phân compost tại nhà từ rác thải hữu cơ. Video bao gồm các bước làm phân compost và cách sử dụng hiệu quả.',
-                'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
-            ],
-            [
-                'title' => 'Cách đo và điều chỉnh pH đất',
-                'description' => 'Học cách đo và điều chỉnh pH đất để tạo điều kiện tốt nhất cho cây trồng. Video hướng dẫn sử dụng máy đo pH và các phương pháp điều chỉnh.',
-                'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
-            ],
-
-            // Video về chăm sóc theo mùa
-            [
-                'title' => 'Cách chăm sóc cây trong mùa đông',
-                'description' => 'Hướng dẫn chăm sóc cây trồng trong mùa đông để cây sống sót và phát triển tốt. Video bao gồm cách bảo vệ cây khỏi lạnh và tạo môi trường ấm áp.',
-                'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
-            ],
-            [
-                'title' => 'Cách chuẩn bị vườn cho mùa xuân',
-                'description' => 'Hướng dẫn chuẩn bị vườn cho mùa xuân để có một mùa trồng trọt thành công. Video bao gồm cách làm đất, chọn giống và lập kế hoạch trồng trọt.',
-                'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
-            ],
-            [
-                'title' => 'Cách chăm sóc cây trong mùa hè nắng nóng',
-                'description' => 'Hướng dẫn chăm sóc cây trồng trong mùa hè nắng nóng để cây không bị héo và phát triển tốt. Video bao gồm cách tưới nước và che chắn cây.',
-                'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
-            ],
-
-            // Video về nhân giống cây
-            [
-                'title' => 'Cách nhân giống cây trồng bằng giâm cành',
-                'description' => 'Hướng dẫn chi tiết cách nhân giống cây trồng bằng phương pháp giâm cành. Video bao gồm cách chọn cành giâm, chuẩn bị và chăm sóc cây con.',
-                'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
-            ],
-            [
-                'title' => 'Kỹ thuật chiết cành cây ăn quả',
-                'description' => 'Học kỹ thuật chiết cành cây ăn quả để có cây con khỏe mạnh. Video hướng dẫn từng bước cách chiết cành và chăm sóc cây con.',
-                'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
-            ],
-            [
-                'title' => 'Cách gieo hạt và chăm sóc cây con',
-                'description' => 'Hướng dẫn chi tiết cách gieo hạt và chăm sóc cây con từ khi nảy mầm đến khi trưởng thành. Video bao gồm các kỹ thuật gieo hạt và chăm sóc cây con.',
-                'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'thumbnail' => '/image.png',
-            ]
         ];
 
         foreach ($videos as $video) {
-            Video::firstOrCreate(
-                ['title' => $video['title']],
-                $video
-            );
+            Video::create($video);
         }
     }
 }

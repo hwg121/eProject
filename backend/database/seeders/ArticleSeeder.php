@@ -2,186 +2,114 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Article;
-use App\Models\Category;
 use App\Models\User;
+use App\Models\Category;
 
 class ArticleSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $trongTrotCategory = Category::where('slug', 'trong-trot')->first();
-        $chamSocCategory = Category::where('slug', 'cham-soc')->first();
-        $author = User::first(); // Lấy user đầu tiên làm author
+        $admin = User::where('role', 'admin')->first();
+        $moderator = User::where('role', 'moderator')->first();
+        $category = Category::where('slug', 'technique')->first();
 
         $articles = [
-            // Bài viết về trồng trọt
             [
-                'title' => 'Cách trồng cây xanh trong nhà',
-                'slug' => 'cach-trong-cay-xanh-trong-nha',
-                'excerpt' => 'Học cách trồng cây xanh trong nhà một cách hiệu quả, tạo không gian xanh mát và cải thiện chất lượng không khí',
-                'body' => 'Trồng cây xanh trong nhà không chỉ giúp tạo không gian xanh mát mà còn cải thiện chất lượng không khí, giảm stress và tăng năng suất làm việc. Bài viết này sẽ hướng dẫn bạn từng bước cách chọn cây phù hợp với điều kiện ánh sáng trong nhà, chuẩn bị đất trồng, kỹ thuật tưới nước và chăm sóc cây trồng trong nhà. Chúng ta sẽ tìm hiểu về các loại cây dễ trồng như lưỡi hổ, trầu bà, cây kim tiền và cách tạo hệ thống tưới nước tự động.',
-                'category_id' => $trongTrotCategory->id,
-                'author_id' => $author->id,
+                'title' => 'Essential Indoor Plant Care Guide',
+                'slug' => 'essential-indoor-plant-care-guide',
+                'excerpt' => 'Learn the fundamentals of keeping your indoor plants healthy and thriving.',
+                'description' => 'A comprehensive guide to indoor plant care covering watering, lighting, and common issues.',
+                'body' => 'Indoor plants can transform any space into a vibrant, living environment...',
+                'content' => '<h1>Essential Indoor Plant Care Guide</h1><p>Indoor plants can transform any space into a vibrant, living environment. However, they require proper care to thrive. Here are the essential tips for indoor plant care:</p><h2>Lighting Requirements</h2><p>Most indoor plants need bright, indirect light. Place them near windows but avoid direct sunlight which can scorch leaves.</p><h2>Watering Techniques</h2><p>Water when the top inch of soil feels dry. Overwatering is the most common cause of plant death.</p><h2>Humidity and Temperature</h2><p>Maintain consistent temperature and consider humidity levels for tropical plants.</p>',
+                'featured_image' => null,
+                'cover' => null,
+                'category' => 'Technique',
                 'status' => 'published',
-                'published_at' => now(),
+                'views' => 1250,
+                'likes' => 89,
+                'is_featured' => true,
+                'category_id' => $category->id,
+                'author_id' => $admin->id,
+                'published_at' => now()->subDays(5),
             ],
             [
-                'title' => 'Kỹ thuật trồng rau sạch tại nhà',
-                'slug' => 'ky-thuat-trong-rau-sach-tai-nha',
-                'excerpt' => 'Hướng dẫn chi tiết cách trồng rau sạch tại nhà, từ chọn giống đến thu hoạch',
-                'body' => 'Trồng rau sạch tại nhà là xu hướng được nhiều gia đình quan tâm. Bài viết này sẽ hướng dẫn bạn cách thiết kế vườn rau mini, chọn giống rau phù hợp với khí hậu, kỹ thuật gieo hạt, chăm sóc và thu hoạch. Chúng ta sẽ tìm hiểu về các loại rau dễ trồng như rau muống, rau cải, cà chua, ớt và cách phòng trừ sâu bệnh hại một cách tự nhiên.',
-                'category_id' => $trongTrotCategory->id,
-                'author_id' => $author->id,
+                'title' => 'Soil Preparation for Vegetable Gardens',
+                'slug' => 'soil-preparation-vegetable-gardens',
+                'excerpt' => 'Master the art of soil preparation for bountiful vegetable harvests.',
+                'description' => 'Step-by-step guide to preparing soil for vegetable gardening.',
+                'body' => 'Good soil is the foundation of a successful vegetable garden...',
+                'content' => '<h1>Soil Preparation for Vegetable Gardens</h1><p>Good soil is the foundation of a successful vegetable garden. Here\'s how to prepare your soil:</p><h2>Soil Testing</h2><p>Start by testing your soil pH and nutrient levels.</p><h2>Amending the Soil</h2><p>Add organic matter like compost to improve soil structure and fertility.</p><h2>Drainage</h2><p>Ensure proper drainage to prevent waterlogged roots.</p>',
+                'featured_image' => null,
+                'cover' => null,
+                'category' => 'Technique',
                 'status' => 'published',
-                'published_at' => now(),
+                'views' => 980,
+                'likes' => 67,
+                'is_featured' => false,
+                'category_id' => $category->id,
+                'author_id' => $moderator->id,
+                'published_at' => now()->subDays(3),
             ],
             [
-                'title' => 'Cách trồng cây ăn quả trong chậu',
-                'slug' => 'cach-trong-cay-an-qua-trong-chau',
-                'excerpt' => 'Học cách trồng cây ăn quả trong chậu, tận dụng không gian nhỏ để có trái cây sạch',
-                'body' => 'Trồng cây ăn quả trong chậu là giải pháp tuyệt vời cho những ai muốn có trái cây sạch nhưng không có đất vườn rộng. Bài viết này sẽ hướng dẫn bạn cách chọn giống cây phù hợp, kỹ thuật trồng, chăm sóc và tạo hình cho cây ăn quả trong chậu. Chúng ta sẽ tìm hiểu về các loại cây như chanh, ổi, táo, lê và cách tạo điều kiện tốt nhất cho cây phát triển.',
-                'category_id' => $trongTrotCategory->id,
-                'author_id' => $author->id,
+                'title' => 'Pruning Techniques for Fruit Trees',
+                'slug' => 'pruning-techniques-fruit-trees',
+                'excerpt' => 'Learn proper pruning techniques to maximize fruit production.',
+                'description' => 'Comprehensive guide to pruning fruit trees for optimal growth and yield.',
+                'body' => 'Proper pruning is essential for healthy fruit trees...',
+                'content' => '<h1>Pruning Techniques for Fruit Trees</h1><p>Proper pruning is essential for healthy fruit trees and maximum yield. Here are the key techniques:</p><h2>When to Prune</h2><p>Prune during dormancy in late winter or early spring.</p><h2>Basic Pruning Cuts</h2><p>Learn the difference between heading cuts and thinning cuts.</p><h2>Tree Shape</h2><p>Maintain an open center for better air circulation and light penetration.</p>',
+                'featured_image' => null,
+                'cover' => null,
+                'category' => 'Technique',
                 'status' => 'published',
-                'published_at' => now(),
+                'views' => 756,
+                'likes' => 45,
+                'is_featured' => false,
+                'category_id' => $category->id,
+                'author_id' => $admin->id,
+                'published_at' => now()->subDays(1),
             ],
             [
-                'title' => 'Kỹ thuật trồng hoa hồng',
-                'slug' => 'ky-thuat-trong-hoa-hong',
-                'excerpt' => 'Hướng dẫn chi tiết cách trồng và chăm sóc hoa hồng để có những bông hoa đẹp nhất',
-                'body' => 'Hoa hồng là loài hoa được yêu thích nhất trên thế giới. Bài viết này sẽ hướng dẫn bạn cách chọn giống hoa hồng phù hợp, kỹ thuật trồng, chăm sóc, cắt tỉa và phòng trừ sâu bệnh. Chúng ta sẽ tìm hiểu về các loại hoa hồng phổ biến, cách tạo điều kiện ánh sáng và dinh dưỡng tốt nhất, kỹ thuật nhân giống và cách giữ hoa tươi lâu.',
-                'category_id' => $trongTrotCategory->id,
-                'author_id' => $author->id,
+                'title' => 'Organic Pest Control Methods',
+                'slug' => 'organic-pest-control-methods',
+                'excerpt' => 'Natural ways to control garden pests without harmful chemicals.',
+                'description' => 'Environmentally friendly pest control methods for your garden.',
+                'body' => 'Organic pest control is safer for your family and the environment...',
+                'content' => '<h1>Organic Pest Control Methods</h1><p>Organic pest control is safer for your family and the environment. Here are effective natural methods:</p><h2>Companion Planting</h2><p>Plant herbs and flowers that repel pests naturally.</p><h2>Beneficial Insects</h2><p>Attract beneficial insects like ladybugs and lacewings.</p><h2>Natural Sprays</h2><p>Make your own organic sprays using neem oil or soap solutions.</p>',
+                'featured_image' => null,
+                'cover' => null,
+                'category' => 'Technique',
                 'status' => 'published',
-                'published_at' => now(),
+                'views' => 1120,
+                'likes' => 78,
+                'is_featured' => true,
+                'category_id' => $category->id,
+                'author_id' => $moderator->id,
+                'published_at' => now()->subDays(2),
             ],
             [
-                'title' => 'Cách trồng cây thủy canh',
-                'slug' => 'cach-trong-cay-thuy-canh',
-                'excerpt' => 'Học cách trồng cây thủy canh, phương pháp trồng cây không cần đất hiện đại',
-                'body' => 'Thủy canh là phương pháp trồng cây không cần đất, sử dụng dung dịch dinh dưỡng để cung cấp chất dinh dưỡng cho cây. Bài viết này sẽ hướng dẫn bạn cách thiết kế hệ thống thủy canh, chọn giống cây phù hợp, pha chế dung dịch dinh dưỡng và chăm sóc cây. Chúng ta sẽ tìm hiểu về các loại hệ thống thủy canh khác nhau và cách tối ưu hóa năng suất.',
-                'category_id' => $trongTrotCategory->id,
-                'author_id' => $author->id,
-                'status' => 'published',
-                'published_at' => now(),
-            ],
-            [
-                'title' => 'Chọn đất trồng phù hợp',
-                'slug' => 'chon-dat-trong-phu-hop',
-                'excerpt' => 'Hướng dẫn chọn loại đất trồng tốt nhất cho từng loại cây',
-                'body' => 'Đất trồng là nền tảng quan trọng cho sự phát triển của cây. Bài viết này sẽ giúp bạn hiểu về các loại đất khác nhau, cách cải thiện đất và chọn đất phù hợp cho từng loại cây trồng. Chúng ta sẽ tìm hiểu về đất sét, đất cát, đất thịt và cách pha trộn đất để tạo ra hỗn hợp đất lý tưởng.',
-                'category_id' => $trongTrotCategory->id,
-                'author_id' => $author->id,
-                'status' => 'published',
-                'published_at' => now(),
-            ],
-
-            // Bài viết về chăm sóc
-            [
-                'title' => 'Kỹ thuật tưới nước cho cây',
-                'slug' => 'ky-thuat-tuoi-nuoc-cho-cay',
-                'excerpt' => 'Tìm hiểu cách tưới nước đúng cách cho cây trồng',
-                'body' => 'Tưới nước là một trong những yếu tố quan trọng nhất trong việc chăm sóc cây trồng. Bài viết này sẽ hướng dẫn bạn các kỹ thuật tưới nước hiệu quả, thời điểm tưới nước phù hợp và cách nhận biết cây cần nước. Chúng ta sẽ tìm hiểu về các loại hệ thống tưới nước tự động, cách tiết kiệm nước và tạo điều kiện tốt nhất cho cây hấp thụ nước.',
-                'category_id' => $chamSocCategory->id,
-                'author_id' => $author->id,
-                'status' => 'published',
-                'published_at' => now(),
-            ],
-            [
-                'title' => 'Cách bón phân cho cây trồng',
-                'slug' => 'cach-bon-phan-cho-cay-trong',
-                'excerpt' => 'Hướng dẫn chi tiết cách bón phân cho cây trồng để cây phát triển tốt nhất',
-                'body' => 'Bón phân là kỹ thuật quan trọng để cung cấp dinh dưỡng cho cây trồng. Bài viết này sẽ hướng dẫn bạn cách chọn loại phân phù hợp, thời điểm bón phân, kỹ thuật bón phân và cách tránh các lỗi thường gặp. Chúng ta sẽ tìm hiểu về các loại phân hữu cơ, phân vô cơ, phân vi sinh và cách tạo phân compost tại nhà.',
-                'category_id' => $chamSocCategory->id,
-                'author_id' => $author->id,
-                'status' => 'published',
-                'published_at' => now(),
-            ],
-            [
-                'title' => 'Cách cắt tỉa cây cảnh',
-                'slug' => 'cach-cat-tia-cay-canh',
-                'excerpt' => 'Học cách cắt tỉa cây cảnh để tạo hình đẹp và kích thích cây phát triển',
-                'body' => 'Cắt tỉa là kỹ thuật quan trọng để tạo hình cho cây cảnh và kích thích cây phát triển. Bài viết này sẽ hướng dẫn bạn cách chọn thời điểm cắt tỉa, kỹ thuật cắt tỉa, dụng cụ cần thiết và cách chăm sóc sau khi cắt tỉa. Chúng ta sẽ tìm hiểu về các kiểu cắt tỉa khác nhau và cách tạo hình cho từng loại cây.',
-                'category_id' => $chamSocCategory->id,
-                'author_id' => $author->id,
-                'status' => 'published',
-                'published_at' => now(),
-            ],
-            [
-                'title' => 'Phòng trừ sâu bệnh cho cây',
-                'slug' => 'phong-tru-sau-benh-cho-cay',
-                'excerpt' => 'Các phương pháp phòng trừ sâu bệnh hiệu quả cho cây trồng',
-                'body' => 'Sâu bệnh là vấn đề thường gặp khi trồng cây. Bài viết này sẽ hướng dẫn bạn cách nhận biết các loại sâu bệnh phổ biến, phương pháp phòng trừ tự nhiên và hóa học, giúp cây trồng luôn khỏe mạnh. Chúng ta sẽ tìm hiểu về các loại thuốc trừ sâu tự nhiên, cách tạo môi trường tốt cho cây và cách sử dụng các loại cây có tác dụng xua đuổi sâu bệnh.',
-                'category_id' => $chamSocCategory->id,
-                'author_id' => $author->id,
-                'status' => 'published',
-                'published_at' => now(),
-            ],
-            [
-                'title' => 'Cách chăm sóc cây trong mùa đông',
-                'slug' => 'cach-cham-soc-cay-trong-mua-dong',
-                'excerpt' => 'Hướng dẫn chăm sóc cây trồng trong mùa đông để cây sống sót và phát triển tốt',
-                'body' => 'Mùa đông là thời điểm khó khăn cho cây trồng. Bài viết này sẽ hướng dẫn bạn cách bảo vệ cây khỏi lạnh, điều chỉnh chế độ tưới nước, bón phân và cách tạo môi trường ấm áp cho cây. Chúng ta sẽ tìm hiểu về các loại cây chịu lạnh, cách che chắn cây và chuẩn bị cây cho mùa đông.',
-                'category_id' => $chamSocCategory->id,
-                'author_id' => $author->id,
-                'status' => 'published',
-                'published_at' => now(),
-            ],
-            [
-                'title' => 'Cách nhân giống cây trồng',
-                'slug' => 'cach-nhan-giong-cay-trong',
-                'excerpt' => 'Học các phương pháp nhân giống cây trồng để có nhiều cây mới',
-                'body' => 'Nhân giống cây trồng là kỹ thuật quan trọng để tạo ra nhiều cây mới từ cây mẹ. Bài viết này sẽ hướng dẫn bạn các phương pháp nhân giống như giâm cành, chiết cành, ghép cây và gieo hạt. Chúng ta sẽ tìm hiểu về thời điểm nhân giống, cách chọn cành giâm, kỹ thuật chiết cành và cách chăm sóc cây con.',
-                'category_id' => $chamSocCategory->id,
-                'author_id' => $author->id,
-                'status' => 'published',
-                'published_at' => now(),
-            ],
-
-            // Bài viết về dụng cụ
-            [
-                'title' => 'Dụng cụ làm vườn cần thiết',
-                'slug' => 'dung-cu-lam-vuon-can-thiet',
-                'excerpt' => 'Danh sách các dụng cụ làm vườn cơ bản mà mọi người làm vườn nên có',
-                'body' => 'Để có một khu vườn đẹp và khỏe mạnh, bạn cần trang bị đầy đủ các dụng cụ làm vườn cần thiết. Bài viết này sẽ giới thiệu các loại dụng cụ cơ bản như cuốc, xẻng, kéo cắt cành, bình tưới nước, cách sử dụng và bảo quản chúng. Chúng ta sẽ tìm hiểu về các thương hiệu dụng cụ uy tín, cách chọn dụng cụ phù hợp và cách bảo trì để sử dụng lâu dài.',
-                'category_id' => $chamSocCategory->id,
-                'author_id' => $author->id,
-                'status' => 'published',
-                'published_at' => now(),
-            ],
-            [
-                'title' => 'Cách chọn và sử dụng kéo cắt cành',
-                'slug' => 'cach-chon-va-su-dung-keo-cat-canh',
-                'excerpt' => 'Hướng dẫn chi tiết cách chọn và sử dụng kéo cắt cành hiệu quả',
-                'body' => 'Kéo cắt cành là dụng cụ quan trọng trong việc chăm sóc cây. Bài viết này sẽ hướng dẫn bạn cách chọn kéo cắt cành phù hợp, kỹ thuật sử dụng an toàn, cách bảo quản và bảo trì. Chúng ta sẽ tìm hiểu về các loại kéo cắt cành khác nhau, cách mài lưỡi kéo và cách sử dụng đúng cách để tránh làm tổn thương cây.',
-                'category_id' => $chamSocCategory->id,
-                'author_id' => $author->id,
-                'status' => 'published',
-                'published_at' => now(),
-            ],
-            [
-                'title' => 'Hệ thống tưới nước tự động cho vườn',
-                'slug' => 'he-thong-tuoi-nuoc-tu-dong-cho-vuon',
-                'excerpt' => 'Hướng dẫn thiết kế và lắp đặt hệ thống tưới nước tự động cho vườn',
-                'body' => 'Hệ thống tưới nước tự động giúp tiết kiệm thời gian và đảm bảo cây được tưới nước đều đặn. Bài viết này sẽ hướng dẫn bạn cách thiết kế hệ thống tưới nước tự động, chọn thiết bị phù hợp, cách lắp đặt và vận hành. Chúng ta sẽ tìm hiểu về các loại hệ thống tưới nước khác nhau và cách tối ưu hóa hiệu quả.',
-                'category_id' => $chamSocCategory->id,
-                'author_id' => $author->id,
-                'status' => 'published',
-                'published_at' => now(),
+                'title' => 'Watering Schedules for Different Plants',
+                'slug' => 'watering-schedules-different-plants',
+                'excerpt' => 'Understanding watering needs for various plant types.',
+                'description' => 'Learn how to water different types of plants effectively.',
+                'body' => 'Different plants have different watering requirements...',
+                'content' => '<h1>Watering Schedules for Different Plants</h1><p>Different plants have different watering requirements. Here\'s how to water effectively:</p><h2>Succulents and Cacti</h2><p>Water sparingly, allowing soil to dry completely between waterings.</p><h2>Tropical Plants</h2><p>Keep soil consistently moist but not waterlogged.</p><h2>Vegetables</h2><p>Deep, infrequent watering encourages strong root development.</p>',
+                'featured_image' => null,
+                'cover' => null,
+                'category' => 'Technique',
+                'status' => 'draft',
+                'views' => 0,
+                'likes' => 0,
+                'is_featured' => false,
+                'category_id' => $category->id,
+                'author_id' => $admin->id,
+                'published_at' => null,
             ],
         ];
 
         foreach ($articles as $article) {
-            Article::firstOrCreate(
-                ['slug' => $article['slug']],
-                $article
-            );
+            Article::create($article);
         }
     }
 }

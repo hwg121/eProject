@@ -1,24 +1,78 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Star, ExternalLink, BookOpen, Wrench, Sparkles } from 'lucide-react';
+import { Star, ExternalLink } from 'lucide-react';
 import Card from '../components/UI/Card';
 import PageHeader from '../components/UI/PageHeader';
 import { publicService } from '../services/api.ts';
-import { generateSlug } from '../utils/slug';
+
+interface Product {
+  id: string;
+  name: string;
+  slug?: string;
+  description: string;
+  content?: string;
+  category: 'tool' | 'book' | 'pot' | 'accessory' | 'suggestion';
+  subcategory?: string;
+  status: 'published' | 'draft' | 'archived';
+  price?: number;
+  image?: string;
+  images_json?: string;
+  brand?: string;
+  material?: string;
+  size?: string;
+  color?: string;
+  is_featured?: boolean;
+  is_published?: boolean;
+  views?: number;
+  likes?: number;
+  rating?: number;
+  
+  // Tool specific
+  usage?: string;
+  video_url?: string;
+  affiliate_link?: string;
+  
+  // Book specific
+  author?: string;
+  pages?: number;
+  published_year?: number;
+  buyLink?: string;
+  borrowLink?: string;
+  
+  // Pot specific
+  drainage_holes?: boolean;
+  
+  // Accessory specific
+  is_waterproof?: boolean;
+  is_durable?: boolean;
+  
+  // Suggestion specific
+  difficulty_level?: 'beginner' | 'intermediate' | 'advanced';
+  season?: string;
+  plant_type?: string;
+  estimated_time?: string;
+  tags?: string[];
+  
+  // Generic link
+  link?: string;
+  
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 const Suggestions: React.FC = () => {
-  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
 
   useEffect(() => {
     const loadSuggestions = async () => {
       try {
         setLoading(true);
         const suggestionsData = await publicService.getSuggestions();
-        setSuggestions(suggestionsData);
+        setSuggestions(suggestionsData as Product[]);
       } catch (err) {
         setError('Failed to load suggestions');
         console.error('Error loading suggestions:', err);
@@ -30,49 +84,60 @@ const Suggestions: React.FC = () => {
     loadSuggestions();
   }, []);
 
-  // Filter suggestions based on category and search term
+  // Filter suggestions based on search term
   const filteredSuggestions = suggestions.filter(suggestion => {
-    const matchesCategory = selectedCategory === 'all' || suggestion.category === selectedCategory;
-    const matchesSearch = suggestion.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = suggestion.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          suggestion.description.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
+    return matchesSearch;
   });
 
-  // Get unique categories for filter
-  const categories = ['all', ...new Set(suggestions.map(s => s.category).filter(Boolean))];
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
-  const renderSuggestionCard = (item: any) => (
-    <Link key={item.id} to={`/suggestion/${item.slug || generateSlug(item.title)}`} className="block h-full">
-      <Card className="h-full group hover:shadow-xl transition-all duration-300">
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center space-x-2">
-          <div className="text-emerald-600">
-            <Star className="h-5 w-5" />
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredSuggestions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentSuggestions = filteredSuggestions.slice(startIndex, endIndex);
+
+  const renderSuggestionCard = (item: Product) => (
+    <a 
+      key={item.id} 
+      href={item.link || '#'} 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="block h-full"
+    >
+      <Card className="h-full group hover:shadow-xl transition-all duration-300 p-6">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center space-x-2">
+            <div className="text-emerald-600">
+              <Star className="h-5 w-5" />
+            </div>
+            <span className="text-sm text-emerald-600 font-medium">{item.subcategory || 'Suggestion'}</span>
           </div>
-          <span className="text-sm text-emerald-600 font-medium">{item.category}</span>
+          <div className="flex items-center space-x-1">
+            <Star className="h-4 w-4 text-yellow-500 fill-current" />
+            <span className="text-sm font-semibold">{item.rating || '4.5'}</span>
+          </div>
         </div>
-        <div className="flex items-center space-x-1">
-          <Star className="h-4 w-4 text-yellow-500 fill-current" />
-          <span className="text-sm font-semibold">{item.rating || '4.5'}</span>
+        <h3 className="text-lg font-semibold text-emerald-800 mb-2">{item.name}</h3>
+        <p className="text-emerald-600 text-sm mb-4 leading-relaxed">{item.description}</p>
+        <div className="flex items-center justify-between mt-auto">
+          <div className="flex items-center space-x-4 text-sm text-emerald-600">
+            <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs">
+              {item.difficulty_level || 'beginner'}
+            </span>
+          </div>
+          <button className="flex items-center space-x-1 text-emerald-600 hover:text-emerald-800 transition-colors">
+            <ExternalLink className="h-4 w-4" />
+            <span className="text-sm">View Details</span>
+          </button>
         </div>
-      </div>
-      <h3 className="text-lg font-semibold text-emerald-800 mb-2">{item.title}</h3>
-      <p className="text-emerald-600 text-sm mb-4 leading-relaxed">{item.description}</p>
-      <div className="flex items-center justify-between mt-auto">
-        <div className="flex items-center space-x-4 text-sm text-emerald-600">
-          <span>👁️ {item.views || 0}</span>
-          <span>❤️ {item.likes || 0}</span>
-          <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs">
-            {item.difficulty_level || 'beginner'}
-          </span>
-        </div>
-        <button className="flex items-center space-x-1 text-emerald-600 hover:text-emerald-800 transition-colors">
-          <ExternalLink className="h-4 w-4" />
-          <span className="text-sm">View Details</span>
-        </button>
-      </div>
       </Card>
-    </Link>
+    </a>
   );
 
   return (
@@ -83,9 +148,9 @@ const Suggestions: React.FC = () => {
         icon={<Star className="h-10 w-10" />}
       />
 
-      {/* Search and Filter */}
+      {/* Search Bar */}
       <Card>
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <input
               type="text"
@@ -94,19 +159,6 @@ const Suggestions: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full px-4 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             />
-          </div>
-          <div className="flex gap-2">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-4 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            >
-              {categories.map(category => (
-                <option key={category} value={category}>
-                  {category === 'all' ? 'All Categories' : category}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
       </Card>
@@ -128,26 +180,62 @@ const Suggestions: React.FC = () => {
         </div>
       ) : (
         <>
-          {/* Suggestions Grid */}
-          <section className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-3xl font-bold text-emerald-800">
-                💡 Gardening Suggestions ({filteredSuggestions.length})
-              </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-emerald-800">
+              Available Suggestions ({filteredSuggestions.length})
+            </h2>
+          </div>
+          
+          {filteredSuggestions.length === 0 ? (
+            <div className="text-center py-12">
+              <Star className="h-16 w-16 text-emerald-300 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-emerald-800 mb-2">No suggestions found</h3>
+              <p className="text-emerald-600">Try adjusting your search criteria</p>
             </div>
-            
-            {filteredSuggestions.length === 0 ? (
-              <div className="text-center py-12">
-                <Star className="h-16 w-16 text-emerald-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-emerald-800 mb-2">No suggestions found</h3>
-                <p className="text-emerald-600">Try adjusting your search or filter criteria</p>
-              </div>
-            ) : (
+          ) : (
+            <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredSuggestions.map(suggestion => renderSuggestionCard(suggestion))}
+                {currentSuggestions.map(suggestion => renderSuggestionCard(suggestion))}
               </div>
-            )}
-          </section>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center space-x-2 mt-8">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 rounded-lg bg-emerald-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-emerald-700 transition-colors"
+                  >
+                    Previous
+                  </button>
+                  
+                  <div className="flex space-x-2">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-4 py-2 rounded-lg transition-colors ${
+                          currentPage === page
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-4 py-2 rounded-lg bg-emerald-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-emerald-700 transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </>
       )}
 

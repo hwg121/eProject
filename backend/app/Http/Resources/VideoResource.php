@@ -15,6 +15,9 @@ class VideoResource extends JsonResource
             'description' => $this->description,
             'embed_url' => $this->embed_url,
             'thumbnail' => $this->thumbnail,
+            'views' => $this->views ?? 0,
+            'likes' => $this->likes ?? 0,
+            'rating' => $this->rating ?? 0,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

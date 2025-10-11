@@ -13,6 +13,7 @@ export interface ApiVideo {
   tags?: string[];
   categories?: string[];
   thumbnail?: string;
+  featured_image?: string;
   imageUrl?: string;
   views?: number;
   likes?: number;
@@ -54,6 +55,7 @@ export interface ApiArticle {
   id?: string | number;
   title?: string;
   content?: string;
+  body?: string;
   excerpt?: string;
   author?: string;
   published_at?: string;
@@ -61,6 +63,8 @@ export interface ApiArticle {
   tags?: string[];
   categories?: string[];
   image?: string;
+  featured_image?: string;
+  cover?: string;
   imageUrl?: string;
   views?: number;
   likes?: number;
@@ -194,4 +198,30 @@ export interface ApiSuggestion {
   cons?: string[];
   reviews?: number;
   slug?: string;
+}
+
+// User Interaction Types
+export interface UserInteraction {
+  id?: number;
+  user_ip?: string;
+  user_id?: number;
+  content_type: string;
+  content_id: number;
+  interaction_type: 'like' | 'rating';
+  value: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface InteractionResponse {
+  success: boolean;
+  message?: string;
+  is_liked?: boolean;
+  like_count?: number;
+  view_count?: number;
+  rating?: number;
+  average_rating?: number;
+  rating_count?: number;
+  user_rating?: number;
+  errors?: { [key: string]: string[] };
 }

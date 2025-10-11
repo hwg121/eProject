@@ -1,26 +1,9 @@
-﻿// API Configuration and Services for Laravel Backend
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+﻿// API Configuration and Services for Laravel Backend with Sanctum Authentication
 import type { 
-  ApiResponse, 
-  PaginatedResponse, 
-  User, 
-  AuthResponse, 
-  Article, 
-  Video, 
-  Tool, 
-  Book, 
-  Essential, 
-  Pot, 
-  Accessory, 
-  Suggestion, 
-  AboutUs, 
-  ContactMessage, 
-  DashboardStats, 
-  SearchParams, 
-  ApiError 
+  InteractionResponse
 } from '../types/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://103.252.93.249/api';
 
 
 // API Client Configuration
@@ -33,15 +16,57 @@ class ApiClient {
     this.token = localStorage.getItem('auth_token');
   }
 
+  // Public methods for HTTP verbs
+  async get<T = unknown>(endpoint: string): Promise<T> {
+    return this.request<T>(endpoint, { method: 'GET' });
+  }
+
+  async post<T = unknown>(endpoint: string, data?: unknown): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  async put<T = unknown>(endpoint: string, data?: unknown): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  async delete<T = unknown>(endpoint: string): Promise<T> {
+    return this.request<T>(endpoint, { method: 'DELETE' });
+  }
+
   private async request<T = unknown>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     
+    // Always refresh token before making requests
+    this.token = localStorage.getItem('auth_token');
+    
+    // Check if this is a protected endpoint that requires authentication
+    const isProtectedEndpoint = endpoint.includes('/users') || 
+                               endpoint.includes('/admin/') || 
+                               endpoint.includes('/auth/logout') ||
+                               endpoint.includes('/auth/me') ||
+                               endpoint.includes('/auth/refresh');
+    
+    if (isProtectedEndpoint) {
+      // Removed user_logged_out check - rely on token validation instead
+      // The server will return 401 if token is invalid or expired
+    }
+    
+    // Check if this is a file upload request
+    const isFileUpload = options.body instanceof FormData;
+    
     const config: RequestInit = {
       headers: {
-        'Content-Type': 'application/json',
+        // Don't set Content-Type for FormData uploads - let browser set it with boundary
+        ...(isFileUpload ? {} : { 'Content-Type': 'application/json' }),
         'Accept': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
         ...(this.token && { Authorization: `Bearer ${this.token}` }),
@@ -53,17 +78,41 @@ class ApiClient {
     try {
       const response = await fetch(url, config);
       
+      // Handle different response status codes
       if (!response.ok) {
-        if (response.status === 401) {
-          this.logout();
-          throw new Error('Unauthorized');
+        let errorMessage = `HTTP ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+          console.error('API Error Response:', errorData);
+        } catch (parseError) {
+          // Ignore JSON parse errors, use default error message
         }
-        throw new Error(`HTTP error! status: ${response.status}`);
+        
+        if (response.status === 401) {
+          // Only redirect to login if this is a protected endpoint
+          if (isProtectedEndpoint) {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('greengroves_user');
+            localStorage.setItem('user_logged_out', 'true');
+            window.location.href = '/login';
+          }
+          throw new Error('Authentication failed');
+        }
+        
+        throw new Error(errorMessage);
       }
+      
+      // This duplicate check is removed since we already handle it above
 
       const data = await response.json();
       
-      // Handle Laravel API response format
+      // For upload endpoints, return the full response object
+      if (endpoint.includes('/upload/')) {
+        return data;
+      }
+      
+      // Handle Laravel API response format for other endpoints
       if (data && typeof data === 'object' && 'data' in data) {
         return data.data;
       }
@@ -71,6 +120,10 @@ class ApiClient {
       return data;
     } catch (error) {
       console.error('API request failed:', error);
+      // Return empty array for network errors instead of throwing
+      if (error instanceof TypeError) {
+        return [] as T;
+      }
       throw error;
     }
   }
@@ -78,6 +131,11 @@ class ApiClient {
   setToken(token: string) {
     this.token = token;
     localStorage.setItem('auth_token', token);
+  }
+
+  refreshToken() {
+    this.token = localStorage.getItem('auth_token');
+    return this.token;
   }
 
   logout() {
@@ -141,7 +199,7 @@ class ApiClient {
     const queryParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== '') {
+        if (value !== undefined && value !== '' && value !== null) {
           queryParams.append(key, value.toString());
         }
       });
@@ -195,7 +253,7 @@ class ApiClient {
     const queryParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== '') {
+        if (value !== undefined && value !== '' && value !== null) {
           queryParams.append(key, value.toString());
         }
       });
@@ -223,10 +281,15 @@ class ApiClient {
     });
   }
 
-  async updateVideo(id: string, data: unknown) {
+  async updateVideo(id: string, data: Record<string, unknown>) {
+    const formData = {
+      ...data,
+      _method: 'PUT'
+    };
+    
     return this.request<unknown>(`/admin/videos/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
+      method: 'POST',
+      body: JSON.stringify(formData),
     });
   }
 
@@ -268,39 +331,100 @@ class ApiClient {
     });
   }
 
+  // Image Upload - SIMPLE VERSION
+  async uploadImage(file: File, folder: string = 'featured-images', modelType: string = 'video') {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', folder);
+    formData.append('model_type', modelType);
+
+    try {
+      // Try authenticated endpoint first
+      const response = await this.request<{
+        success: boolean;
+        message: string;
+        data: {
+          url: string;
+          public_id: string;
+          folder: string;
+          width?: number;
+          height?: number;
+          format?: string;
+          bytes?: number;
+        };
+      }>('/admin/upload/image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.success) {
+        return {
+          success: true,
+          data: {
+            url: response.data.url,
+            public_id: response.data.public_id,
+            folder: response.data.folder,
+            width: response.data.width,
+            height: response.data.height,
+            format: response.data.format,
+            bytes: response.data.bytes
+          }
+        };
+      } else {
+        throw new Error(response.message || 'Upload failed');
+      }
+    } catch (error) {
+      console.error('Authenticated upload failed, trying test endpoint:', error);
+      
+      // Fallback to test endpoint if authenticated upload fails
+      try {
+        const testResponse = await this.request<{
+          success: boolean;
+          message: string;
+          data: {
+            url: string;
+            public_id: string;
+            folder: string;
+            width?: number;
+            height?: number;
+            format?: string;
+            bytes?: number;
+          };
+        }>('/test/upload/image', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (testResponse.success) {
+          return {
+            success: true,
+            data: {
+              url: testResponse.data.url,
+              public_id: testResponse.data.public_id,
+              folder: testResponse.data.folder,
+              width: testResponse.data.width,
+              height: testResponse.data.height,
+              format: testResponse.data.format,
+              bytes: testResponse.data.bytes
+            }
+          };
+        } else {
+          throw new Error(testResponse.message || 'Test upload failed');
+        }
+      } catch (testError) {
+        console.error('Test upload also failed:', testError);
+        throw testError;
+      }
+    }
+  }
+
   // Public API endpoints (for frontend pages)
   async getPublicArticles() {
     try {
       return await this.request<unknown[]>('/articles');
     } catch (error) {
       console.error('Error fetching articles:', error);
-      // Fallback to mock data if API fails
-      const mockArticles = [
-        {
-          id: 1,
-          title: "Cách trồng cây xanh trong nhà",
-          body: "Hướng dẫn chi tiết về cách trồng và chăm sóc cây xanh trong nhà...",
-          excerpt: "Học cách trồng cây xanh trong nhà một cách hiệu quả",
-          image: "/image.png",
-          category: "Trồng trọt",
-          tags: ["cây xanh", "trồng trọt", "nhà"],
-          created_at: "2025-09-25T00:00:00Z",
-          updated_at: "2025-09-25T00:00:00Z"
-        },
-        {
-          id: 2,
-          title: "Kỹ thuật tưới nước cho cây",
-          body: "Các phương pháp tưới nước hiệu quả cho từng loại cây...",
-          excerpt: "Tìm hiểu cách tưới nước đúng cách cho cây trồng",
-          image: "/image.png",
-          category: "Chăm sóc",
-          tags: ["tưới nước", "chăm sóc", "kỹ thuật"],
-          created_at: "2025-09-24T00:00:00Z",
-          updated_at: "2025-09-24T00:00:00Z"
-        }
-      ];
-      
-      return Promise.resolve(mockArticles);
+      throw error;
     }
   }
 
@@ -309,88 +433,25 @@ class ApiClient {
       return await this.request<unknown[]>('/videos');
     } catch (error) {
       console.error('Error fetching videos:', error);
-      // Fallback to mock data if API fails
-      const mockVideos = [
-        {
-          id: 1,
-          title: "Hướng dẫn trồng cây từ A-Z",
-          description: "Video hướng dẫn chi tiết cách trồng cây từ bước đầu",
-          embed_url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-          thumbnail: "/image.png",
-          created_at: "2025-09-25T00:00:00Z"
-        },
-        {
-          id: 2,
-          title: "Cách chăm sóc cây cảnh",
-          description: "Bí quyết chăm sóc cây cảnh luôn xanh tươi",
-          embed_url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-          thumbnail: "/image.png",
-          created_at: "2025-09-24T00:00:00Z"
-        }
-      ];
-      
-      return Promise.resolve(mockVideos);
+      throw error;
     }
   }
 
   async getPublicTools() {
     try {
-      return await this.request<unknown[]>('/tools');
+      return await this.request<unknown[]>('/products?category=tool');
     } catch (error) {
       console.error('Error fetching tools:', error);
-      // Fallback to mock data if API fails
-      const mockTools = [
-        {
-          id: 1,
-          name: "Xẻng trồng cây",
-          description: "Xẻng chuyên dụng để trồng cây, làm từ thép không gỉ",
-          slug: "xeng-trong-cay",
-          video_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-          images_json: '["/image.png"]'
-        },
-        {
-          id: 2,
-          name: "Bình tưới nước",
-          description: "Bình tưới nước 2 lít với vòi phun đa dạng",
-          slug: "binh-tuoi-nuoc",
-          video_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-          images_json: '["/image.png"]'
-        }
-      ];
-      return Promise.resolve(mockTools);
+      throw error;
     }
   }
 
   async getPublicBooks() {
     try {
-      return await this.request<unknown[]>('/books');
+      return await this.request<unknown[]>('/products?category=book');
     } catch (error) {
       console.error('Error fetching books:', error);
-      // Fallback to mock data if API fails
-      const mockBooks = [
-        {
-          id: 1,
-          title: "Nghệ thuật trồng cây",
-          author: "Nguyễn Văn A",
-          description: "Cuốn sách hướng dẫn chi tiết về nghệ thuật trồng cây",
-          price: 200000,
-          image: "/image.png",
-          pages: 300,
-          published_year: 2024
-        },
-        {
-          id: 2,
-          title: "Cây cảnh trong nhà",
-          author: "Trần Thị B",
-          description: "Hướng dẫn chọn và chăm sóc cây cảnh trong nhà",
-          price: 150000,
-          image: "/image.png",
-          pages: 250,
-          published_year: 2023
-        }
-      ];
-      
-      return Promise.resolve(mockBooks);
+      throw error;
     }
   }
 
@@ -399,124 +460,34 @@ class ApiClient {
       return await this.request<unknown[]>('/essentials');
     } catch (error) {
       console.error('Error fetching essentials:', error);
-      // Fallback to mock data if API fails
-      const mockEssentials = [
-        {
-          id: 1,
-          name: "Phân bón hữu cơ",
-          description: "Phân bón hữu cơ tự nhiên cho cây trồng",
-          price: 50000,
-          image: "/image.png",
-          category: "Fertilizer"
-        },
-        {
-          id: 2,
-          name: "Đất trồng cây",
-          description: "Đất trồng cây chất lượng cao",
-          price: 30000,
-          image: "/image.png",
-          category: "Soil"
-        }
-      ];
-      
-      return Promise.resolve(mockEssentials);
+      throw error;
     }
   }
 
   async getPublicPots() {
     try {
-      return await this.request<unknown[]>('/pots');
+      return await this.request<unknown[]>('/products?category=pot');
     } catch (error) {
       console.error('Error fetching pots:', error);
-      // Fallback to mock data if API fails
-      const mockPots = [
-        {
-          id: 1,
-          name: "Chậu đất nung",
-          description: "Chậu đất nung truyền thống",
-          price: 100000,
-          image: "/image.png",
-          material: "Clay",
-          size: "20cm"
-        },
-        {
-          id: 2,
-          name: "Chậu nhựa",
-          description: "Chậu nhựa nhẹ và bền",
-          price: 50000,
-          image: "/image.png",
-          material: "Plastic",
-          size: "15cm"
-        }
-      ];
-      
-      return Promise.resolve(mockPots);
+      throw error;
     }
   }
 
   async getPublicAccessories() {
     try {
-      return await this.request<unknown[]>('/accessories');
+      return await this.request<unknown[]>('/products?category=accessory');
     } catch (error) {
       console.error('Error fetching accessories:', error);
-      // Fallback to mock data if API fails
-      const mockAccessories = [
-        {
-          id: 1,
-          name: "Phụ kiện trang trí",
-          description: "Phụ kiện trang trí cho cây cảnh",
-          price: 25000,
-          image: "/image.png",
-          category: "Decoration"
-        },
-        {
-          id: 2,
-          name: "Hệ thống tưới nước",
-          description: "Hệ thống tưới nước tự động",
-          price: 150000,
-          image: "/image.png",
-          category: "Irrigation"
-        }
-      ];
-      
-      return Promise.resolve(mockAccessories);
+      throw error;
     }
   }
 
   async getPublicSuggestions() {
     try {
-      return await this.request<unknown[]>('/suggestions');
+      return await this.request<unknown[]>('/products?category=suggestion');
     } catch (error) {
       console.error('Error fetching suggestions:', error);
-      // Fallback to mock data if API fails
-      const mockSuggestions = [
-        {
-          id: 1,
-          title: "Cách trồng cây xanh trong nhà",
-          description: "Hướng dẫn chi tiết cách trồng cây xanh trong nhà",
-          category: "Hướng dẫn cơ bản",
-          difficulty_level: "beginner",
-          rating: 4.5,
-          views: 1000,
-          likes: 50,
-          image: "/image.png",
-          is_featured: true
-        },
-        {
-          id: 2,
-          title: "10 loại cây dễ trồng nhất",
-          description: "Danh sách các loại cây dễ trồng cho người mới",
-          category: "Cây trồng",
-          difficulty_level: "beginner",
-          rating: 4.3,
-          views: 800,
-          likes: 40,
-          image: "/image.png",
-          is_featured: false
-        }
-      ];
-      
-      return Promise.resolve(mockSuggestions);
+      throw error;
     }
   }
 
@@ -639,11 +610,602 @@ class ApiClient {
 
   async getPublicSeeds() {
     try {
-      const response = await this.request('/api/public/seeds', { method: 'GET' }) as { data: any[] };
+      const response = await this.request('/api/public/seeds', { method: 'GET' }) as { data: unknown[] };
       return response.data;
     } catch (error) {
       console.error('Error fetching seeds:', error);
       return [];
+    }
+  }
+
+  // User Management
+  async getUsers(params?: Record<string, unknown>) {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== '' && value !== null) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    return this.request<{
+      data: unknown[];
+      meta: {
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+      };
+    }>(`/users?${queryParams}`);
+  }
+
+  async getUserById(id: string) {
+    return this.request<unknown>(`/users/${id}`);
+  }
+
+  async createUser(data: any) {
+    return this.request<unknown>('/users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json',
+        ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      },
+    });
+  }
+
+  async updateUser(id: string, data: any) {
+    return this.request<unknown>(`/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json',
+        ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      },
+    });
+  }
+
+  async deleteUser(id: string) {
+    return this.request<unknown>(`/users/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getUserProfile() {
+    return this.request<unknown>('/user/profile');
+  }
+
+  async updateUserProfile(data: any) {
+    const url = `${this.baseURL}/user/profile`;
+    
+    const config: RequestInit = {
+      method: 'PUT',
+      body: JSON.stringify(data),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      },
+    };
+
+    try {
+      const response = await fetch(url, config);
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.logout();
+          throw new Error('Unauthorized');
+        }
+        
+        // Try to get error message from response
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (e) {
+          // If can't parse JSON, use default message
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
+      
+      // Return full response object to maintain consistency with other API calls
+      return result;
+    } catch (error) {
+      console.error('Profile update request failed:', error);
+      throw error;
+    }
+  }
+
+  // Product Management
+  async getProducts(params?: {
+    search?: string;
+    category?: string;
+    status?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+    page?: number;
+    per_page?: number;
+  }) {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== '' && value !== null) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    return this.request<{
+      data: unknown[];
+      meta: {
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+      };
+    }>(`/products?${queryParams}`);
+  }
+
+  async getProduct(id: string) {
+    return this.request<unknown>(`/products/${id}`);
+  }
+
+  async createProduct(data: FormData) {
+    return this.request<unknown>('/products', {
+      method: 'POST',
+      body: data,
+      headers: {
+        // Remove Content-Type to let browser set it with boundary
+        ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      },
+    });
+  }
+
+  async updateProduct(id: string, data: FormData) {
+    // Laravel has issues with FormData + PUT, use POST with _method
+    data.append('_method', 'PUT');
+    return this.request<unknown>(`/products/${id}`, {
+      method: 'POST',
+      body: data,
+      headers: {
+        // Remove Content-Type to let browser set it with boundary
+        ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      },
+    });
+  }
+
+  async deleteProduct(id: string) {
+    return this.request<unknown>(`/products/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Books CRUD - now uses products with category filter
+  async getBooks(params?: Record<string, unknown>) {
+    const queryParams = new URLSearchParams();
+    queryParams.append('category', 'book'); // Always filter by book category
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== '' && value !== null) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    return this.request<{
+      data: unknown[];
+      meta: {
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+      };
+    }>(`/products?${queryParams}`);
+  }
+
+  async getBook(id: string) {
+    return this.request<unknown>(`/books/${id}`);
+  }
+
+  async createBook(data: FormData) {
+    return this.request<unknown>('/books', {
+      method: 'POST',
+      body: data,
+      headers: {
+        ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      },
+    });
+  }
+
+  async updateBook(id: string, data: FormData) {
+    // Laravel has issues with FormData + PUT, use POST with _method
+    data.append('_method', 'PUT');
+    return this.request<unknown>(`/books/${id}`, {
+      method: 'POST',
+      body: data,
+      headers: {
+        ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      },
+    });
+  }
+
+  async deleteBook(id: string) {
+    return this.request<unknown>(`/books/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Tools CRUD - now uses products with category filter
+  async getTools(params?: Record<string, unknown>) {
+    const queryParams = new URLSearchParams();
+    queryParams.append('category', 'tool'); // Always filter by tool category
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== '' && value !== null) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    return this.request<{
+      data: unknown[];
+      meta: {
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+      };
+    }>(`/products?${queryParams}`);
+  }
+
+  async getTool(id: string) {
+    return this.request<unknown>(`/tools/${id}`);
+  }
+
+  async createTool(data: FormData) {
+    return this.request<unknown>('/tools', {
+      method: 'POST',
+      body: data,
+      headers: {
+        ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      },
+    });
+  }
+
+  async updateTool(id: string, data: FormData) {
+    // Laravel has issues with FormData + PUT, use POST with _method
+    data.append('_method', 'PUT');
+    return this.request<unknown>(`/tools/${id}`, {
+      method: 'POST',
+      body: data,
+      headers: {
+        ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      },
+    });
+  }
+
+  async deleteTool(id: string) {
+    return this.request<unknown>(`/tools/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Essentials CRUD
+  async getEssentials(params?: Record<string, unknown>) {
+    const queryParams = new URLSearchParams();
+    queryParams.append('category', 'tool'); // Essentials now use tool category
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== '' && value !== null) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    return this.request<{
+      data: unknown[];
+      meta: {
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+      };
+    }>(`/products?${queryParams}`);
+  }
+
+  async getEssential(id: string) {
+    return this.request<unknown>(`/essentials/${id}`);
+  }
+
+  async createEssential(data: FormData) {
+    return this.request<unknown>('/essentials', {
+      method: 'POST',
+      body: data,
+      headers: {
+        ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      },
+    });
+  }
+
+  async updateEssential(id: string, data: FormData) {
+    // Laravel has issues with FormData + PUT, use POST with _method
+    data.append('_method', 'PUT');
+    return this.request<unknown>(`/essentials/${id}`, {
+      method: 'POST',
+      body: data,
+      headers: {
+        ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      },
+    });
+  }
+
+  async deleteEssential(id: string) {
+    return this.request<unknown>(`/essentials/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Pots CRUD
+  async getPots(params?: Record<string, unknown>) {
+    const queryParams = new URLSearchParams();
+    queryParams.append('category', 'pot'); // Always filter by pot category
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== '' && value !== null) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    return this.request<{
+      data: unknown[];
+      meta: {
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+      };
+    }>(`/products?${queryParams}`);
+  }
+
+  async getPot(id: string) {
+    return this.request<unknown>(`/pots/${id}`);
+  }
+
+  async createPot(data: FormData) {
+    return this.request<unknown>('/pots', {
+      method: 'POST',
+      body: data,
+      headers: {
+        ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      },
+    });
+  }
+
+  async updatePot(id: string, data: FormData) {
+    // Laravel has issues with FormData + PUT, use POST with _method
+    data.append('_method', 'PUT');
+    return this.request<unknown>(`/pots/${id}`, {
+      method: 'POST',
+      body: data,
+      headers: {
+        ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      },
+    });
+  }
+
+  async deletePot(id: string) {
+    return this.request<unknown>(`/pots/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Accessories CRUD
+  async getAccessories(params?: Record<string, unknown>) {
+    const queryParams = new URLSearchParams();
+    queryParams.append('category', 'accessory'); // Always filter by accessory category
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== '' && value !== null) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    return this.request<{
+      data: unknown[];
+      meta: {
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+      };
+    }>(`/products?${queryParams}`);
+  }
+
+  async getAccessory(id: string) {
+    return this.request<unknown>(`/accessories/${id}`);
+  }
+
+  async createAccessory(data: FormData) {
+    return this.request<unknown>('/accessories', {
+      method: 'POST',
+      body: data,
+      headers: {
+        ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      },
+    });
+  }
+
+  async updateAccessory(id: string, data: FormData) {
+    // Laravel has issues with FormData + PUT, use POST with _method
+    data.append('_method', 'PUT');
+    return this.request<unknown>(`/accessories/${id}`, {
+      method: 'POST',
+      body: data,
+      headers: {
+        ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      },
+    });
+  }
+
+  async deleteAccessory(id: string) {
+    return this.request<unknown>(`/accessories/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Suggestions CRUD
+  async getSuggestions(params?: Record<string, unknown>) {
+    const queryParams = new URLSearchParams();
+    queryParams.append('category', 'suggestion'); // Always filter by suggestion category
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== '' && value !== null) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    return this.request<{
+      data: unknown[];
+      meta: {
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+      };
+    }>(`/products?${queryParams}`);
+  }
+
+  async getSuggestion(id: string) {
+    return this.request<unknown>(`/suggestions/${id}`);
+  }
+
+  async createSuggestion(data: FormData) {
+    return this.request<unknown>('/suggestions', {
+      method: 'POST',
+      body: data,
+      headers: {
+        ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      },
+    });
+  }
+
+  async updateSuggestion(id: string, data: FormData) {
+    // Laravel has issues with FormData + PUT, use POST with _method
+    data.append('_method', 'PUT');
+    return this.request<unknown>(`/suggestions/${id}`, {
+      method: 'POST',
+      body: data,
+      headers: {
+        ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      },
+    });
+  }
+
+  async deleteSuggestion(id: string) {
+    return this.request<unknown>(`/suggestions/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // User Interactions
+  async toggleLike(contentType: string, contentId: number) {
+    try {
+      return await this.request<InteractionResponse>('/interactions/like', {
+        method: 'POST',
+        body: JSON.stringify({
+          content_type: contentType,
+          content_id: contentId,
+        }),
+      });
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      // Return error response instead of mock data
+      return {
+        success: false,
+        message: 'Failed to toggle like',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  async submitRating(contentType: string, contentId: number, rating: number) {
+    try {
+      return await this.request<InteractionResponse>('/interactions/rating', {
+        method: 'POST',
+        body: JSON.stringify({
+          content_type: contentType,
+          content_id: contentId,
+          rating: rating,
+        }),
+      });
+    } catch (error) {
+      console.error('Error submitting rating:', error);
+      // Return error response instead of mock data
+      return {
+        success: false,
+        message: 'Failed to submit rating',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  async getUserInteractions(contentType: string, contentId: number) {
+    try {
+      return await this.request<InteractionResponse>(`/interactions/user?content_type=${contentType}&content_id=${contentId}`, {
+        method: 'GET',
+      });
+    } catch (error) {
+      console.error('Error getting user interactions:', error);
+      // Return error response instead of mock data
+      return {
+        success: false,
+        message: 'Failed to get user interactions',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  async trackView(contentType: string, contentId: number) {
+    try {
+      return await this.request<InteractionResponse>('/interactions/view', {
+        method: 'POST',
+        body: JSON.stringify({
+          content_type: contentType,
+          content_id: contentId,
+        }),
+      });
+    } catch (error) {
+      console.error('Error tracking view:', error);
+      // Return error response instead of mock data
+      return {
+        success: false,
+        message: 'Failed to track view',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  async getContentStats(contentType: string, contentId: number) {
+    try {
+      return await this.request<InteractionResponse>(`/interactions/stats?content_type=${contentType}&content_id=${contentId}`, {
+        method: 'GET',
+      });
+    } catch (error) {
+      console.error('Error getting content stats:', error);
+      // Return error response instead of mock data
+      return {
+        success: false,
+        message: 'Failed to get content stats',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
     }
   }
 
@@ -757,7 +1319,7 @@ export const videosService = {
   getAll: () => apiClient.getVideos(),
   getById: (id: string) => apiClient.getVideo(id),
   create: (data: unknown) => apiClient.createVideo(data),
-  update: (id: string, data: unknown) => apiClient.updateVideo(id, data),
+  update: (id: string, data: Record<string, unknown>) => apiClient.updateVideo(id, data),
   delete: (id: string) => apiClient.deleteVideo(id),
   getPublic: () => apiClient.getPublicVideos(),
 };
@@ -811,6 +1373,259 @@ export const contactService = {
   delete: (id: string) => apiClient.deleteContactMessage(id),
 };
 
-export default apiClient;
+export const interactionService = {
+  toggleLike: (contentType: string, contentId: number) => apiClient.toggleLike(contentType, contentId),
+  submitRating: (contentType: string, contentId: number, rating: number) => apiClient.submitRating(contentType, contentId, rating),
+  trackView: (contentType: string, contentId: number) => apiClient.trackView(contentType, contentId),
+  getUserInteractions: (contentType: string, contentId: number) => apiClient.getUserInteractions(contentType, contentId),
+  getContentStats: (contentType: string, contentId: number) => apiClient.getContentStats(contentType, contentId),
+};
 
-/* eslint-enable @typescript-eslint/no-unused-vars */
+export const userService = {
+  getAll: (params?: Record<string, unknown>) => apiClient.getUsers(params),
+  getById: (id: string) => apiClient.getUserById(id),
+  create: (data: FormData) => apiClient.createUser(data),
+  update: (id: string, data: FormData) => apiClient.updateUser(id, data),
+  delete: (id: string) => apiClient.deleteUser(id),
+  getProfile: () => apiClient.getUserProfile(),
+  updateProfile: (data: any) => apiClient.updateUserProfile(data),
+};
+
+export const productService = {
+  getAll: (params?: Record<string, unknown>) => apiClient.getProducts(params),
+  getByCategory: (category: string) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('category', category);
+    return apiClient.getProducts({ category });
+  },
+  getById: (id: string) => apiClient.getProduct(id),
+  create: (data: Record<string, unknown>) => {
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        if (value instanceof File) {
+          formData.append(key, value);
+        } else if (typeof value === 'object') {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, value.toString());
+        }
+      }
+    });
+    return apiClient.createProduct(formData);
+  },
+  update: async (id: string, data: Record<string, unknown>) => {
+    console.log('productService.update - Input:', { id, data });
+    
+    // Get API base URL and token
+    const apiBaseUrl = API_BASE_URL;
+    const token = localStorage.getItem('auth_token');
+    
+    // Check if data contains File objects
+    const hasFile = Object.values(data).some(value => value instanceof File);
+    
+    if (hasFile) {
+      // Use FormData for file uploads - POST with _method=PUT to /admin/products/{id}
+      const formData = new FormData();
+      formData.append('_method', 'PUT');
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          if (value instanceof File) {
+            formData.append(key, value);
+          } else if (typeof value === 'object') {
+            formData.append(key, JSON.stringify(value));
+          } else {
+            formData.append(key, value.toString());
+          }
+        }
+      });
+      
+      // Use POST to /admin/products/{id} with _method=PUT for FormData
+      const url = `${apiBaseUrl}/admin/products/${id}`;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('productService.update - File upload result:', result);
+      return result;
+    } else {
+      // Use JSON PUT for simple data updates to /admin/products/{id}
+      const url = `${apiBaseUrl}/admin/products/${id}`;
+      console.log('productService.update - API URL:', url);
+      
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('productService.update - JSON update result:', result);
+      return result;
+    }
+  },
+  delete: (id: string) => apiClient.deleteProduct(id),
+  getFeatured: () => apiClient.getProducts(),
+};
+
+// Legacy services - redirect to productService
+export const booksService = {
+  getAll: () => productService.getByCategory('book'),
+  getById: (id: string) => productService.getById(id),
+  create: (data: Record<string, unknown>) => productService.create({ ...data, category: 'book' }),
+  update: (id: string, data: Record<string, unknown>) => productService.update(id, { ...data, category: 'book' }),
+  delete: (id: string) => productService.delete(id),
+};
+
+export const toolsService = {
+  getAll: () => productService.getByCategory('tool'),
+  getById: (id: string) => productService.getById(id),
+  create: (data: Record<string, unknown>) => productService.create({ ...data, category: 'tool' }),
+  update: (id: string, data: Record<string, unknown>) => productService.update(id, { ...data, category: 'tool' }),
+  delete: (id: string) => productService.delete(id),
+};
+
+export const potsService = {
+  getAll: () => productService.getByCategory('pot'),
+  getById: (id: string) => productService.getById(id),
+  create: (data: Record<string, unknown>) => productService.create({ ...data, category: 'pot' }),
+  update: (id: string, data: Record<string, unknown>) => productService.update(id, { ...data, category: 'pot' }),
+  delete: (id: string) => productService.delete(id),
+};
+
+export const accessoriesService = {
+  getAll: () => productService.getByCategory('accessory'),
+  getById: (id: string) => productService.getById(id),
+  create: (data: Record<string, unknown>) => productService.create({ ...data, category: 'accessory' }),
+  update: (id: string, data: Record<string, unknown>) => productService.update(id, { ...data, category: 'accessory' }),
+  delete: (id: string) => productService.delete(id),
+};
+
+export const suggestionsService = {
+  getAll: () => productService.getByCategory('suggestion'),
+  getById: (id: string) => productService.getById(id),
+  create: (data: Record<string, unknown>) => productService.create({ ...data, category: 'suggestion' }),
+  update: (id: string, data: Record<string, unknown>) => productService.update(id, { ...data, category: 'suggestion' }),
+  delete: (id: string) => productService.delete(id),
+};
+
+// Activity Log Service
+export const activityLogService = {
+  getAll: (params?: { activity_type?: 'public' | 'security'; per_page?: number }) => {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== '' && value !== null) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    return apiClient.request(`/admin/activity-logs?${queryParams}`, { method: 'GET' });
+  },
+  getPublicActivities: (limit?: number) => {
+    const queryParams = new URLSearchParams();
+    if (limit) queryParams.append('limit', limit.toString());
+    return apiClient.request(`/admin/activity-logs/public?${queryParams}`, { method: 'GET' });
+  },
+  getSecurityActivities: (limit?: number) => {
+    const queryParams = new URLSearchParams();
+    if (limit) queryParams.append('limit', limit.toString());
+    return apiClient.request(`/admin/activity-logs/security?${queryParams}`, { method: 'GET' });
+  },
+  getRecentActivities: (limit?: number) => {
+    const queryParams = new URLSearchParams();
+    if (limit) queryParams.append('limit', limit.toString());
+    return apiClient.request(`/admin/activity-logs/recent?${queryParams}`, { method: 'GET' });
+  },
+  clearOldLogs: (days?: number) => {
+    const queryParams = new URLSearchParams();
+    if (days) queryParams.append('days', days.toString());
+    return apiClient.request(`/admin/activity-logs/clear?${queryParams}`, { method: 'DELETE' });
+  },
+};
+
+// Hero Section Service
+export const heroSectionService = {
+  // Public
+  getActive: () => apiClient.request('/hero-sections/active', { method: 'GET' }),
+  
+  // Admin
+  getAll: () => apiClient.request('/admin/hero-sections', { method: 'GET' }),
+  getById: (id: string) => apiClient.request(`/admin/hero-sections/${id}`, { method: 'GET' }),
+  create: (data: Record<string, unknown>) => apiClient.request('/admin/hero-sections', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  update: (id: string, data: Record<string, unknown>) => apiClient.request(`/admin/hero-sections/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  delete: (id: string) => apiClient.request(`/admin/hero-sections/${id}`, { method: 'DELETE' }),
+};
+
+// Staff Member Service
+export const staffMemberService = {
+  // Public
+  getActive: () => apiClient.request('/staff-members/active', { method: 'GET' }),
+  
+  // Admin
+  getAll: () => apiClient.request('/admin/staff-members', { method: 'GET' }),
+  getById: (id: string) => apiClient.request(`/admin/staff-members/${id}`, { method: 'GET' }),
+  create: (data: FormData) => apiClient.request('/admin/staff-members', {
+    method: 'POST',
+    body: data,
+  }),
+  update: (id: string, data: FormData) => apiClient.request(`/admin/staff-members/${id}`, {
+    method: 'POST', // Use POST with _method=PUT for file uploads
+    body: data,
+  }),
+  delete: (id: string) => apiClient.request(`/admin/staff-members/${id}`, { method: 'DELETE' }),
+  reorder: (orders: Array<{ id: string; display_order: number }>) => apiClient.request('/admin/staff-members/reorder', {
+    method: 'POST',
+    body: JSON.stringify({ orders }),
+  }),
+};
+
+// Map Setting Service
+export const mapSettingService = {
+  // Public
+  getActive: () => apiClient.request('/map-settings/active', { method: 'GET' }),
+  
+  // Admin
+  getAll: () => apiClient.request('/admin/map-settings', { method: 'GET' }),
+  getById: (id: string) => apiClient.request(`/admin/map-settings/${id}`, { method: 'GET' }),
+  create: (data: Record<string, unknown>) => apiClient.request('/admin/map-settings', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  update: (id: string, data: Record<string, unknown>) => apiClient.request(`/admin/map-settings/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  delete: (id: string) => apiClient.request(`/admin/map-settings/${id}`, { method: 'DELETE' }),
+};
+
+export default apiClient;

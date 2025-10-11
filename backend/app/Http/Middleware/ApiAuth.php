@@ -15,10 +15,19 @@ class ApiAuth
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Debug logging
+        \Log::info('ApiAuth Middleware - Request details:', [
+            'url' => $request->url(),
+            'method' => $request->method(),
+            'headers' => $request->headers->all(),
+            'authorization_header' => $request->header('Authorization')
+        ]);
+        
         // Check if request has authorization header
         $authHeader = $request->header('Authorization');
         
         if (!$authHeader) {
+            \Log::warning('ApiAuth Middleware - No authorization header');
             return response()->json([
                 'success' => false,
                 'message' => 'Authorization header missing',
@@ -28,6 +37,9 @@ class ApiAuth
 
         // Check if it's a Bearer token
         if (!str_starts_with($authHeader, 'Bearer ')) {
+            \Log::warning('ApiAuth Middleware - Invalid authorization format', [
+                'auth_header' => $authHeader
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid authorization format. Expected: Bearer <token>',
@@ -37,9 +49,15 @@ class ApiAuth
 
         // Extract token
         $token = substr($authHeader, 7); // Remove 'Bearer ' prefix
+        
+        \Log::info('ApiAuth Middleware - Token extracted:', [
+            'token' => $token,
+            'token_length' => strlen($token)
+        ]);
 
         // For demo purposes, accept 'demo-token-123' as valid
         if ($token === 'demo-token-123') {
+            \Log::info('ApiAuth Middleware - Valid demo token, proceeding');
             // Add user info to request for demo
             $request->merge(['auth_user' => [
                 'id' => 1,
@@ -53,6 +71,11 @@ class ApiAuth
 
         // For production, you would validate the token here
         // Example: check against database, JWT validation, etc.
+        
+        \Log::warning('ApiAuth Middleware - Invalid token', [
+            'token' => $token,
+            'expected' => 'demo-token-123'
+        ]);
         
         return response()->json([
             'success' => false,

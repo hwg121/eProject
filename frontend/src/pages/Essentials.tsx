@@ -1,32 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Flower, Droplets, Bug, Sprout, Beaker, Shield, Scaling as Seedling, CheckCircle, AlertTriangle, Info, Thermometer, Sun, Wind, Clock, ArrowRight, DollarSign } from 'lucide-react';
+import React from 'react';
+import { Flower, Droplets, Beaker, Shield, CheckCircle, AlertTriangle, Thermometer, Sun, Wind, Clock } from 'lucide-react';
 import Card from '../components/UI/Card';
 import PageHeader from '../components/UI/PageHeader';
-import { publicService } from '../services/api.ts';
-import { generateSlug } from '../utils/slug';
 
 const Essentials: React.FC = () => {
-  const [essentials, setEssentials] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const loadEssentials = async () => {
-      try {
-        setLoading(true);
-        const data = await publicService.getEssentials();
-        setEssentials(data);
-      } catch (err) {
-        setError('Failed to load essentials');
-        console.error('Error loading essentials:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadEssentials();
-  }, []);
   const soilTypes = [
     {
       name: "Clay Soil",
@@ -258,6 +235,7 @@ const Essentials: React.FC = () => {
         subtitle="Master the basics: soil, fertilizers, pesticides and seeds for successful gardening"
         icon={<Flower className="h-10 w-10" />}
       />
+
 
       {/* Soil Types Section */}
       <section className="space-y-6">
@@ -672,73 +650,6 @@ const Essentials: React.FC = () => {
         </div>
       </Card>
 
-      {/* Essentials Products */}
-      {loading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-          <p className="text-emerald-600">Loading essentials...</p>
-        </div>
-      ) : error ? (
-        <div className="text-center py-12">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      ) : (
-        <div className="space-y-8">
-          <h2 className="text-3xl font-bold text-emerald-800 text-center mb-8">Essential Products</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {essentials.map((essential) => (
-              <Link key={essential.id} to={`/essential/${essential.slug || generateSlug(essential.name)}`} className="block h-full">
-                <Card className="h-full group cursor-pointer hover:shadow-xl transition-all duration-300">
-                  <div className="relative overflow-hidden rounded-lg mb-4">
-                    <img
-                      src={essential.image || '/image.png'}
-                      alt={essential.name}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                      <ArrowRight className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </div>
-                    <div className="absolute top-4 right-4 bg-emerald-500 text-white px-2 py-1 rounded text-sm font-medium">
-                      ${essential.price || '0'}
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs">
-                      {essential.category || 'General'}
-                    </span>
-                    <div className="flex items-center space-x-1">
-                      <Shield className="h-4 w-4 text-emerald-500" />
-                      <span className="text-sm font-semibold text-emerald-800">Essential</span>
-                    </div>
-                  </div>
-                  <h3 className="text-xl font-semibold text-emerald-800 mb-2 group-hover:text-emerald-600 transition-colors">
-                    {essential.name}
-                  </h3>
-                  <p className="text-emerald-600 mb-4 leading-relaxed">
-                    {essential.description?.substring(0, 100) + '...'}
-                  </p>
-                  <div className="flex items-center justify-between text-sm text-emerald-500 mt-auto pt-4 border-t border-emerald-100">
-                    <div className="flex items-center space-x-1">
-                      <Beaker className="h-4 w-4" />
-                      <span>{essential.category || 'General'}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <DollarSign className="h-4 w-4" />
-                      <span>${essential.price || '0'}</span>
-                    </div>
-                  </div>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

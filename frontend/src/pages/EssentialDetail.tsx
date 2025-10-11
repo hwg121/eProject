@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Star, Leaf, Package, ShoppingCart, Heart, Share2, Truck, Shield } from 'lucide-react';
+import { Star, Leaf, Package, Shield } from 'lucide-react';
 import DetailPage from '../components/UI/DetailPage';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { publicService } from '../services/api';
@@ -48,26 +48,23 @@ const EssentialDetail: React.FC = () => {
           if (essentialData) {
             const essential: Essential = {
               id: essentialData.id?.toString() || slug!,
-              name: essentialData.name || 'Untitled Essential',
-              description: essentialData.description || 'No description available.',
-              content: essentialData.content || essentialData.details || `
-                <h2>Essential Information</h2>
-                <p>This essential product is designed for gardening enthusiasts.</p>
-              `,
-              author: essentialData.author || essentialData.manufacturer || 'Unknown Manufacturer',
+              name: essentialData.name || '',
+              description: essentialData.description || '',
+              content: essentialData.content || essentialData.details || '',
+              author: essentialData.author || essentialData.manufacturer || '',
               publishedAt: essentialData.created_at || essentialData.updated_at || new Date().toISOString(),
-              tags: essentialData.tags || essentialData.categories || ['General'],
+              tags: essentialData.tags || essentialData.categories || [],
               imageUrl: essentialData.image || essentialData.imageUrl || 'https://images.pexels.com/photos/1301856/pexels-photo-1301856.jpeg',
               views: essentialData.views || 0,
               likes: essentialData.likes || 0,
               price: essentialData.price || 0,
-              rating: essentialData.rating || 4.0,
-              category: essentialData.category || 'General',
-              brand: essentialData.brand || essentialData.manufacturer || 'Unknown Brand',
-              weight: essentialData.weight || 'N/A',
-              ingredients: essentialData.ingredients || ['Natural ingredients'],
-              benefits: essentialData.benefits || ['Quality product'],
-              usage: essentialData.usage || 'Follow package instructions'
+              rating: essentialData.rating || 0,
+              category: essentialData.category || '',
+              brand: essentialData.brand || essentialData.manufacturer || '',
+              weight: essentialData.weight || '',
+              ingredients: essentialData.ingredients || [],
+              benefits: essentialData.benefits || [],
+              usage: essentialData.usage || ''
             };
             setEssential(essential);
             return;
@@ -123,19 +120,16 @@ const EssentialDetail: React.FC = () => {
       publishedAt={essential.publishedAt}
       tags={essential.tags}
       imageUrl={essential.imageUrl}
-      views={essential.views}
-      likes={essential.likes}
+      views={0}
+      likes={essential.likes || 0}
       backUrl="/essentials"
-      rating={essential.rating}
+      rating={essential.rating || 0}
+      contentId={parseInt(essential.id)}
       price={essential.price}
       brand={essential.brand}
       category={essential.category}
       inStock={true}
-      relatedContent={[
-        { id: '2', title: 'Premium Potting Soil', type: 'essential', slug: 'premium-potting-soil' },
-        { id: '3', title: 'Natural Pest Control Spray', type: 'essential', slug: 'natural-pest-control-spray' },
-        { id: '4', title: 'Plant Growth Enhancer', type: 'essential', slug: 'plant-growth-enhancer' }
-      ]}
+      relatedContent={[]}
     >
       {/* Essential Information */}
       <motion.div
@@ -235,30 +229,6 @@ const EssentialDetail: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* Action Buttons */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
-        className="flex flex-col sm:flex-row gap-4"
-      >
-        <button className="flex-1 flex items-center justify-center px-6 py-4 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-colors font-semibold">
-          <ShoppingCart className="h-5 w-5 mr-2" />
-          Add to Cart - ${essential.price}
-        </button>
-        <button className="flex-1 flex items-center justify-center px-6 py-4 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors font-semibold">
-          <Truck className="h-5 w-5 mr-2" />
-          Buy Now
-        </button>
-        <button className="flex-1 flex items-center justify-center px-6 py-4 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-colors font-semibold">
-          <Heart className="h-5 w-5 mr-2" />
-          Add to Wishlist
-        </button>
-        <button className="flex-1 flex items-center justify-center px-6 py-4 bg-purple-500 text-white rounded-xl hover:bg-purple-600 transition-colors font-semibold">
-          <Share2 className="h-5 w-5 mr-2" />
-          Share
-        </button>
-      </motion.div>
     </DetailPage>
   );
 };

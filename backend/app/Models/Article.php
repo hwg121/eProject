@@ -16,15 +16,25 @@ class Article extends Model
         'slug',
         'excerpt',
         'body',
+        'content',
         'featured_image',
+        'cover',
         'category_id',
         'author_id',
         'published_at',
         'status',
+        'views',
+        'likes',
+        'rating',
+        'is_featured',
     ];
 
     protected $casts = [
         'published_at' => 'datetime',
+        'views' => 'integer',
+        'likes' => 'integer',
+        'rating' => 'decimal:2',
+        'is_featured' => 'boolean',
     ];
 
     public function category(): BelongsTo

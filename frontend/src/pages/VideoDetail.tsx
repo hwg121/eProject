@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Play, Clock, Users, ThumbsUp } from 'lucide-react';
 import DetailPage from '../components/UI/DetailPage';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { findItemBySlug } from '../utils/slug';
@@ -16,11 +14,12 @@ interface Video {
   author: string;
   publishedAt: string;
   tags: string[];
-  imageUrl: string;
   views: number;
   likes: number;
+  rating: number;
   duration: string;
   videoUrl: string;
+  embedUrl: string;
 }
 
 const VideoDetail: React.FC = () => {
@@ -42,20 +41,18 @@ const VideoDetail: React.FC = () => {
           if (videoData) {
             const video: Video = {
               id: videoData.id?.toString() || slug!,
-              title: videoData.title || 'Untitled Video',
-              description: videoData.description || 'No description available.',
-              content: videoData.content || videoData.transcript || `
-                <h2>Video Content</h2>
-                <p>This video covers important gardening techniques and tips.</p>
-              `,
-              author: videoData.author || videoData.instructor || 'Unknown Author',
+              title: videoData.title || '',
+              description: videoData.description || '',
+              content: videoData.content || videoData.transcript || '',
+              author: videoData.author || videoData.instructor || '',
               publishedAt: videoData.published_at || videoData.created_at || new Date().toISOString(),
-              tags: videoData.tags || videoData.categories || ['General'],
-              imageUrl: videoData.thumbnail || videoData.imageUrl || 'https://images.pexels.com/photos/416978/pexels-photo-416978.jpeg',
+              tags: videoData.tags || videoData.categories || [],
               views: videoData.views || 0,
               likes: videoData.likes || 0,
-              duration: videoData.duration || '12:30',
-              videoUrl: videoData.embed_url || videoData.video_url || 'https://example.com/video.mp4'
+              rating: videoData.rating || 0,
+              duration: videoData.duration || '',
+              videoUrl: videoData.video_url || '',
+              embedUrl: videoData.embed_url || ''
             };
             setVideo(video);
             return;
@@ -106,69 +103,55 @@ const VideoDetail: React.FC = () => {
       type="video"
       title={video.title}
       description={video.description}
-      content={video.content}
+      content={`
+        <h2>Video Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div>
+            <h3 class="text-xl font-semibold mb-4">Basic Details</h3>
+            <ul class="space-y-2">
+              <li><strong>Instructor:</strong> ${video.author}</li>
+              <li><strong>Duration:</strong> ${video.duration}</li>
+              <li><strong>Views:</strong> ${video.views.toLocaleString()}</li>
+              <li><strong>Likes:</strong> ${video.likes.toLocaleString()}</li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="text-xl font-semibold mb-4">Video Stats</h3>
+            <ul class="space-y-2">
+              <li><strong>Published:</strong> ${new Date(video.publishedAt).toLocaleDateString()}</li>
+              <li><strong>Category:</strong> Gardening Tutorial</li>
+              <li><strong>Difficulty:</strong> All Levels</li>
+              <li><strong>Language:</strong> English</li>
+            </ul>
+          </div>
+        </div>
+        
+        <h3 class="text-xl font-semibold mb-4">Video Description</h3>
+        <p class="mb-6">${video.description}</p>
+        
+        <h3 class="text-xl font-semibold mb-4">What You'll Learn</h3>
+        <ul class="space-y-2 mb-6">
+          <li class="flex items-center"><span class="text-emerald-600 mr-2">✓</span>Step-by-step gardening techniques</li>
+          <li class="flex items-center"><span class="text-emerald-600 mr-2">✓</span>Visual demonstrations and examples</li>
+          <li class="flex items-center"><span class="text-emerald-600 mr-2">✓</span>Professional tips and tricks</li>
+          <li class="flex items-center"><span class="text-emerald-600 mr-2">✓</span>Common mistakes to avoid</li>
+        </ul>
+      `}
       author={video.author}
       publishedAt={video.publishedAt}
       tags={video.tags}
-      imageUrl={video.imageUrl}
-      views={video.views}
-      likes={video.likes}
+      views={video.views || 0}
+      likes={video.likes || 0}
       backUrl="/videos"
-      rating={4.7}
+      rating={video.rating || 0}
+      contentId={parseInt(video.id)}
       duration={video.duration}
-      relatedContent={[
-        { id: '2', title: 'Organic Soil Preparation', type: 'video', slug: 'organic-soil-preparation' },
-        { id: '3', title: 'Pruning Techniques', type: 'video', slug: 'pruning-techniques' },
-        { id: '4', title: 'Watering Systems', type: 'video', slug: 'watering-systems' }
-      ]}
+      videoUrl={video.videoUrl}
+      embedUrl={video.embedUrl}
+      images={[]}
+      relatedContent={[]}
     >
-      {/* Video Player */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="bg-black rounded-2xl overflow-hidden"
-      >
-        <div className="relative aspect-video bg-gradient-to-br from-emerald-900 to-green-900 flex items-center justify-center">
-          <motion.button
-            className="flex items-center space-x-3 bg-white/20 backdrop-blur-sm text-white px-8 py-4 rounded-full hover:bg-white/30 transition-all duration-300"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Play className="h-8 w-8" />
-            <span className="text-xl font-semibold">Play Video</span>
-          </motion.button>
-          
-          {/* Video Duration */}
-          <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm font-medium">
-            {video.duration}
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Video Stats */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-        className="grid grid-cols-3 gap-4 mt-6"
-      >
-        <div className="text-center p-4 bg-emerald-50 rounded-xl">
-          <Clock className="h-6 w-6 text-emerald-600 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-emerald-800">{video.duration}</div>
-          <div className="text-sm text-emerald-600">Duration</div>
-        </div>
-        <div className="text-center p-4 bg-blue-50 rounded-xl">
-          <Users className="h-6 w-6 text-blue-600 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-blue-800">{video.views.toLocaleString()}</div>
-          <div className="text-sm text-blue-600">Views</div>
-        </div>
-        <div className="text-center p-4 bg-red-50 rounded-xl">
-          <ThumbsUp className="h-6 w-6 text-red-600 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-red-800">{video.likes.toLocaleString()}</div>
-          <div className="text-sm text-red-600">Likes</div>
-        </div>
-      </motion.div>
+      {/* Video Stats - Additional stats below the main content */}
     </DetailPage>
   );
 };

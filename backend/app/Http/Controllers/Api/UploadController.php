@@ -30,7 +30,6 @@ class UploadController extends Controller
             
             // Determine storage path based on type
             $path = $type === 'image' ? 'images' : 'videos';
-            $fullPath = $path . '/' . $filename;
             
             // Store file
             $storedPath = $file->storeAs($path, $filename, 'public');
@@ -90,3 +89,6 @@ class UploadController extends Controller
         }
     }
 }
+
+
+

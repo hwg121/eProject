@@ -4,9 +4,13 @@ import { Link } from 'react-router-dom';
 import { Wrench, Star, ArrowRight, Sparkles, Heart, Users, Award, Zap, Hammer, Leaf, PlayCircle, Library } from 'lucide-react';
 import Card from '../components/UI/Card';
 import Carousel from '../components/UI/Carousel';
-import { animationConfig, getAnimationConfig, performanceUtils } from '../utils/animations';
+import { performanceUtils } from '../utils/animations';
+import { useResponsiveDesign } from '../utils/responsiveDesign';
+import '../styles/statistics.css';
+import '../styles/hero-compact.css';
 
 const Home: React.FC = () => {
+  const { isMobile } = useResponsiveDesign();
 
   const features = [
     {
@@ -115,39 +119,62 @@ const Home: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-20">
-      {/* Hero Section */}
+    <div className="main-container-compact">
+      {/* Compact Hero Section */}
       <motion.section
-        className="relative text-center py-32 px-8 bg-gradient-to-br from-emerald-600 via-green-600 via-teal-600 to-emerald-700 text-white rounded-3xl shadow-2xl overflow-hidden"
-        {...getAnimationConfig(animationConfig.transformOnly)}
-        style={performanceUtils.willChange('transform')}
+        className="hero-compact relative text-center responsive-container bg-gradient-to-br from-emerald-600 via-green-600 via-teal-600 to-emerald-700 text-white rounded-3xl shadow-2xl overflow-hidden"
+        {...(isMobile 
+          ? { initial: { opacity: 1 }, animate: { opacity: 1 } }
+          : {
+              initial: { opacity: 0, y: 50 },
+              animate: { opacity: 1, y: 0 },
+              transition: { duration: 0.8, ease: "easeOut" }
+            }
+        )}
+        style={!isMobile ? performanceUtils.willChange('transform') : {}}
       >
-        {/* Simplified background elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-32 -left-32 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-white/5 rounded-full blur-3xl animate-pulse" />
+        {/* Compact background elements */}
+        <div className="hero-bg-element absolute inset-0 overflow-hidden">
+          <div className={`absolute -top-16 -left-16 w-32 h-32 bg-white/10 rounded-full ${
+            isMobile ? 'blur-lg' : 'blur-2xl'
+          } animate-pulse`} />
+          <div className={`absolute -bottom-16 -right-16 w-40 h-40 bg-white/5 rounded-full ${
+            isMobile ? 'blur-lg' : 'blur-2xl'
+          } animate-pulse`} />
         </div>
         
         <div className="relative z-10">
           <motion.div
-            className="flex justify-center mb-8"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            className="hero-icon flex justify-center"
+            {...(isMobile 
+              ? { initial: { opacity: 1 }, animate: { opacity: 1 } }
+              : {
+                  initial: { scale: 0.9, opacity: 0 },
+                  animate: { scale: 1, opacity: 1 },
+                  transition: { duration: 0.4, ease: "easeOut" }
+                }
+            )}
           >
             <div className="relative">
-              <div className="absolute inset-0 bg-white/20 rounded-full blur-2xl animate-pulse"></div>
-              <div className="relative bg-white/10 p-6 rounded-full backdrop-blur-sm border border-white/20">
-                <Sparkles className="h-16 w-16 text-white" />
+              <div className={`absolute inset-0 bg-white/20 rounded-full ${
+                isMobile ? 'blur-lg' : 'blur-2xl'
+              } animate-pulse`}></div>
+              <div className="hero-icon-compact relative bg-white/10 rounded-full backdrop-blur-sm border border-white/20 flex items-center justify-center">
+                <Sparkles className="text-white" />
               </div>
             </div>
           </motion.div>
           
           <motion.h1 
-            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-8 leading-tight"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.4 }}
+            className="hero-title hero-title-compact font-black leading-tight"
+            {...(isMobile 
+              ? { initial: { opacity: 1 }, animate: { opacity: 1 } }
+              : {
+                  initial: { opacity: 0, y: 50 },
+                  animate: { opacity: 1, y: 0 },
+                  transition: { duration: 0.8, ease: "easeOut" }
+                }
+            )}
           >
             Welcome to{' '}
             <span className="bg-gradient-to-r from-emerald-200 via-green-200 via-teal-200 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
@@ -156,10 +183,15 @@ const Home: React.FC = () => {
           </motion.h1>
           
           <motion.p 
-            className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-12 max-w-5xl mx-auto leading-relaxed text-emerald-50 font-light px-4"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.6 }}
+            className="hero-description hero-description-compact max-w-4xl mx-auto text-emerald-50 font-light px-4"
+            {...(isMobile 
+              ? { initial: { opacity: 1 }, animate: { opacity: 1 } }
+              : {
+                  initial: { opacity: 0, y: 30 },
+                  animate: { opacity: 1, y: 0 },
+                  transition: { duration: 0.5, ease: "easeOut" }
+                }
+            )}
           >
             Your ultimate destination for gardening wisdom, tools, and inspiration.
             <br />
@@ -167,37 +199,52 @@ const Home: React.FC = () => {
           </motion.p>
           
           <motion.div
-            className="flex flex-col sm:flex-row gap-6 justify-center px-4"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.8 }}
+            className="hero-buttons flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4"
+            {...(isMobile 
+              ? { initial: { opacity: 1 }, animate: { opacity: 1 } }
+              : {
+                  initial: { opacity: 0, y: 30 },
+                  animate: { opacity: 1, y: 0 },
+                  transition: { duration: 0.5, ease: "easeOut" }
+                }
+            )}
           >
             <motion.div 
-              whileHover={{ scale: 1.05, y: -5 }} 
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              {...(isMobile 
+                ? {} 
+                : {
+                    whileHover: { scale: 1.02, y: -2 },
+                    whileTap: { scale: 0.98 },
+                    transition: { type: "spring", stiffness: 300, damping: 20 }
+                  }
+              )}
             >
               <Link
                 to="/techniques"
-                className="group relative bg-white text-emerald-600 px-8 sm:px-12 py-4 sm:py-5 rounded-full font-bold text-lg sm:text-xl shadow-2xl hover:shadow-3xl transition-all duration-500 overflow-hidden flex items-center justify-center space-x-3"
+                className="hero-btn-compact group relative bg-white text-emerald-600 shadow-2xl hover:shadow-3xl transition-all duration-500 overflow-hidden flex items-center justify-center space-x-3 rounded-full"
               >
                 <span className="relative z-10">Start Gardening Today</span>
-                <ArrowRight className="h-6 w-6 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
+                <ArrowRight className="h-5 w-5 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
                 <div className="absolute inset-0 bg-gradient-to-r from-emerald-50 to-green-50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               </Link>
             </motion.div>
             
             <motion.div 
-              whileHover={{ scale: 1.05, y: -5 }} 
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              {...(isMobile 
+                ? {} 
+                : {
+                    whileHover: { scale: 1.02, y: -2 },
+                    whileTap: { scale: 0.98 },
+                    transition: { type: "spring", stiffness: 300, damping: 20 }
+                  }
+              )}
             >
               <Link
                 to="/tools"
-                className="group relative bg-emerald-500/20 backdrop-blur-sm text-white px-8 sm:px-12 py-4 sm:py-5 rounded-full font-bold text-lg sm:text-xl shadow-2xl hover:shadow-3xl transition-all duration-500 border-2 border-white/30 hover:border-white/60 overflow-hidden flex items-center justify-center space-x-3"
+                className="hero-btn-compact group relative bg-emerald-500/20 backdrop-blur-sm text-white shadow-2xl hover:shadow-3xl transition-all duration-500 border-2 border-white/30 hover:border-white/60 overflow-hidden flex items-center justify-center space-x-3 rounded-full"
               >
                 <span className="relative z-10">Explore Tools</span>
-                <Wrench className="h-6 w-6 relative z-10 group-hover:rotate-12 transition-transform duration-300" />
+                <Wrench className="h-5 w-5 relative z-10 group-hover:rotate-12 transition-transform duration-300" />
                 <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-full"></div>
               </Link>
             </motion.div>
@@ -207,35 +254,54 @@ const Home: React.FC = () => {
 
       {/* Stats Section */}
       <motion.section
-        className="py-20"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1, delay: 1 }}
+        className="stats-section"
+        {...(isMobile 
+          ? { initial: { opacity: 1 }, animate: { opacity: 1 } }
+          : {
+              initial: { opacity: 0 },
+              animate: { opacity: 1 },
+              transition: { duration: 1, delay: 1 }
+            }
+        )}
       >
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8">
-          {stats.map((stat, index) => (
-            <motion.div
-              key={index}
-              className="text-center group"
-              initial={{ opacity: 0, scale: 0.5, y: 50 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.2 + index * 0.2, type: "spring", stiffness: 200 }}
-              whileHover={{ scale: 1.1, y: -10 }}
-            >
-              <div className={`text-4xl sm:text-6xl mb-4 p-4 sm:p-6 rounded-3xl bg-gradient-to-r ${stat.color} text-white shadow-2xl mx-auto w-fit hover:scale-105 transition-transform duration-300`}>
-                {stat.icon}
-              </div>
-              <motion.div 
-                className="text-2xl sm:text-4xl font-black text-emerald-800 mb-2"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 1.4 + index * 0.2, type: "spring", stiffness: 300 }}
+        <div className="stats-container">
+          <div className="stats-grid">
+            {stats.map((stat, index) => (
+              <motion.div
+                key={index}
+                className="stat-card"
+                {...(isMobile 
+                  ? { initial: { opacity: 1 }, animate: { opacity: 1 } }
+                  : {
+                      initial: { opacity: 0, scale: 0.5, y: 50 },
+                      animate: { opacity: 1, scale: 1, y: 0 },
+                      transition: { duration: 0.8, delay: 1.2 + index * 0.2, type: "spring", stiffness: 200 },
+                      whileHover: { scale: 1.02, y: -3 }
+                    }
+                )}
               >
-                {stat.number}
+                {/* Icon container với kích thước cố định để đảm bảo cân xứng */}
+                <div className={`stat-icon bg-gradient-to-r ${stat.color} text-white`}>
+                  {stat.icon}
+                </div>
+                
+                {/* Number với typography nhất quán */}
+                <motion.div 
+                  className="stat-number"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 1.4 + index * 0.2, type: "spring", stiffness: 300 }}
+                >
+                  {stat.number}
+                </motion.div>
+                
+                {/* Label với kích thước responsive */}
+                <div className="stat-label">
+                  {stat.label}
+                </div>
               </motion.div>
-              <div className="text-emerald-600 font-bold text-sm sm:text-lg">{stat.label}</div>
-            </motion.div>
-          ))}
+            ))}
+          </div>
         </div>
       </motion.section>
 

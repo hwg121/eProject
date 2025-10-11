@@ -19,6 +19,9 @@ class EssentialResource extends JsonResource
             'category' => $this->category,
             'weight' => $this->weight,
             'brand' => $this->brand,
+            'views' => $this->views ?? 0,
+            'likes' => $this->likes ?? 0,
+            'rating' => $this->rating ?? 0,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

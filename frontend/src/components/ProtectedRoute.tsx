@@ -51,8 +51,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // Check admin role if required
-  if (requireAdmin && user?.role !== 'admin') {
+  // Check admin role if required (admin or moderator can access admin routes)
+  if (requireAdmin && user?.role !== 'admin' && user?.role !== 'moderator') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="text-center p-8 max-w-md">
@@ -68,7 +68,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
               Truy cập bị từ chối
             </h2>
             <p className="text-red-600 mb-6">
-              Bạn không có quyền truy cập vào trang này. Chỉ quản trị viên mới có thể truy cập.
+              Bạn không có quyền truy cập vào trang này. Chỉ quản trị viên và điều hành viên mới có thể truy cập.
             </p>
             <div className="space-y-3">
               <button

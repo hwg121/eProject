@@ -5,6 +5,7 @@ import DetailPage from '../components/UI/DetailPage';
 import { publicService } from '../services/api';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { findItemBySlug } from '../utils/slug';
+import { ApiArticle } from '../types/api';
 
 interface Article {
   id: string;
@@ -17,6 +18,7 @@ interface Article {
   imageUrl: string;
   views: number;
   likes: number;
+  rating: number;
   category: string;
 }
 
@@ -39,16 +41,17 @@ const ArticleDetail: React.FC = () => {
           if (articleData) {
             const article: Article = {
               id: articleData.id?.toString() || slug!,
-              title: articleData.title || 'Untitled Article',
-              content: articleData.body || articleData.content || '<p>No content available.</p>',
-              excerpt: articleData.excerpt || articleData.description || 'No description available.',
-              author: articleData.author?.name || articleData.author || 'Unknown Author',
+              title: articleData.title || '',
+              content: articleData.body || articleData.content || '',
+              excerpt: articleData.excerpt || articleData.description || '',
+              author: articleData.author?.name || articleData.author || '',
               publishedAt: articleData.published_at || articleData.created_at || new Date().toISOString(),
-              tags: articleData.tags || articleData.categories || ['General'],
-              imageUrl: articleData.image || articleData.imageUrl || 'https://images.pexels.com/photos/1301856/pexels-photo-1301856.jpeg',
+              tags: articleData.tags || articleData.categories || [],
+              imageUrl: (articleData as ApiArticle & { featured_image?: string; cover?: string }).featured_image || (articleData as ApiArticle & { cover?: string }).cover || 'https://images.pexels.com/photos/1301856/pexels-photo-1301856.jpeg',
               views: articleData.views || 0,
               likes: articleData.likes || 0,
-              category: articleData.category || 'General'
+              rating: articleData.rating || 0,
+              category: articleData.category || ''
             };
             setArticle(article);
             return;
@@ -104,16 +107,13 @@ const ArticleDetail: React.FC = () => {
       publishedAt={article.publishedAt}
       tags={article.tags}
       imageUrl={article.imageUrl}
-      views={article.views}
-      likes={article.likes}
+      views={article.views || 0}
+      likes={article.likes || 0}
       backUrl="/techniques"
-      rating={4.5}
+      rating={article.rating || 0}
+      contentId={parseInt(article.id)}
       category={article.category}
-      relatedContent={[
-        { id: '2', title: 'Container Gardening for Beginners', type: 'article', slug: 'container-gardening-for-beginners' },
-        { id: '3', title: 'Seasonal Planting Calendar', type: 'article', slug: 'seasonal-planting-calendar' },
-        { id: '4', title: 'Organic Pest Control Methods', type: 'article', slug: 'organic-pest-control-methods' }
-      ]}
+      relatedContent={[]}
     >
       {/* Additional article-specific content */}
       <motion.div

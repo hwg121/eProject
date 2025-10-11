@@ -1,0 +1,285 @@
+import { ContentItem } from '../types/admin';
+
+// Transform functions to convert API data to ContentItem format
+export const transformArticleToContentItem = (article: any): ContentItem => ({
+  id: article.id.toString(),
+  title: article.title,
+  author: article.author?.name || 'Admin',
+  category: 'Technique',
+  status: article.status || 'published',
+  views: article.views || 0,
+  likes: article.likes || 0,
+  rating: article.rating || 0,
+  createdAt: article.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+  updatedAt: article.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+  featured: article.featured || false,
+  description: article.excerpt || article.description || article.body?.substring(0, 150) + '...',
+  content: article.body || article.content || '',
+  tags: article.tags || [],
+  imageUrl: article.featured_image || article.cover || '/image.png',
+  featured_image: article.featured_image || article.cover || ''
+});
+
+export const transformVideoToContentItem = (video: any): ContentItem & { embedUrl?: string } => ({
+  id: video.id.toString(),
+  title: video.title,
+  instructor: video.instructor || 'Admin',
+  category: 'Video',
+  status: video.status || 'published',
+  views: video.views || 0,
+  likes: video.likes || 0,
+  rating: video.rating || 0,
+  createdAt: video.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+  updatedAt: video.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+  description: video.description || video.excerpt || '',
+  content: video.content || video.transcript || '',
+  videoUrl: video.video_url || video.videoUrl || '',
+  embedUrl: video.embed_url || video.embedUrl || '',
+  imageUrl: video.featured_image || '/image.png',
+  featured_image: video.featured_image || ''
+});
+
+export const transformBookToContentItem = (book: any): ContentItem => ({
+  id: book.id.toString(),
+  title: book.title,
+  author: book.author || 'Unknown Author',
+  category: 'book',
+  status: 'published',
+  rating: book.rating || 4.5,
+  createdAt: book.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+  updatedAt: book.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+  description: book.description,
+  imageUrl: book.image || '/image.png',
+  featured_image: book.image || ''
+});
+
+export const transformToolToContentItem = (tool: any): ContentItem => ({
+  id: tool.id.toString(),
+  title: tool.name,
+  category: 'tool',
+  status: tool.status || 'published',
+  link: tool.link,
+  brand: tool.brand,
+  material: tool.material,
+  size: tool.size,
+  color: tool.color,
+  isWaterproof: tool.is_waterproof || false,
+  isDurable: tool.is_durable || false,
+  views: tool.views || 0,
+  likes: tool.likes || 0,
+  rating: tool.rating || 0,
+  createdAt: tool.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+  updatedAt: tool.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+  description: tool.description,
+  content: tool.content,
+  cover: tool.cover,
+  imageUrl: tool.images_json ? JSON.parse(tool.images_json)[0] : '/image.png'
+});
+
+export const transformEssentialToContentItem = (essential: any): ContentItem => ({
+  id: essential.id.toString(),
+  title: essential.name,
+  category: 'Tool',
+  status: essential.status || 'published',
+  link: essential.link,
+  brand: essential.brand,
+  material: essential.material,
+  size: essential.size,
+  color: essential.color,
+  isWaterproof: essential.is_waterproof || false,
+  isDurable: essential.is_durable || false,
+  views: essential.views || 0,
+  likes: essential.likes || 0,
+  rating: essential.rating || 0,
+  createdAt: essential.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+  updatedAt: essential.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+  description: essential.description,
+  content: essential.content,
+  cover: essential.cover,
+  imageUrl: essential.image || '/image.png'
+});
+
+export const transformPotToContentItem = (pot: any): ContentItem => ({
+  id: pot.id.toString(),
+  title: pot.name,
+  category: 'pot',
+  status: pot.status || 'published',
+  link: pot.link,
+  brand: pot.brand,
+  material: pot.material,
+  size: pot.size,
+  color: pot.color,
+  isWaterproof: pot.is_waterproof || false,
+  isDurable: pot.is_durable || false,
+  views: pot.views || 0,
+  likes: pot.likes || 0,
+  rating: pot.rating || 0,
+  createdAt: pot.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+  updatedAt: pot.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+  description: pot.description,
+  content: pot.content,
+  cover: pot.cover,
+  imageUrl: pot.image || '/image.png'
+});
+
+export const transformAccessoryToContentItem = (accessory: any): ContentItem => ({
+  id: accessory.id.toString(),
+  title: accessory.name,
+  category: 'accessory',
+  status: accessory.status || 'published',
+  link: accessory.link,
+  brand: accessory.brand,
+  material: accessory.material,
+  size: accessory.size,
+  color: accessory.color,
+  isWaterproof: accessory.is_waterproof || false,
+  isDurable: accessory.is_durable || false,
+  views: accessory.views || 0,
+  likes: accessory.likes || 0,
+  rating: accessory.rating || 4.5,
+  createdAt: accessory.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+  updatedAt: accessory.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+  description: accessory.description,
+  content: accessory.content,
+  cover: accessory.cover,
+  imageUrl: accessory.image || '/image.png'
+});
+
+export const transformSuggestionToContentItem = (suggestion: any): ContentItem => ({
+  id: suggestion.id.toString(),
+  title: suggestion.title,
+  category: 'suggestion',
+  status: 'published',
+  rating: suggestion.rating || 4.5,
+  views: suggestion.views || 0,
+  likes: suggestion.likes || 0,
+  createdAt: suggestion.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+  updatedAt: suggestion.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+  description: suggestion.description,
+  imageUrl: suggestion.image || '/image.png',
+  featured_image: suggestion.image || '',
+  featured: suggestion.is_featured || false,
+  difficulty: suggestion.difficulty_level || 'beginner',
+  tags: suggestion.tags || []
+});
+
+export const transformAboutUsToContentItem = (aboutUs: any): ContentItem => ({
+  id: aboutUs.id.toString(),
+  title: aboutUs.title,
+  category: 'About Us',
+  status: aboutUs.is_active ? 'published' : 'draft',
+  rating: 5.0,
+  views: 0,
+  likes: 0,
+  createdAt: aboutUs.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+  updatedAt: aboutUs.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+  description: aboutUs.description,
+  imageUrl: aboutUs.image || '/image.png',
+  featured: aboutUs.is_active || false,
+  author: 'Admin',
+  tags: []
+});
+
+// Utility functions
+export const formatTimeAgo = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+  
+  if (diffInMinutes < 1) return 'Just now';
+  if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
+  if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hours ago`;
+  return `${Math.floor(diffInMinutes / 1440)} days ago`;
+};
+
+export const generateSlug = (title: string): string => {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim();
+};
+
+export const generateProductSlug = (title: string): string => {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim();
+};
+
+// Content sorting function
+export const sortContent = (content: ContentItem[], sortBy: string): ContentItem[] => {
+  try {
+    return [...content].sort((a, b) => {
+      switch (sortBy) {
+        case 'latest':
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case 'oldest':
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case 'likes':
+          return (b.likes || 0) - (a.likes || 0);
+        case 'views':
+          return (b.views || 0) - (a.views || 0);
+        case 'title':
+          return (a.title || '').localeCompare(b.title || '');
+        default:
+          return 0;
+      }
+    });
+  } catch (error) {
+    console.error('Error sorting content:', error);
+    return content; // Return original array if sorting fails
+  }
+};
+
+// Validation functions
+export const validateForm = (formData: any): boolean => {
+  if (!formData.title.trim()) {
+    alert('Title is required!');
+    return false;
+  }
+  if (!formData.description.trim()) {
+    alert('Description is required!');
+    return false;
+  }
+  if (!formData.category) {
+    alert('Category is required!');
+    return false;
+  }
+  return true;
+};
+
+export const validateProductForm = (productFormData: any): boolean => {
+  if (!productFormData.title.trim()) {
+    alert('Product name is required!');
+    return false;
+  }
+  if (!productFormData.description.trim()) {
+    alert('Description is required!');
+    return false;
+  }
+  if (!productFormData.category) {
+    alert('Category is required!');
+    return false;
+  }
+  return true;
+};
+
+// File validation for avatar upload
+export const validateAvatarFile = (file: File): boolean => {
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+  if (!allowedTypes.includes(file.type)) {
+    alert('Please select a valid image file (JPEG, JPG, PNG, GIF)');
+    return false;
+  }
+  
+  if (file.size > 3 * 1024 * 1024) {
+    alert('File size must be less than 3MB');
+    return false;
+  }
+  
+  return true;
+};

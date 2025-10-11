@@ -1,24 +1,78 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Sparkles, Palette, Gem, Leaf, Droplets, Sun, Wind, Star, Heart, Gift, Lightbulb, Shield, Clock, DollarSign } from 'lucide-react';
+import { Sparkles, Palette, Gem, Star, Heart, Gift, Lightbulb, Shield, Clock, ExternalLink, DollarSign } from 'lucide-react';
 import Card from '../components/UI/Card';
 import PageHeader from '../components/UI/PageHeader';
 import { publicService } from '../services/api.ts';
-import { generateSlug } from '../utils/slug';
+
+interface Product {
+  id: string;
+  name: string;
+  slug?: string;
+  description: string;
+  content?: string;
+  category: 'tool' | 'book' | 'pot' | 'accessory' | 'suggestion';
+  subcategory?: string;
+  status: 'published' | 'draft' | 'archived';
+  price?: number;
+  image?: string;
+  images_json?: string;
+  brand?: string;
+  material?: string;
+  size?: string;
+  color?: string;
+  is_featured?: boolean;
+  is_published?: boolean;
+  views?: number;
+  likes?: number;
+  rating?: number;
+  
+  // Tool specific
+  usage?: string;
+  video_url?: string;
+  affiliate_link?: string;
+  
+  // Book specific
+  author?: string;
+  pages?: number;
+  published_year?: number;
+  buyLink?: string;
+  borrowLink?: string;
+  
+  // Pot specific
+  drainage_holes?: boolean;
+  
+  // Accessory specific
+  is_waterproof?: boolean;
+  is_durable?: boolean;
+  
+  // Suggestion specific
+  difficulty_level?: 'beginner' | 'intermediate' | 'advanced';
+  season?: string;
+  plant_type?: string;
+  estimated_time?: string;
+  tags?: string[];
+  
+  // Generic link
+  link?: string;
+  
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 const Accessories: React.FC = () => {
-  const [accessories, setAccessories] = useState<any[]>([]);
+  const [accessories, setAccessories] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
 
   useEffect(() => {
     const loadAccessories = async () => {
       try {
         setLoading(true);
         const data = await publicService.getAccessories();
-        setAccessories(data);
+        setAccessories(data as Product[]);
       } catch (err) {
         setError('Failed to load accessories');
         console.error('Error loading accessories:', err);
@@ -30,75 +84,69 @@ const Accessories: React.FC = () => {
     loadAccessories();
   }, []);
 
-  // Filter accessories based on category and search term
+  // Filter accessories based on search term
   const filteredAccessories = accessories.filter(accessory => {
-    const matchesCategory = selectedCategory === 'all' || accessory.category === selectedCategory;
     const matchesSearch = accessory.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         accessory.description.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
+                         accessory.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (accessory.material && accessory.material.toLowerCase().includes(searchTerm.toLowerCase()));
+    return matchesSearch;
   });
 
-  // Get unique categories for filter
-  const categories = ['all', ...new Set(accessories.map(a => a.category).filter(Boolean))];
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
-  const renderAccessoryCard = (accessory: any) => (
-    <Link key={accessory.id} to={`/accessory/${accessory.slug || generateSlug(accessory.name)}`} className="block h-full">
-      <Card className="h-full group hover:shadow-xl transition-all duration-300">
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center space-x-2">
-          <div className="text-emerald-600">
-            <Sparkles className="h-5 w-5" />
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredAccessories.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentAccessories = filteredAccessories.slice(startIndex, endIndex);
+
+  const renderAccessoryCard = (accessory: Product) => (
+    <a 
+      key={accessory.id} 
+      href={accessory.link || '#'} 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="block h-full"
+    >
+      <Card className="h-full group hover:shadow-xl transition-all duration-300 p-6">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center space-x-2">
+            <div className="text-emerald-600">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <span className="text-sm text-emerald-600 font-medium">{accessory.subcategory || 'Accessory'}</span>
           </div>
-          <span className="text-sm text-emerald-600 font-medium">{accessory.category}</span>
-        </div>
-        <div className="flex items-center space-x-1">
-          <Star className="h-4 w-4 text-yellow-500 fill-current" />
-          <span className="text-sm font-semibold">4.5</span>
-        </div>
-      </div>
-      <h3 className="text-lg font-semibold text-emerald-800 mb-2">{accessory.name}</h3>
-      <p className="text-emerald-600 text-sm mb-4 leading-relaxed">{accessory.description}</p>
-      
-      <div className="space-y-2 mb-4">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-emerald-600">Material:</span>
-          <span className="font-medium">{accessory.material}</span>
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-emerald-600">Size:</span>
-          <span className="font-medium">{accessory.size}</span>
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-emerald-600">Color:</span>
-          <span className="font-medium">{accessory.color}</span>
-        </div>
-        {accessory.brand && (
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-emerald-600">Brand:</span>
-            <span className="font-medium">{accessory.brand}</span>
+          <div className="flex items-center space-x-1">
+            <Star className="h-4 w-4 text-yellow-500 fill-current" />
+            <span className="text-sm font-semibold">4.5</span>
           </div>
-        )}
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-emerald-600">Waterproof:</span>
-          <span className="font-medium">{accessory.is_waterproof ? 'Yes' : 'No'}</span>
         </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-emerald-600">Durable:</span>
-          <span className="font-medium">{accessory.is_durable ? 'Yes' : 'No'}</span>
+        <h3 className="text-lg font-semibold text-emerald-800 mb-2">{accessory.name}</h3>
+        <p className="text-emerald-600 text-sm mb-4 leading-relaxed">{accessory.description}</p>
+        
+        <div className="flex items-center justify-between mt-auto">
+          <div className="flex items-center space-x-4 text-sm text-emerald-600">
+            {accessory.material && (
+              <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs">
+                {accessory.material}
+              </span>
+            )}
+            {accessory.color && (
+              <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
+                {accessory.color}
+              </span>
+            )}
+          </div>
+          <button className="flex items-center space-x-1 text-emerald-600 hover:text-emerald-800 transition-colors">
+            <ExternalLink className="h-4 w-4" />
+            <span className="text-sm">View Details</span>
+          </button>
         </div>
-      </div>
-      
-      <div className="flex items-center justify-between mt-auto">
-        <span className="text-lg font-bold text-emerald-800">
-          {accessory.price ? `$${accessory.price}` : 'Contact for price'}
-        </span>
-        <button className="flex items-center space-x-1 text-emerald-600 hover:text-emerald-800 transition-colors">
-          <Sparkles className="h-4 w-4" />
-          <span className="text-sm">View Details</span>
-        </button>
-      </div>
       </Card>
-    </Link>
+    </a>
   );
   const decorativeItems = [
     {
@@ -344,30 +392,17 @@ const Accessories: React.FC = () => {
         icon={<Sparkles className="h-10 w-10" />}
       />
 
-      {/* Search and Filter */}
+      {/* Search Bar */}
       <Card>
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <input
               type="text"
-              placeholder="Search accessories..."
+              placeholder="Search accessories by name, description, or material..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full px-4 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             />
-          </div>
-          <div className="flex gap-2">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-4 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            >
-              {categories.map(category => (
-                <option key={category} value={category}>
-                  {category === 'all' ? 'All Categories' : category}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
       </Card>
@@ -390,10 +425,9 @@ const Accessories: React.FC = () => {
       ) : (
         <>
           {/* Accessories Grid */}
-          <section className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-3xl font-bold text-emerald-800">
-                ✨ Available Accessories ({filteredAccessories.length})
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-emerald-800">
+              Available Accessories ({filteredAccessories.length})
               </h2>
             </div>
             
@@ -401,33 +435,214 @@ const Accessories: React.FC = () => {
               <div className="text-center py-12">
                 <Sparkles className="h-16 w-16 text-emerald-300 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-emerald-800 mb-2">No accessories found</h3>
-                <p className="text-emerald-600">Try adjusting your search or filter criteria</p>
+              <p className="text-emerald-600">Try adjusting your search criteria</p>
               </div>
             ) : (
+            <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredAccessories.map(accessory => renderAccessoryCard(accessory))}
+                {currentAccessories.map(accessory => renderAccessoryCard(accessory))}
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center space-x-2 mt-8">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 rounded-lg bg-emerald-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-emerald-700 transition-colors"
+                  >
+                    Previous
+                  </button>
+                  
+                  <div className="flex space-x-2">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-4 py-2 rounded-lg transition-colors ${
+                          currentPage === page
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-4 py-2 rounded-lg bg-emerald-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-emerald-700 transition-colors"
+                  >
+                    Next
+                  </button>
               </div>
             )}
-          </section>
+            </>
+          )}
         </>
       )}
 
       {/* Decorative Items Section */}
+      <section className="space-y-12">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-emerald-800 mb-4">✨ Decorative Accessories Guide</h2>
+          <p className="text-emerald-600 text-lg">Transform your garden with beautiful decorations</p>
+        </div>
+        
       {decorativeItems.map((category, categoryIndex) => (
-        <section key={categoryIndex} className="space-y-6">
-          <h2 className="text-3xl font-bold text-emerald-800 text-center flex items-center justify-center">
-            <span className="text-4xl mr-3">{category.icon}</span>
-            {category.category} Guide
-          </h2>
+          <div key={categoryIndex} className="space-y-6">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-pink-400 to-rose-500 text-white text-4xl mb-4 shadow-lg">
+                {category.icon}
+              </div>
+              <h3 className="text-2xl font-bold text-emerald-800 mb-2">{category.category}</h3>
+            </div>
+            
+            {/* Grid layout: 3 items on top row, 2 items on bottom row for 5 items */}
+            <div className="space-y-6">
+              {category.items.length === 5 ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {category.items.slice(0, 3).map((item, index) => (
+                      <Card key={index} className="h-full hover:shadow-lg transition-shadow duration-300">
+                        <div className="text-center mb-4">
+                          <div className={`inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-r ${category.color} text-white text-xl mb-3 shadow-md`}>
+                            {category.icon}
+                          </div>
+                          <h4 className="text-lg font-bold text-emerald-800 mb-2">{item.name}</h4>
+                          <p className="text-emerald-600 text-sm">{item.description}</p>
+                        </div>
+                      
+                      <div className="space-y-4">
+                        {/* Technical Specs */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-blue-50 p-3 rounded-lg">
+                            <h4 className="font-semibold text-blue-800 text-sm flex items-center">
+                              <Gem className="h-3 w-3 mr-1" />
+                              Material
+                            </h4>
+                            <p className="text-blue-700 text-xs">{item.materials}</p>
+                          </div>
+                          <div className="bg-purple-50 p-3 rounded-lg">
+                            <h4 className="font-semibold text-purple-800 text-sm flex items-center">
+                              <Star className="h-3 w-3 mr-1" />
+                              Size
+                            </h4>
+                            <p className="text-purple-700 text-xs">{item.sizes}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-green-50 p-3 rounded-lg">
+                            <h4 className="font-semibold text-green-800 text-sm flex items-center">
+                              <Clock className="h-3 w-3 mr-1" />
+                              Lifespan
+                            </h4>
+                            <p className="text-green-700 text-xs">{item.durability}</p>
+                          </div>
+                          <div className="bg-orange-50 p-3 rounded-lg">
+                            <h4 className="font-semibold text-orange-800 text-sm flex items-center">
+                              <Shield className="h-3 w-3 mr-1" />
+                              Maintenance
+                            </h4>
+                            <p className="text-orange-700 text-xs">{item.maintenance}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div className="bg-indigo-50 p-3 rounded-lg">
+                            <h4 className="font-semibold text-indigo-800 mb-1">Best for:</h4>
+                            <p className="text-indigo-700 text-sm">{item.bestFor}</p>
+                          </div>
+                          <div className="bg-gray-50 p-3 rounded-lg">
+                            <h4 className="font-semibold text-gray-800 mb-1 flex items-center">
+                              <DollarSign className="h-4 w-4 mr-1" />
+                              Price range:
+                            </h4>
+                            <p className="text-gray-700 text-sm font-semibold">{item.price}</p>
+                          </div>
+                        </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                    {category.items.slice(3, 5).map((item, index) => (
+                      <Card key={index + 3} className="h-full hover:shadow-lg transition-shadow duration-300">
+                        <div className="text-center mb-4">
+                          <div className={`inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-r ${category.color} text-white text-xl mb-3 shadow-md`}>
+                            {category.icon}
+                          </div>
+                          <h4 className="text-lg font-bold text-emerald-800 mb-2">{item.name}</h4>
+                          <p className="text-emerald-600 text-sm">{item.description}</p>
+                        </div>
+                      
+                      <div className="space-y-4">
+                        {/* Technical Specs */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-blue-50 p-3 rounded-lg">
+                            <h4 className="font-semibold text-blue-800 text-sm flex items-center">
+                              <Gem className="h-3 w-3 mr-1" />
+                              Material
+                            </h4>
+                            <p className="text-blue-700 text-xs">{item.materials}</p>
+                          </div>
+                          <div className="bg-purple-50 p-3 rounded-lg">
+                            <h4 className="font-semibold text-purple-800 text-sm flex items-center">
+                              <Star className="h-3 w-3 mr-1" />
+                              Size
+                            </h4>
+                            <p className="text-purple-700 text-xs">{item.sizes}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-green-50 p-3 rounded-lg">
+                            <h4 className="font-semibold text-green-800 text-sm flex items-center">
+                              <Clock className="h-3 w-3 mr-1" />
+                              Lifespan
+                            </h4>
+                            <p className="text-green-700 text-xs">{item.durability}</p>
+                          </div>
+                          <div className="bg-orange-50 p-3 rounded-lg">
+                            <h4 className="font-semibold text-orange-800 text-sm flex items-center">
+                              <Shield className="h-3 w-3 mr-1" />
+                              Maintenance
+                            </h4>
+                            <p className="text-orange-700 text-xs">{item.maintenance}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div className="bg-indigo-50 p-3 rounded-lg">
+                            <h4 className="font-semibold text-indigo-800 mb-1">Best for:</h4>
+                            <p className="text-indigo-700 text-sm">{item.bestFor}</p>
+                          </div>
+                          <div className="bg-gray-50 p-3 rounded-lg">
+                            <h4 className="font-semibold text-gray-800 mb-1 flex items-center">
+                              <DollarSign className="h-4 w-4 mr-1" />
+                              Price range:
+                            </h4>
+                            <p className="text-gray-700 text-sm font-semibold">{item.price}</p>
+                          </div>
+                        </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </>
+              ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {category.items.map((item, index) => (
-              <Card key={index} className="h-full">
+                    <Card key={index} className="h-full hover:shadow-lg transition-shadow duration-300">
                 <div className="text-center mb-4">
-                  <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r ${category.color} text-white text-2xl mb-3`}>
+                        <div className={`inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-r ${category.color} text-white text-xl mb-3 shadow-md`}>
                     {category.icon}
                   </div>
-                  <h3 className="text-xl font-semibold text-emerald-800">{item.name}</h3>
-                  <p className="text-emerald-600 text-sm mt-2">{item.description}</p>
+                        <h4 className="text-lg font-bold text-emerald-800 mb-2">{item.name}</h4>
+                        <p className="text-emerald-600 text-sm">{item.description}</p>
                 </div>
                 
                 <div className="space-y-4">
@@ -483,21 +698,27 @@ const Accessories: React.FC = () => {
               </Card>
             ))}
           </div>
-        </section>
+              )}
+            </div>
+          </div>
       ))}
+      </section>
 
       {/* Lighting Accessories Section */}
       <section className="space-y-6">
-        <h2 className="text-3xl font-bold text-emerald-800 text-center">💡 Lighting & Decoration Systems</h2>
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-emerald-800 mb-4">💡 Lighting & Decoration Systems</h2>
+          <p className="text-emerald-600 text-lg">Illuminate your garden with smart lighting solutions</p>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {lightingAccessories.map((light, index) => (
-            <Card key={index} className="h-full">
+            <Card key={index} className="h-full hover:shadow-lg transition-shadow duration-300">
               <div className="text-center mb-4">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-2xl mb-3">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-3xl mb-3 shadow-md">
                   💡
                 </div>
-                <h3 className="text-xl font-semibold text-emerald-800">{light.name}</h3>
-                <p className="text-emerald-600 text-sm mt-2">{light.description}</p>
+                <h3 className="text-lg font-bold text-emerald-800 mb-2">{light.name}</h3>
+                <p className="text-emerald-600 text-sm">{light.description}</p>
               </div>
               
               <div className="space-y-4">
@@ -533,46 +754,60 @@ const Accessories: React.FC = () => {
 
       {/* Seasonal Decorations */}
       <section className="space-y-6">
-        <h2 className="text-3xl font-bold text-emerald-800 text-center">🗓️ Seasonal Decorations</h2>
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-emerald-800 mb-4">🗓️ Seasonal Decorations</h2>
+          <p className="text-emerald-600 text-lg">Celebrate every season with themed decorations</p>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {seasonalDecorations.map((season, index) => (
-            <Card key={index} className="text-center bg-gradient-to-b from-emerald-50 to-green-50">
-              <div className="text-6xl mb-4">{season.icon}</div>
-              <h3 className="text-lg font-semibold text-emerald-800 mb-3">{season.season}</h3>
+          {seasonalDecorations.map((season, index) => {
+            // Define color schemes for each season
+            const colorSchemes = [
+              { bg: 'from-pink-50 to-green-50', title: 'text-pink-800', text: 'text-pink-700', badge: 'bg-pink-200 text-pink-800', box: 'bg-pink-50' }, // Spring
+              { bg: 'from-blue-50 to-yellow-50', title: 'text-blue-800', text: 'text-blue-700', badge: 'bg-blue-200 text-blue-800', box: 'bg-blue-50' }, // Summer
+              { bg: 'from-orange-50 to-amber-50', title: 'text-orange-800', text: 'text-orange-700', badge: 'bg-orange-200 text-orange-800', box: 'bg-orange-50' }, // Fall
+              { bg: 'from-blue-50 to-slate-50', title: 'text-blue-800', text: 'text-blue-700', badge: 'bg-blue-200 text-blue-800', box: 'bg-blue-50' } // Winter
+            ];
+            const colors = colorSchemes[index];
+            
+            return (
+              <Card key={index} className={`text-center bg-gradient-to-b ${colors.bg} hover:shadow-lg transition-all duration-300 hover:scale-105`}>
+                <div className="text-6xl mb-4 transform transition-transform duration-300 hover:scale-110">{season.icon}</div>
+                <h3 className={`text-xl font-bold ${colors.title} mb-3`}>{season.season}</h3>
               
               <div className="space-y-4">
-                <div className="bg-white p-3 rounded-lg">
-                  <h4 className="font-semibold text-emerald-800 mb-2">Accessories:</h4>
-                  <ul className="text-emerald-700 text-sm space-y-1">
+                  <div className={`${colors.box} p-3 rounded-lg`}>
+                    <h4 className={`font-semibold ${colors.title} mb-2`}>Accessories:</h4>
+                    <ul className={`${colors.text} text-sm space-y-1`}>
                     {season.items.map((item, i) => (
                       <li key={i}>• {item}</li>
                     ))}
                   </ul>
                 </div>
                 
-                <div className="bg-white p-3 rounded-lg">
-                  <h4 className="font-semibold text-emerald-800 mb-2">Main colors:</h4>
+                  <div className={`${colors.box} p-3 rounded-lg`}>
+                    <h4 className={`font-semibold ${colors.title} mb-2`}>Main colors:</h4>
                   <div className="flex flex-wrap gap-1 justify-center">
                     {season.colors.map((color, i) => (
-                      <span key={i} className="bg-emerald-200 text-emerald-800 px-2 py-1 rounded-full text-xs">
+                        <span key={i} className={`${colors.badge} px-2 py-1 rounded-full text-xs`}>
                         {color}
                       </span>
                     ))}
                   </div>
                 </div>
                 
-                <div className="bg-white p-3 rounded-lg">
-                  <h4 className="font-semibold text-emerald-800 mb-1">Theme:</h4>
-                  <p className="text-emerald-700 text-sm">{season.themes}</p>
+                  <div className={`${colors.box} p-3 rounded-lg`}>
+                    <h4 className={`font-semibold ${colors.title} mb-1`}>Theme:</h4>
+                    <p className={`${colors.text} text-sm`}>{season.themes}</p>
                 </div>
                 
-                <div className="bg-white p-3 rounded-lg">
-                  <h4 className="font-semibold text-emerald-800 mb-1">Decoration set price:</h4>
-                  <p className="text-emerald-700 text-sm font-semibold">{season.price}</p>
+                  <div className={`${colors.box} p-3 rounded-lg`}>
+                    <h4 className={`font-semibold ${colors.title} mb-1`}>Decoration set price:</h4>
+                    <p className={`${colors.text} text-sm font-semibold`}>{season.price}</p>
                 </div>
               </div>
             </Card>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -667,13 +902,18 @@ const Accessories: React.FC = () => {
 
       {/* Budget Planning */}
       <section className="space-y-6">
-        <h2 className="text-3xl font-bold text-emerald-800 text-center">💰 Accessory Budget Planning</h2>
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-emerald-800 mb-4">💰 Accessory Budget Planning</h2>
+          <p className="text-emerald-600 text-lg">Find the perfect accessory package for your budget</p>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="bg-gradient-to-br from-green-100 to-emerald-100 border-2 border-green-200">
+          <Card className="bg-gradient-to-br from-green-100 to-emerald-100 border-2 border-green-300 hover:border-green-400 transition-all duration-300 hover:shadow-xl">
             <div className="text-center mb-4">
-              <Star className="h-12 w-12 text-green-600 mx-auto mb-2" />
-              <h3 className="text-xl font-semibold text-green-800">Basic Package</h3>
-              <p className="text-green-600 font-bold">$60 - $150</p>
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 mb-3 shadow-md">
+                <Star className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-green-800 mb-2">Basic Package</h3>
+              <p className="text-green-700 text-2xl font-bold">$60 - $150</p>
             </div>
             <div className="space-y-3">
               <div className="bg-green-50 p-3 rounded-lg">
@@ -693,11 +933,14 @@ const Accessories: React.FC = () => {
             </div>
           </Card>
           
-          <Card className="bg-gradient-to-br from-blue-100 to-indigo-100 border-2 border-blue-200">
+          <Card className="bg-gradient-to-br from-blue-100 to-indigo-100 border-2 border-blue-300 hover:border-blue-400 transition-all duration-300 hover:shadow-xl transform hover:scale-105">
             <div className="text-center mb-4">
-              <Star className="h-12 w-12 text-blue-600 mx-auto mb-2" />
-              <h3 className="text-xl font-semibold text-blue-800">Standard Package</h3>
-              <p className="text-blue-600 font-bold">$150 - $450</p>
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-blue-400 to-indigo-500 mb-3 shadow-md">
+                <Star className="h-8 w-8 text-white fill-current" />
+              </div>
+              <h3 className="text-2xl font-bold text-blue-800 mb-2">Standard Package</h3>
+              <span className="inline-block bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold mb-2">POPULAR</span>
+              <p className="text-blue-700 text-2xl font-bold">$150 - $450</p>
             </div>
             <div className="space-y-3">
               <div className="bg-blue-50 p-3 rounded-lg">
@@ -717,11 +960,13 @@ const Accessories: React.FC = () => {
             </div>
           </Card>
           
-          <Card className="bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-purple-200">
+          <Card className="bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-purple-300 hover:border-purple-400 transition-all duration-300 hover:shadow-xl">
             <div className="text-center mb-4">
-              <Star className="h-12 w-12 text-purple-600 mx-auto mb-2" />
-              <h3 className="text-xl font-semibold text-purple-800">Premium Package</h3>
-              <p className="text-purple-600 font-bold">$450+</p>
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-purple-400 to-pink-500 mb-3 shadow-md">
+                <Star className="h-8 w-8 text-white fill-current" />
+              </div>
+              <h3 className="text-2xl font-bold text-purple-800 mb-2">Premium Package</h3>
+              <p className="text-purple-700 text-2xl font-bold">$450+</p>
             </div>
             <div className="space-y-3">
               <div className="bg-purple-50 p-3 rounded-lg">

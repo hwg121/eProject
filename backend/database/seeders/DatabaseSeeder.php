@@ -2,8 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,28 +11,29 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        // Create user only if not exists
-        if (!User::where('email', 'test@example.com')->exists()) {
-            User::factory()->create([
-                'name' => 'Test User',
-                'email' => 'test@example.com',
-            ]);
-        }
-
-        // Run custom seeders
         $this->call([
+            // Users first (required by other seeders)
+            AdminUserSeeder::class, // Create admin & moderator users first
+            UserSeeder::class,
+            
+            // Categories and Tags
             CategorySeeder::class,
+            TagSeeder::class,
+            
+            // Content (requires categories, users)
             ArticleSeeder::class,
-            ToolSeeder::class,
             VideoSeeder::class,
-            BookSeeder::class,
-            EssentialSeeder::class,
-            PotSeeder::class,
-            AccessorySeeder::class,
-            SuggestionSeeder::class,
-            AboutUsSeeder::class,
+            ProductSeeder::class, // Unified products seeder
+            
+            // About Us components (new structure)
+            HeroSectionSeeder::class,
+            StaffMemberSeeder::class,
+            MapSettingSeeder::class,
+            ContactSettingSeeder::class,
+            
+            // Messages and Logs
+            ContactMessageSeeder::class,
+            ActivityLogSeeder::class, // Create activity logs last (requires users, articles, videos)
         ]);
     }
 }

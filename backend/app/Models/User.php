@@ -6,11 +6,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -21,6 +22,17 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'phone',
+        'phone_country_code',
+        'country',
+        'address',
+        'city',
+        'zip_code',
+        'bio',
+        'role',
+        'status',
+        'avatar',
+        'avatar_public_id',
     ];
 
     /**
@@ -44,5 +56,29 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+    
+    /**
+     * Check if user is banned
+     */
+    public function isBanned(): bool
+    {
+        return $this->status === 'banned';
+    }
+    
+    /**
+     * Check if user is admin
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+    
+    /**
+     * Check if user is moderator
+     */
+    public function isModerator(): bool
+    {
+        return $this->role === 'moderator';
     }
 }

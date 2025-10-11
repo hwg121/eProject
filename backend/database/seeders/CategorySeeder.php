@@ -2,44 +2,62 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Category;
 
 class CategorySeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $categories = [
             [
-                'name' => 'Trồng trọt',
-                'slug' => 'trong-trot',
+                'name' => 'Technique',
+                'slug' => 'technique',
+                'description' => 'Gardening techniques and methods',
+                'image' => null,
             ],
             [
-                'name' => 'Chăm sóc',
-                'slug' => 'cham-soc',
+                'name' => 'Video',
+                'slug' => 'video',
+                'description' => 'Video tutorials and guides',
+                'image' => null,
             ],
             [
-                'name' => 'Dụng cụ',
-                'slug' => 'dung-cu',
+                'name' => 'Book',
+                'slug' => 'book',
+                'description' => 'Books and reading materials',
+                'image' => null,
             ],
             [
-                'name' => 'Hướng dẫn',
-                'slug' => 'huong-dan',
+                'name' => 'Tool',
+                'slug' => 'tool',
+                'description' => 'Gardening tools and equipment',
+                'image' => null,
             ],
             [
-                'name' => 'Sách',
-                'slug' => 'sach',
+                'name' => 'Pot',
+                'slug' => 'pot',
+                'description' => 'Plant pots and containers',
+                'image' => null,
+            ],
+            [
+                'name' => 'Accessory',
+                'slug' => 'accessory',
+                'description' => 'Gardening accessories',
+                'image' => null,
+            ],
+            [
+                'name' => 'Suggestion',
+                'slug' => 'suggestion',
+                'description' => 'Plant care suggestions and tips',
+                'image' => null,
             ],
         ];
 
         foreach ($categories as $category) {
             Category::firstOrCreate(
-                ['slug' => $category['slug']],
-                $category
+                ['slug' => $category['slug']], // Find by slug
+                $category // Create with these attributes if not found
             );
         }
     }

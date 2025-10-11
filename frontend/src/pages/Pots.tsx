@@ -1,24 +1,80 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Package, Droplets, Sun, Wind, Star, Heart, Gift, Lightbulb, Shield, Clock, DollarSign, Thermometer, Eye, CheckCircle, AlertTriangle, Info, Ruler, Weight, Palette } from 'lucide-react';
+import { Package, Droplets, Sun, Wind, Star, Heart, Gift, Lightbulb, Shield, Clock, DollarSign, Thermometer, Eye, CheckCircle, AlertTriangle, Info, Ruler, Weight, Palette, ExternalLink } from 'lucide-react';
 import Card from '../components/UI/Card';
 import PageHeader from '../components/UI/PageHeader';
 import { publicService } from '../services/api.ts';
 import { generateSlug } from '../utils/slug';
 
+interface Product {
+  id: string;
+  name: string;
+  slug?: string;
+  description: string;
+  content?: string;
+  category: 'tool' | 'book' | 'pot' | 'accessory' | 'suggestion';
+  subcategory?: string;
+  status: 'published' | 'draft' | 'archived';
+  price?: number;
+  image?: string;
+  images_json?: string;
+  brand?: string;
+  material?: string;
+  size?: string;
+  color?: string;
+  is_featured?: boolean;
+  is_published?: boolean;
+  views?: number;
+  likes?: number;
+  rating?: number;
+  
+  // Tool specific
+  usage?: string;
+  video_url?: string;
+  affiliate_link?: string;
+  
+  // Book specific
+  author?: string;
+  pages?: number;
+  published_year?: number;
+  buyLink?: string;
+  borrowLink?: string;
+  
+  // Pot specific
+  drainage_holes?: boolean;
+  
+  // Accessory specific
+  is_waterproof?: boolean;
+  is_durable?: boolean;
+  
+  // Suggestion specific
+  difficulty_level?: 'beginner' | 'intermediate' | 'advanced';
+  season?: string;
+  plant_type?: string;
+  estimated_time?: string;
+  tags?: string[];
+  
+  // Generic link
+  link?: string;
+  
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 const Pots: React.FC = () => {
-  const [pots, setPots] = useState<any[]>([]);
+  const [pots, setPots] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedMaterial, setSelectedMaterial] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
 
   useEffect(() => {
     const loadPots = async () => {
       try {
         setLoading(true);
         const data = await publicService.getPots();
-        setPots(data);
+        setPots(data as Product[]);
       } catch (err) {
         setError('Failed to load pots');
         console.error('Error loading pots:', err);
@@ -30,67 +86,65 @@ const Pots: React.FC = () => {
     loadPots();
   }, []);
 
-  // Filter pots based on material and search term
+  // Filter pots based on search term
   const filteredPots = pots.filter(pot => {
-    const matchesMaterial = selectedMaterial === 'all' || pot.material === selectedMaterial;
     const matchesSearch = pot.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         pot.description.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesMaterial && matchesSearch;
+                         pot.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (pot.material && pot.material.toLowerCase().includes(searchTerm.toLowerCase()));
+    return matchesSearch;
   });
 
-  // Get unique materials for filter
-  const materials = ['all', ...new Set(pots.map(p => p.material).filter(Boolean))];
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
-  const renderPotCard = (pot: any) => (
-    <Link key={pot.id} to={`/pot/${pot.slug || generateSlug(pot.name)}`} className="block h-full">
-      <Card className="h-full group hover:shadow-xl transition-all duration-300">
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center space-x-2">
-          <div className="text-emerald-600">
-            <Package className="h-5 w-5" />
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredPots.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentPots = filteredPots.slice(startIndex, endIndex);
+
+  const renderPotCard = (pot: Product) => (
+    <a 
+      key={pot.id} 
+      href={pot.link || '#'} 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="block h-full"
+    >
+      <Card className="h-full group hover:shadow-xl transition-all duration-300 p-6">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center space-x-2">
+            <div className="text-emerald-600">
+              <Package className="h-5 w-5" />
+            </div>
+            <span className="text-sm text-emerald-600 font-medium">{pot.subcategory || pot.material || 'Pot'}</span>
           </div>
-          <span className="text-sm text-emerald-600 font-medium">{pot.material}</span>
-        </div>
-        <div className="flex items-center space-x-1">
-          <Star className="h-4 w-4 text-yellow-500 fill-current" />
-          <span className="text-sm font-semibold">4.5</span>
-        </div>
-      </div>
-      <h3 className="text-lg font-semibold text-emerald-800 mb-2">{pot.name}</h3>
-      <p className="text-emerald-600 text-sm mb-4 leading-relaxed">{pot.description}</p>
-      
-      <div className="space-y-2 mb-4">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-emerald-600">Size:</span>
-          <span className="font-medium">{pot.size}</span>
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-emerald-600">Color:</span>
-          <span className="font-medium">{pot.color}</span>
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-emerald-600">Drainage:</span>
-          <span className="font-medium">{pot.drainage_holes ? 'Yes' : 'No'}</span>
-        </div>
-        {pot.brand && (
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-emerald-600">Brand:</span>
-            <span className="font-medium">{pot.brand}</span>
+          <div className="flex items-center space-x-1">
+            <Star className="h-4 w-4 text-yellow-500 fill-current" />
+            <span className="text-sm font-semibold">4.5</span>
           </div>
-        )}
-      </div>
-      
-      <div className="flex items-center justify-between mt-auto">
-        <span className="text-lg font-bold text-emerald-800">
-          {pot.price ? `$${pot.price}` : 'Contact for price'}
-        </span>
-        <button className="flex items-center space-x-1 text-emerald-600 hover:text-emerald-800 transition-colors">
-          <Eye className="h-4 w-4" />
-          <span className="text-sm">View Details</span>
-        </button>
-      </div>
+        </div>
+        <h3 className="text-lg font-semibold text-emerald-800 mb-2">{pot.name}</h3>
+        <p className="text-emerald-600 text-sm mb-4 leading-relaxed">{pot.description}</p>
+        
+        <div className="flex items-center justify-between mt-auto">
+          <div className="flex items-center space-x-4 text-sm text-emerald-600">
+            {pot.size && <span>{pot.size}</span>}
+            {pot.material && (
+              <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs">
+                {pot.material}
+              </span>
+            )}
+          </div>
+          <button className="flex items-center space-x-1 text-emerald-600 hover:text-emerald-800 transition-colors">
+            <ExternalLink className="h-4 w-4" />
+            <span className="text-sm">View Details</span>
+          </button>
+        </div>
       </Card>
-    </Link>
+    </a>
   );
   const potTypes = [
     {
@@ -336,30 +390,17 @@ const Pots: React.FC = () => {
         icon={<Package className="h-10 w-10" />}
       />
 
-      {/* Search and Filter */}
+      {/* Search Bar */}
       <Card>
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <input
               type="text"
-              placeholder="Search pots..."
+              placeholder="Search pots by name, description, or material..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full px-4 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             />
-          </div>
-          <div className="flex gap-2">
-            <select
-              value={selectedMaterial}
-              onChange={(e) => setSelectedMaterial(e.target.value)}
-              className="px-4 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            >
-              {materials.map(material => (
-                <option key={material} value={material}>
-                  {material === 'all' ? 'All Materials' : material}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
       </Card>
@@ -382,47 +423,92 @@ const Pots: React.FC = () => {
       ) : (
         <>
           {/* Pots Grid */}
-          <section className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-3xl font-bold text-emerald-800">
-                🪴 Available Pots ({filteredPots.length})
-              </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-emerald-800">
+              Available Pots ({filteredPots.length})
+            </h2>
+          </div>
+          
+          {filteredPots.length === 0 ? (
+            <div className="text-center py-12">
+              <Package className="h-16 w-16 text-emerald-300 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-emerald-800 mb-2">No pots found</h3>
+              <p className="text-emerald-600">Try adjusting your search criteria</p>
             </div>
-            
-            {filteredPots.length === 0 ? (
-              <div className="text-center py-12">
-                <Package className="h-16 w-16 text-emerald-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-emerald-800 mb-2">No pots found</h3>
-                <p className="text-emerald-600">Try adjusting your search or filter criteria</p>
-              </div>
-            ) : (
+          ) : (
+            <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredPots.map(pot => renderPotCard(pot))}
+                {currentPots.map(pot => renderPotCard(pot))}
               </div>
-            )}
-          </section>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center space-x-2 mt-8">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 rounded-lg bg-emerald-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-emerald-700 transition-colors"
+                  >
+                    Previous
+                  </button>
+                  
+                  <div className="flex space-x-2">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-4 py-2 rounded-lg transition-colors ${
+                          currentPage === page
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-4 py-2 rounded-lg bg-emerald-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-emerald-700 transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </>
       )}
 
       {/* Pot Types Section */}
-      {potTypes.map((category, categoryIndex) => (
-        <section key={categoryIndex} className="space-y-6">
-          <h2 className="text-3xl font-bold text-emerald-800 text-center flex items-center justify-center">
-            <span className="text-4xl mr-3">{category.icon}</span>
-            {category.category} Guide
-          </h2>
-          <p className="text-center text-emerald-600 text-lg mb-8">{category.description}</p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {category.items.map((item, index) => (
-              <Card key={index} className="h-full">
-                <div className="text-center mb-4">
-                  <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r ${category.color} text-white text-2xl mb-3`}>
-                    {category.icon}
+      <section className="space-y-12">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-emerald-800 mb-4">🪴 Complete Pot Types Guide</h2>
+          <p className="text-emerald-600 text-lg">Discover the perfect pot for your plants</p>
+        </div>
+        
+        {potTypes.map((category, categoryIndex) => (
+          <div key={categoryIndex} className="space-y-6">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-emerald-400 to-green-500 text-white text-4xl mb-4 shadow-lg">
+                {category.icon}
+              </div>
+              <h3 className="text-2xl font-bold text-emerald-800 mb-2">{category.category}</h3>
+              <p className="text-emerald-600 text-lg max-w-2xl mx-auto">{category.description}</p>
+            </div>
+            
+            <div className={`grid grid-cols-1 gap-6 ${category.items.length === 2 ? 'md:grid-cols-2 lg:grid-cols-2 max-w-5xl mx-auto' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
+              {category.items.map((item, index) => (
+                <Card key={index} className="h-full hover:shadow-lg transition-shadow duration-300">
+                  <div className="text-center mb-4">
+                    <div className={`inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-r ${category.color} text-white text-xl mb-3 shadow-md`}>
+                      {category.icon}
+                    </div>
+                    <h4 className="text-lg font-bold text-emerald-800 mb-2">{item.name}</h4>
+                    <p className="text-emerald-600 text-sm">{item.description}</p>
                   </div>
-                  <h3 className="text-xl font-semibold text-emerald-800">{item.name}</h3>
-                  <p className="text-emerald-600 text-sm mt-2">{item.description}</p>
-                </div>
                 
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
@@ -502,28 +588,37 @@ const Pots: React.FC = () => {
               </Card>
             ))}
           </div>
-        </section>
-      ))}
+        </div>
+        ))}
+      </section>
 
       {/* Hanging Systems Section */}
-      {hangingSystems.map((system, systemIndex) => (
-        <section key={systemIndex} className="space-y-6">
-          <h2 className="text-3xl font-bold text-emerald-800 text-center flex items-center justify-center">
-            <span className="text-4xl mr-3">{system.icon}</span>
-            {system.type} Details
-          </h2>
-          <p className="text-center text-emerald-600 text-lg mb-8">{system.description}</p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {system.products.map((product, index) => (
-              <Card key={index} className="h-full">
-                <div className="text-center mb-4">
-                  <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r ${system.color} text-white text-2xl mb-3`}>
-                    {system.icon}
+      <section className="space-y-12">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-emerald-800 mb-4">🪝 Hanging Systems Guide</h2>
+          <p className="text-emerald-600 text-lg">Smart solutions for vertical gardening</p>
+        </div>
+        
+        {hangingSystems.map((system, systemIndex) => (
+          <div key={systemIndex} className="space-y-6">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-purple-400 to-violet-500 text-white text-4xl mb-4 shadow-lg">
+                {system.icon}
+              </div>
+              <h3 className="text-2xl font-bold text-emerald-800 mb-2">{system.type}</h3>
+              <p className="text-emerald-600 text-lg max-w-2xl mx-auto">{system.description}</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+              {system.products.map((product, index) => (
+                <Card key={index} className="h-full hover:shadow-lg transition-shadow duration-300">
+                  <div className="text-center mb-4">
+                    <div className={`inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-r ${system.color} text-white text-xl mb-3 shadow-md`}>
+                      {system.icon}
+                    </div>
+                    <h4 className="text-lg font-bold text-emerald-800 mb-2">{product.name}</h4>
+                    <p className="text-emerald-600 text-sm">{product.description}</p>
                   </div>
-                  <h3 className="text-xl font-semibold text-emerald-800">{product.name}</h3>
-                  <p className="text-emerald-600 text-sm mt-2">{product.description}</p>
-                </div>
                 
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 gap-3">
@@ -549,21 +644,25 @@ const Pots: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              </Card>
-            ))}
+                </Card>
+              ))}
+            </div>
           </div>
-        </section>
-      ))}
+        ))}
+      </section>
 
       {/* Sizing Guide */}
       <section className="space-y-6">
-        <h2 className="text-3xl font-bold text-emerald-800 text-center">📏 Pot Size Selection Guide</h2>
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-emerald-800 mb-4">📏 Pot Size Selection Guide</h2>
+          <p className="text-emerald-600 text-lg">Choose the right size for healthy plant growth</p>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sizingGuide.map((guide, index) => (
-            <Card key={index} className="h-full">
+            <Card key={index} className="h-full hover:shadow-lg transition-shadow duration-300">
               <div className="text-center mb-4">
-                <div className="text-4xl mb-2">{guide.icon}</div>
-                <h3 className="text-lg font-semibold text-emerald-800">{guide.plantType}</h3>
+                <div className="text-5xl mb-3">{guide.icon}</div>
+                <h3 className="text-xl font-bold text-emerald-800">{guide.plantType}</h3>
               </div>
               
               <div className="space-y-3">
@@ -607,13 +706,18 @@ const Pots: React.FC = () => {
 
       {/* Budget Planning */}
       <section className="space-y-6">
-        <h2 className="text-3xl font-bold text-emerald-800 text-center">💰 Budget Planning</h2>
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-emerald-800 mb-4">💰 Budget Planning</h2>
+          <p className="text-emerald-600 text-lg">Find the perfect package for your budget</p>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="bg-gradient-to-br from-green-100 to-emerald-100 border-2 border-green-200">
+          <Card className="bg-gradient-to-br from-green-100 to-emerald-100 border-2 border-green-300 hover:border-green-400 transition-all duration-300 hover:shadow-xl">
             <div className="text-center mb-4">
-              <Star className="h-12 w-12 text-green-600 mx-auto mb-2" />
-              <h3 className="text-xl font-semibold text-green-800">Basic Package</h3>
-              <p className="text-green-600 font-bold">$150 - $300</p>
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 mb-3 shadow-md">
+                <Star className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-green-800 mb-2">Basic Package</h3>
+              <p className="text-green-700 text-2xl font-bold">$150 - $300</p>
             </div>
             <div className="space-y-3">
               <div className="bg-green-50 p-3 rounded-lg">
@@ -632,11 +736,14 @@ const Pots: React.FC = () => {
             </div>
           </Card>
           
-          <Card className="bg-gradient-to-br from-blue-100 to-indigo-100 border-2 border-blue-200">
+          <Card className="bg-gradient-to-br from-blue-100 to-indigo-100 border-2 border-blue-300 hover:border-blue-400 transition-all duration-300 hover:shadow-xl transform hover:scale-105">
             <div className="text-center mb-4">
-              <Star className="h-12 w-12 text-blue-600 mx-auto mb-2" />
-              <h3 className="text-xl font-semibold text-blue-800">Standard Package</h3>
-              <p className="text-blue-600 font-bold">$300 - $800</p>
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-blue-400 to-indigo-500 mb-3 shadow-md">
+                <Star className="h-8 w-8 text-white fill-current" />
+              </div>
+              <h3 className="text-2xl font-bold text-blue-800 mb-2">Standard Package</h3>
+              <span className="inline-block bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold mb-2">POPULAR</span>
+              <p className="text-blue-700 text-2xl font-bold">$300 - $800</p>
             </div>
             <div className="space-y-3">
               <div className="bg-blue-50 p-3 rounded-lg">
@@ -655,11 +762,13 @@ const Pots: React.FC = () => {
             </div>
           </Card>
           
-          <Card className="bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-purple-200">
+          <Card className="bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-purple-300 hover:border-purple-400 transition-all duration-300 hover:shadow-xl">
             <div className="text-center mb-4">
-              <Star className="h-12 w-12 text-purple-600 mx-auto mb-2" />
-              <h3 className="text-xl font-semibold text-purple-800">Premium Package</h3>
-              <p className="text-purple-600 font-bold">$800+</p>
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-purple-400 to-pink-500 mb-3 shadow-md">
+                <Star className="h-8 w-8 text-white fill-current" />
+              </div>
+              <h3 className="text-2xl font-bold text-purple-800 mb-2">Premium Package</h3>
+              <p className="text-purple-700 text-2xl font-bold">$800+</p>
             </div>
             <div className="space-y-3">
               <div className="bg-purple-50 p-3 rounded-lg">

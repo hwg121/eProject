@@ -1,0 +1,311 @@
+/* Statistics Section - Perfect Alignment & Responsiveness */
+
+/* Container cho statistics section */
+.stats-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0 1rem;
+}
+
+/* Grid layout cho statistics cards */
+.stats-grid {
+  display: grid;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 1200px;
+  justify-items: center;
+  justify-content: center;
+}
+
+/* Mobile: 1 column */
+@media (max-width: 639px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    max-width: 300px;
+  }
+}
+
+/* Small screens: 2 columns */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    max-width: 600px;
+  }
+}
+
+/* Large screens: 4 columns */
+@media (min-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 3rem;
+    max-width: 1200px;
+  }
+}
+
+/* Extra large screens: 4 columns với gap lớn hơn */
+@media (min-width: 1536px) {
+  .stats-grid {
+    gap: 4rem;
+    max-width: 1400px;
+  }
+}
+
+/* Individual stat card */
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  max-width: 280px;
+}
+
+/* Icon container với kích thước cố định */
+.stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 1rem;
+}
+
+/* Mobile icon sizes */
+@media (max-width: 639px) {
+  .stat-icon {
+    width: 5rem; /* 80px */
+    height: 5rem;
+    font-size: 2rem;
+    padding: 1rem;
+  }
+}
+
+/* Tablet icon sizes */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .stat-icon {
+    width: 6rem; /* 96px */
+    height: 6rem;
+    font-size: 2.5rem;
+    padding: 1.25rem;
+  }
+}
+
+/* Desktop icon sizes */
+@media (min-width: 1024px) {
+  .stat-icon {
+    width: 7rem; /* 112px */
+    height: 7rem;
+    font-size: 3rem;
+    padding: 1.5rem;
+  }
+}
+
+/* Hover effect cho icon */
+.stat-icon:hover {
+  transform: scale(1.05);
+  box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.35);
+}
+
+/* Number styling */
+.stat-number {
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+  color: #065f46; /* emerald-800 */
+}
+
+/* Mobile number sizes */
+@media (max-width: 639px) {
+  .stat-number {
+    font-size: 1.5rem; /* 24px */
+  }
+}
+
+/* Tablet number sizes */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .stat-number {
+    font-size: 2rem; /* 32px */
+  }
+}
+
+/* Desktop number sizes */
+@media (min-width: 1024px) {
+  .stat-number {
+    font-size: 2.5rem; /* 40px */
+  }
+}
+
+/* Label styling */
+.stat-label {
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  color: #059669; /* emerald-600 */
+  padding: 0 0.5rem;
+}
+
+/* Mobile label sizes */
+@media (max-width: 639px) {
+  .stat-label {
+    font-size: 0.875rem; /* 14px */
+  }
+}
+
+/* Tablet label sizes */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .stat-label {
+    font-size: 1rem; /* 16px */
+  }
+}
+
+/* Desktop label sizes */
+@media (min-width: 1024px) {
+  .stat-label {
+    font-size: 1.125rem; /* 18px */
+  }
+}
+
+/* Perfect centering cho toàn bộ section */
+.stats-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 3rem 0;
+}
+
+@media (min-width: 640px) {
+  .stats-section {
+    padding: 4rem 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .stats-section {
+    padding: 5rem 0;
+  }
+}
+
+/* Animation improvements */
+.stat-card {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card:hover {
+  transform: translateY(-0.25rem);
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .stat-icon,
+  .stat-card {
+    transition: none;
+  }
+  
+  .stat-icon:hover,
+  .stat-card:hover {
+    transform: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .stat-icon {
+    border: 2px solid currentColor;
+  }
+  
+  .stat-number {
+    color: #000;
+  }
+  
+  .stat-label {
+    color: #000;
+  }
+}
+
+/* Focus states for accessibility */
+.stat-card:focus-visible {
+  outline: 2px solid #10b981;
+  outline-offset: 4px;
+  border-radius: 0.75rem;
+}
+
+/* Edge case: Very wide screens */
+@media (min-width: 1920px) {
+  .stats-grid {
+    max-width: 1600px;
+    gap: 5rem;
+  }
+  
+  .stat-icon {
+    width: 8rem; /* 128px */
+    height: 8rem;
+    font-size: 3.5rem;
+    padding: 1.75rem;
+  }
+  
+  .stat-number {
+    font-size: 3rem; /* 48px */
+  }
+  
+  .stat-label {
+    font-size: 1.25rem; /* 20px */
+  }
+}
+
+/* Edge case: Very narrow screens */
+@media (max-width: 375px) {
+  .stats-grid {
+    max-width: 280px;
+    gap: 1.5rem;
+  }
+  
+  .stat-icon {
+    width: 4rem; /* 64px */
+    height: 4rem;
+    font-size: 1.5rem;
+    padding: 0.75rem;
+  }
+  
+  .stat-number {
+    font-size: 1.25rem; /* 20px */
+  }
+  
+  .stat-label {
+    font-size: 0.75rem; /* 12px */
+  }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 896px) and (orientation: landscape) {
+  .stats-section {
+    padding: 2rem 0;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    max-width: 500px;
+  }
+}
+
+/* Tablet portrait optimization */
+@media (min-width: 768px) and (max-width: 1023px) and (orientation: portrait) {
+  .stats-grid {
+    gap: 2.5rem;
+    max-width: 650px;
+  }
+  
+  .stat-icon {
+    width: 6.5rem; /* 104px */
+    height: 6.5rem;
+    font-size: 2.75rem;
+    padding: 1.375rem;
+  }
+}

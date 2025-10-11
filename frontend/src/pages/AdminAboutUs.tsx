@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Plus, Edit, Trash2, Eye, Save, X, Mail, Phone, MapPin, Facebook, Instagram, Youtube } from 'lucide-react';
+import { TextField, Checkbox, FormControlLabel, Snackbar, Alert } from '@mui/material';
 import Card from '../components/UI/Card';
 import PageHeader from '../components/UI/PageHeader';
 import { aboutUsService } from '../services/api.ts';
+import { validateText, validateEmail, validatePhone, validateURL, hasErrors } from '../utils/validation';
 
 interface AboutUsData {
   id?: string;
@@ -43,6 +45,35 @@ const AdminAboutUs: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  
+  const [errors, setErrors] = useState<{[key: string]: string | null}>({});
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error' | 'warning' | 'info'
+  }>({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
+
+  const showToast = (message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
+    setSnackbar({ open: true, message, severity });
+  };
+  
+  const textFieldStyles = {
+    '& .MuiOutlinedInput-root': {
+      '&.Mui-focused': {
+        '& .MuiOutlinedInput-notchedOutline': {
+          borderColor: '#10b981'
+        }
+      }
+    },
+    '& .MuiInputLabel-root.Mui-focused': {
+      color: '#10b981'
+    }
+  };
+  
   const [formData, setFormData] = useState<AboutUsData>({
     title: '',
     subtitle: '',
@@ -132,16 +163,46 @@ const AdminAboutUs: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation
+    const newErrors: {[key: string]: string | null} = {};
+    newErrors.title = validateText(formData.title, 3, 200, 'Title', true);
+    newErrors.subtitle = validateText(formData.subtitle, 5, 500, 'Subtitle', false);
+    newErrors.description = validateText(formData.description, 10, 5000, 'Description', true);
+    newErrors.content = validateText(formData.content, 10, 10000, 'Content', false);
+    newErrors.mission = validateText(formData.mission, 10, 2000, 'Mission', false);
+    newErrors.vision = validateText(formData.vision, 10, 2000, 'Vision', false);
+    newErrors.values = validateText(formData.values, 10, 2000, 'Values', false);
+    
+    if (formData.contact_email) newErrors.contact_email = validateEmail(formData.contact_email);
+    if (formData.contact_phone) newErrors.contact_phone = validatePhone(formData.contact_phone);
+    if (formData.address) newErrors.address = validateText(formData.address, 5, 200, 'Address', false);
+    if (formData.image) newErrors.image = validateURL(formData.image, false);
+    if (formData.social_links.facebook) newErrors.facebook = validateURL(formData.social_links.facebook, false);
+    if (formData.social_links.instagram) newErrors.instagram = validateURL(formData.social_links.instagram, false);
+    if (formData.social_links.youtube) newErrors.youtube = validateURL(formData.social_links.youtube, false);
+    
+    if (hasErrors(newErrors)) {
+      setErrors(newErrors);
+      showToast('Please fix validation errors', 'error');
+      return;
+    }
+    
+    setErrors({});
+    
     try {
       if (isEditing && editingId) {
         await aboutUsService.update(editingId, formData);
+        showToast('About Us updated successfully!', 'success');
       } else {
         await aboutUsService.create(formData);
+        showToast('About Us created successfully!', 'success');
       }
       setShowForm(false);
       loadAboutUs();
     } catch (err) {
       setError('Failed to save about us content');
+      showToast('Failed to save about us content', 'error');
       console.error('Error saving about us:', err);
     }
   };
@@ -288,85 +349,145 @@ const AdminAboutUs: React.FC = () => {
                 {/* Basic Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-emerald-700 mb-2">Title</label>
-                    <input
-                      type="text"
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label="Title"
                       value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      className="w-full px-3 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      onChange={(e) => {
+                        setFormData({ ...formData, title: e.target.value });
+                        setErrors({ ...errors, title: null });
+                      }}
+                      error={!!errors.title}
+                      helperText={errors.title}
                       required
+                      inputProps={{ minLength: 3, maxLength: 200 }}
+                      sx={textFieldStyles}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-emerald-700 mb-2">Subtitle</label>
-                    <input
-                      type="text"
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label="Subtitle"
                       value={formData.subtitle}
-                      onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-                      className="w-full px-3 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      onChange={(e) => {
+                        setFormData({ ...formData, subtitle: e.target.value });
+                        setErrors({ ...errors, subtitle: null });
+                      }}
+                      error={!!errors.subtitle}
+                      helperText={errors.subtitle}
+                      inputProps={{ minLength: 5, maxLength: 500 }}
+                      sx={textFieldStyles}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-emerald-700 mb-2">Description</label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-3 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  <TextField
+                    fullWidth
+                    multiline
                     rows={3}
+                    label="Description"
+                    value={formData.description}
+                    onChange={(e) => {
+                      setFormData({ ...formData, description: e.target.value });
+                      setErrors({ ...errors, description: null });
+                    }}
+                    error={!!errors.description}
+                    helperText={errors.description}
                     required
+                    inputProps={{ minLength: 10, maxLength: 5000 }}
+                    sx={textFieldStyles}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-emerald-700 mb-2">Content</label>
-                  <textarea
-                    value={formData.content}
-                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                    className="w-full px-3 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  <TextField
+                    fullWidth
+                    multiline
                     rows={6}
-                    required
+                    label="Content"
+                    value={formData.content}
+                    onChange={(e) => {
+                      setFormData({ ...formData, content: e.target.value });
+                      setErrors({ ...errors, content: null });
+                    }}
+                    error={!!errors.content}
+                    helperText={errors.content}
+                    inputProps={{ minLength: 10, maxLength: 10000 }}
+                    sx={textFieldStyles}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-emerald-700 mb-2">Image URL</label>
-                  <input
-                    type="url"
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Image URL"
                     value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    className="w-full px-3 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    onChange={(e) => {
+                      setFormData({ ...formData, image: e.target.value });
+                      setErrors({ ...errors, image: null });
+                    }}
+                    error={!!errors.image}
+                    helperText={errors.image}
+                    placeholder="https://example.com/image.jpg"
+                    sx={textFieldStyles}
                   />
                 </div>
 
                 {/* Mission, Vision, Values */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-emerald-700 mb-2">Mission</label>
-                    <textarea
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={3}
+                      label="Mission"
                       value={formData.mission}
-                      onChange={(e) => setFormData({ ...formData, mission: e.target.value })}
-                      className="w-full px-3 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                      rows={3}
+                      onChange={(e) => {
+                        setFormData({ ...formData, mission: e.target.value });
+                        setErrors({ ...errors, mission: null });
+                      }}
+                      error={!!errors.mission}
+                      helperText={errors.mission}
+                      inputProps={{ minLength: 10, maxLength: 2000 }}
+                      sx={textFieldStyles}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-emerald-700 mb-2">Vision</label>
-                    <textarea
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={3}
+                      label="Vision"
                       value={formData.vision}
-                      onChange={(e) => setFormData({ ...formData, vision: e.target.value })}
-                      className="w-full px-3 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                      rows={3}
+                      onChange={(e) => {
+                        setFormData({ ...formData, vision: e.target.value });
+                        setErrors({ ...errors, vision: null });
+                      }}
+                      error={!!errors.vision}
+                      helperText={errors.vision}
+                      inputProps={{ minLength: 10, maxLength: 2000 }}
+                      sx={textFieldStyles}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-emerald-700 mb-2">Values</label>
-                    <textarea
-                      value={formData.values}
-                      onChange={(e) => setFormData({ ...formData, values: e.target.value })}
-                      className="w-full px-3 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    <TextField
+                      fullWidth
+                      multiline
                       rows={3}
+                      label="Values"
+                      value={formData.values}
+                      onChange={(e) => {
+                        setFormData({ ...formData, values: e.target.value });
+                        setErrors({ ...errors, values: null });
+                      }}
+                      error={!!errors.values}
+                      helperText={errors.values}
+                      inputProps={{ minLength: 10, maxLength: 2000 }}
+                      sx={textFieldStyles}
                     />
                   </div>
                 </div>
@@ -596,6 +717,22 @@ const AdminAboutUs: React.FC = () => {
           </div>
         </div>
       )}
+      
+      {/* Toast Notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

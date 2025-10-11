@@ -38,25 +38,34 @@ class ContactController extends Controller
         // Mail::to('info@greengroves.com')->send(new ContactMail($contactMessage));
 
         return response()->json([
-            'message' => 'Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất có thể.',
-            'success' => true,
-            'data' => [
-                'id' => $contactMessage->id,
-                'created_at' => $contactMessage->created_at
-            ]
+            'id' => $contactMessage->id,
+            'created_at' => $contactMessage->created_at,
+            'message' => 'Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất có thể.'
         ], 201);
     }
 
     public function index(): JsonResponse
     {
-        $messages = ContactMessage::orderBy('created_at', 'desc')->get();
-        return response()->json($messages);
+        try {
+            $messages = ContactMessage::orderBy('created_at', 'desc')->get();
+            return response()->json($messages, 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error fetching contact messages: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function show($id): JsonResponse
     {
-        $message = ContactMessage::findOrFail($id);
-        return response()->json($message);
+        try {
+            $message = ContactMessage::findOrFail($id);
+            return response()->json($message, 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Contact message not found'
+            ], 404);
+        }
     }
 
     public function update(Request $request, $id): JsonResponse
@@ -75,20 +84,21 @@ class ContactController extends Controller
 
         $message->update($validated);
 
-        return response()->json([
-            'message' => 'Contact message updated successfully',
-            'data' => $message
-        ]);
+        return response()->json($message, 200);
     }
 
     public function destroy($id): JsonResponse
     {
-        $message = ContactMessage::findOrFail($id);
-        $message->delete();
+        try {
+            $message = ContactMessage::findOrFail($id);
+            $message->delete();
 
-        return response()->json([
-            'message' => 'Contact message deleted successfully'
-        ]);
+            return response()->json(null, 204);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error deleting contact message: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
 

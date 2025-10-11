@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\AboutUs;
-use App\Http\Resources\AboutUsResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rule;
@@ -16,8 +15,18 @@ class AboutUsController extends Controller
      */
     public function index(): JsonResponse
     {
-        $aboutUs = AboutUs::where('is_active', true)->get();
-        return response()->json(AboutUsResource::collection($aboutUs));
+        try {
+            $aboutUs = AboutUs::where('status', 'published')->get();
+            return response()->json([
+                'success' => true,
+                'data' => $aboutUs
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching about us: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -44,7 +53,10 @@ class AboutUsController extends Controller
         ]);
 
         $aboutUs = AboutUs::create($validated);
-        return response()->json(new AboutUsResource($aboutUs), 201);
+        return response()->json([
+            'success' => true,
+            'data' => $aboutUs
+        ], 201);
     }
 
     /**
@@ -53,7 +65,10 @@ class AboutUsController extends Controller
     public function show(string $id): JsonResponse
     {
         $aboutUs = AboutUs::findOrFail($id);
-        return response()->json(new AboutUsResource($aboutUs));
+        return response()->json([
+            'success' => true,
+            'data' => $aboutUs
+        ]);
     }
 
     /**
@@ -82,7 +97,10 @@ class AboutUsController extends Controller
         ]);
 
         $aboutUs->update($validated);
-        return response()->json(new AboutUsResource($aboutUs));
+        return response()->json([
+            'success' => true,
+            'data' => $aboutUs
+        ]);
     }
 
     /**
@@ -107,6 +125,9 @@ class AboutUsController extends Controller
             return response()->json(['message' => 'No active About Us content found'], 404);
         }
         
-        return response()->json(new AboutUsResource($aboutUs));
+        return response()->json([
+            'success' => true,
+            'data' => $aboutUs
+        ]);
     }
 }

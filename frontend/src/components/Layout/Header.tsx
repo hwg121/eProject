@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Clock, Users, MapPin, LogIn, LogOut } from 'lucide-react';
+import { Clock, Users, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -20,7 +20,6 @@ const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [userTimezone, setUserTimezone] = useState<string>('');
-  const { user, logout } = useAuth();
   
   // Use geolocation hook
   const { 
@@ -118,28 +117,9 @@ const Header: React.FC = () => {
 
   const { navItems } = useNavigation();
   
-  // Add admin item if user is logged in
-  const displayNavItems = [
-    ...navItems,
-    ...(user ? [{ 
-      path: '/admin', 
-      icon: Users, 
-      label: 'Admin', 
-      emoji: '⚙️',
-      color: 'from-gray-500 to-slate-600',
-      isVisible: true,
-      order: 999
-    }] : []),
-  ];
+  // Navigation items for regular users only
+  const displayNavItems = navItems;
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/');
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
 
 
   return (
@@ -281,154 +261,212 @@ const Header: React.FC = () => {
               })}
             </nav>
 
-            {/* User Actions */}
-            <div className="hidden lg:flex items-center space-x-1 xl:space-x-2 2xl:space-x-3">
+            {/* Theme Toggle */}
+            <div className="hidden lg:flex items-center">
               <DarkModeToggle />
-              {user ? (
-                <motion.button
-                  onClick={handleLogout}
-                  className="flex items-center justify-center bg-red-500 text-white p-2 lg:p-3 xl:p-4 rounded-lg xl:rounded-xl hover:bg-red-600 transition-colors"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  title="Logout"
-                >
-                  <LogOut className="h-4 w-4" />
-                </motion.button>
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.5 }}
-                >
-                  <Link
-                    to="/login"
-                    className="flex items-center justify-center bg-emerald-500 text-white p-2 lg:p-3 xl:p-4 rounded-lg xl:rounded-xl hover:bg-emerald-600 transition-colors"
-                    title="Login"
-                  >
-                    <LogIn className="h-4 w-4" />
-                  </Link>
-                </motion.div>
-              )}
             </div>
 
             {/* Mobile Menu Button */}
             <motion.button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className={`lg:hidden p-2 lg:p-3 rounded-xl transition-colors duration-300 ${
-                isDarkMode 
-                  ? 'bg-emerald-900/30 text-emerald-300 hover:bg-emerald-800/40' 
-                  : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+              className={`lg:hidden relative p-3 rounded-2xl transition-all duration-300 ${
+                isMenuOpen
+                  ? isDarkMode 
+                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' 
+                    : 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30'
+                  : isDarkMode 
+                    ? 'bg-emerald-900/30 text-emerald-300 hover:bg-emerald-800/40' 
+                    : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
               }`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <AnimatePresence mode="wait">
-                {isMenuOpen ? (
-                  <motion.div
-                    key="close"
-                    initial={{ rotate: -90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: 90, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <X className="h-5 lg:h-6 w-5 lg:w-6" />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="menu"
-                    initial={{ rotate: 90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: -90, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Menu className="h-5 lg:h-6 w-5 lg:w-6" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <div className="relative w-6 h-6">
+                <motion.div
+                  className="absolute inset-0 flex flex-col justify-center"
+                  animate={isMenuOpen ? "open" : "closed"}
+                  variants={{
+                    open: { rotate: 180 },
+                    closed: { rotate: 0 }
+                  }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                  <motion.span
+                    className={`block w-6 h-0.5 rounded-full transition-colors duration-300 ${
+                      isMenuOpen 
+                        ? 'bg-white' 
+                        : isDarkMode ? 'bg-emerald-300' : 'bg-emerald-700'
+                    }`}
+                    variants={{
+                      open: { rotate: 45, y: 0 },
+                      closed: { rotate: 0, y: -6 }
+                    }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                  />
+                  <motion.span
+                    className={`block w-6 h-0.5 rounded-full mt-1.5 transition-colors duration-300 ${
+                      isMenuOpen 
+                        ? 'bg-white opacity-0' 
+                        : isDarkMode ? 'bg-emerald-300' : 'bg-emerald-700'
+                    }`}
+                    variants={{
+                      open: { opacity: 0 },
+                      closed: { opacity: 1 }
+                    }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                  />
+                  <motion.span
+                    className={`block w-6 h-0.5 rounded-full mt-1.5 transition-colors duration-300 ${
+                      isMenuOpen 
+                        ? 'bg-white' 
+                        : isDarkMode ? 'bg-emerald-300' : 'bg-emerald-700'
+                    }`}
+                    variants={{
+                      open: { rotate: -45, y: -6 },
+                      closed: { rotate: 0, y: 0 }
+                    }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                  />
+                </motion.div>
+              </div>
             </motion.button>
           </div>
 
           {/* Mobile Navigation */}
           <AnimatePresence>
             {isMenuOpen && (
-              <motion.div
-                className="lg:hidden pb-6"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className={`rounded-2xl p-6 space-y-3 ${
-                  isDarkMode 
-                    ? 'bg-gradient-to-r from-gray-800 to-emerald-900/20' 
-                    : 'bg-gradient-to-r from-emerald-50 to-green-50'
-                }`}>
-                  {displayNavItems.map((item, index) => (
-                    <motion.div
-                      key={item.path}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <Link
-                        to={item.path}
-                        onClick={() => setIsMenuOpen(false)}
-                        className={`flex items-center space-x-4 px-6 py-4 rounded-xl transition-all duration-300 text-lg ${
-                          location.pathname === item.path
-                            ? 'text-white bg-gradient-to-r from-emerald-500 to-green-500 shadow-lg'
-                            : isDarkMode
-                              ? 'text-emerald-300 hover:bg-gray-700/50 hover:shadow-md'
-                              : 'text-emerald-700 hover:bg-white hover:shadow-md'
-                        }`}
-                      >
-                        <span className="text-2xl">{item.emoji}</span>
-                        <span className="font-semibold text-lg">{item.label}</span>
-                      </Link>
-                    </motion.div>
-                  ))}
-                  
-                  {/* Mobile Login/User Info */}
-                  <div className="pt-4 border-t border-gray-200/20">
-                    <div className="flex justify-center space-x-4 mb-4">
-                      <DarkModeToggle />
+              <>
+                {/* Backdrop */}
+                <motion.div
+                  className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setIsMenuOpen(false)}
+                />
+                
+                {/* Menu Panel */}
+                <motion.div
+                  className="lg:hidden fixed top-0 right-0 h-full w-80 max-w-[85vw] z-50"
+                  initial={{ x: "100%" }}
+                  animate={{ x: 0 }}
+                  exit={{ x: "100%" }}
+                  transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                >
+                  <div className={`h-full ${
+                    isDarkMode 
+                      ? 'bg-gray-900/95 backdrop-blur-2xl' 
+                      : 'bg-white/95 backdrop-blur-xl'
+                  } shadow-2xl border-l ${
+                    isDarkMode ? 'border-emerald-500/20' : 'border-emerald-100'
+                  }`}>
+                    
+                    {/* Header */}
+                    <div className={`relative flex items-center justify-between p-6 border-b ${
+                      isDarkMode ? 'border-emerald-500/20' : 'border-emerald-100'
+                    }`}>
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent"></div>
+                      <div className="flex items-center space-x-3 relative z-10">
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full blur opacity-40"></div>
+                          <div className={`relative w-8 h-8 rounded-full bg-gradient-to-r from-emerald-500 to-green-500 flex items-center justify-center`}>
+                            <span className="text-white font-bold text-sm">GG</span>
+                          </div>
+                        </div>
+                        <h2 className={`text-xl font-bold bg-gradient-to-r ${
+                          isDarkMode 
+                            ? 'from-emerald-400 to-green-400' 
+                            : 'from-emerald-700 to-green-600'
+                        } bg-clip-text text-transparent`}>
+                          Menu
+                        </h2>
+                      </div>
+                      <div className="relative z-10">
+                        <DarkModeToggle />
+                      </div>
                     </div>
-                    {!user && (
-                      <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: displayNavItems.length * 0.1 }}
-                      >
-                        <Link
-                          to="/login"
-                          onClick={() => setIsMenuOpen(false)}
-                          className="flex items-center justify-center px-6 py-4 rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 transition-colors"
-                          title="Login"
+                    
+                    {/* Navigation Items */}
+                    <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                      {displayNavItems.map((item, index) => (
+                        <motion.div
+                          key={item.path}
+                          initial={{ opacity: 0, x: 50 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.05, duration: 0.3 }}
                         >
-                          <LogIn className="h-5 w-5" />
-                        </Link>
-                      </motion.div>
-                    )}
-                    {user && (
-                      <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: displayNavItems.length * 0.1 }}
-                      >
-                        <button
-                          onClick={() => {
-                            setIsMenuOpen(false);
-                            handleLogout();
-                          }}
-                          className="flex items-center justify-center px-6 py-4 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors w-full"
-                          title="Logout"
-                        >
-                          <LogOut className="h-5 w-5" />
-                        </button>
-                      </motion.div>
-                    )}
+                          <Link
+                            to={item.path}
+                            onClick={() => setIsMenuOpen(false)}
+                            className={`group flex items-center space-x-4 px-4 py-3 rounded-2xl transition-all duration-300 ${
+                              location.pathname === item.path
+                                ? 'text-white bg-gradient-to-r from-emerald-500 to-green-500 shadow-lg shadow-emerald-500/30'
+                                : isDarkMode
+                                  ? 'text-gray-200 bg-gray-800 hover:bg-gray-700 hover:shadow-md hover:text-white'
+                                  : 'text-gray-700 bg-gray-50 hover:bg-emerald-100 hover:shadow-md hover:text-emerald-800'
+                            }`}
+                          >
+                            <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-all duration-300 ${
+                              location.pathname === item.path
+                                ? 'bg-white/20'
+                                : isDarkMode
+                                  ? 'bg-gray-700 group-hover:bg-emerald-600'
+                                  : 'bg-white group-hover:bg-emerald-200'
+                            }`}>
+                              {item.emoji}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <span className="font-semibold text-lg block truncate">
+                                {item.label}
+                              </span>
+                              <span className={`text-xs ${
+                                location.pathname === item.path
+                                  ? 'text-emerald-100'
+                                  : isDarkMode ? 'text-emerald-400' : 'text-emerald-600'
+                              }`}>
+                                {item.path === '/' ? 'Trang chủ' : 
+                                 item.path === '/essentials' ? 'Công cụ cần thiết' :
+                                 item.path === '/techniques' ? 'Kỹ thuật làm vườn' :
+                                 item.path === '/videos' ? 'Video hướng dẫn' :
+                                 item.path === '/tools' ? 'Công cụ làm vườn' :
+                                 item.path === '/pots' ? 'Chậu cây' :
+                                 item.path === '/accessories' ? 'Phụ kiện' :
+                                 item.path === '/books' ? 'Sách hướng dẫn' :
+                                 item.path === '/suggestions' ? 'Gợi ý' :
+                                 item.path === '/about-us' ? 'Giới thiệu' : 'Trang khác'}
+                              </span>
+                            </div>
+                            <motion.div
+                              className={`flex-shrink-0 ${
+                                location.pathname === item.path ? 'text-white' : 
+                                isDarkMode ? 'text-emerald-400' : 'text-emerald-500'
+                              }`}
+                              whileHover={{ x: 3 }}
+                              transition={{ type: "spring", stiffness: 400 }}
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            </motion.div>
+                          </Link>
+                        </motion.div>
+                      ))}
+                    </div>
+                    
+                    {/* Footer */}
+                    <div className={`p-6 border-t ${
+                      isDarkMode ? 'border-gray-700/30' : 'border-emerald-100'
+                    }`}>
+                      <div className={`text-center text-sm ${
+                        isDarkMode ? 'text-emerald-400' : 'text-emerald-600'
+                      }`}>
+                        <p className="font-medium">Green Groves</p>
+                        <p className="opacity-75">Gardening Paradise</p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
+                </motion.div>
+              </>
             )}
           </AnimatePresence>
         </div>

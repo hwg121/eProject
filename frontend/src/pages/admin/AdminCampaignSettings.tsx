@@ -1,0 +1,502 @@
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import {
+  Box,
+  Card,
+  CardContent,
+  TextField,
+  Button,
+  Typography,
+  LinearProgress,
+  Chip,
+  Avatar,
+  Alert,
+  Tooltip,
+  CircularProgress,
+  Snackbar
+} from '@mui/material';
+import { Users, Eye, FileText, Star, Save, TrendingUp, type LucideIcon } from 'lucide-react';
+import { useTheme } from '../../contexts/ThemeContext';
+import { campaignService, CampaignStatsResponse } from '../../services/campaignService';
+
+interface MetricConfig {
+  name: string;
+  label: string;
+  icon: LucideIcon;
+  bgGradient: string;
+  color: string;
+  unit?: string;
+}
+
+
+const AdminCampaignSettings: React.FC = () => {
+  
+  const { isDarkMode } = useTheme();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [statsOverview, setStatsOverview] = useState<CampaignStatsResponse | null>(null);
+  const [goals, setGoals] = useState<Record<string, number>>({});
+  const [originalGoals, setOriginalGoals] = useState<Record<string, number>>({});
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
+
+  const metricsConfig: Record<string, MetricConfig> = {
+    visitors: {
+      name: 'visitors',
+      label: 'Visitors',
+      icon: Users,
+      bgGradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      color: '#667eea',
+      unit: ''
+    },
+    views: {
+      name: 'views',
+      label: 'Views',
+      icon: Eye,
+      bgGradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+      color: '#10b981',
+      unit: ''
+    },
+    content: {
+      name: 'content',
+      label: 'Content',
+      icon: FileText,
+      bgGradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+      color: '#f093fb',
+      unit: 'items'
+    },
+    rating: {
+      name: 'rating',
+      label: 'Rating',
+      icon: Star,
+      bgGradient: 'linear-gradient(135deg, #ffa726 0%, #fb8c00 100%)',
+      color: '#ffa726',
+      unit: '/ 5.0'
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    // Check if any goals have changed
+    const changed = Object.keys(goals).some(
+      metric => goals[metric] !== originalGoals[metric]
+    );
+    setHasUnsavedChanges(changed);
+  }, [goals, originalGoals]);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      // Only need to call getStatsOverview - it has everything we need
+      const statsData = await campaignService.getStatsOverview();
+      setStatsOverview(statsData);
+
+      // Initialize goals state from stats overview
+      const goalsObj: Record<string, number> = {};
+
+      Object.entries(statsData).forEach(([metricName, stat]) => {
+        goalsObj[metricName] = stat.goal_value;
+      });
+
+      setGoals(goalsObj);
+      setOriginalGoals({ ...goalsObj });
+    } catch (error) {
+      console.error('❌ Error loading campaign data:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      showSnackbar('Failed to load campaign settings', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoalChange = (metric: string, value: string) => {
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue) && numValue >= 0) {
+      setGoals(prev => ({ ...prev, [metric]: numValue }));
+    } else if (value === '') {
+      setGoals(prev => ({ ...prev, [metric]: 0 }));
+    }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const changedMetrics = Object.keys(goals).filter(
+        metric => goals[metric] !== originalGoals[metric]
+      );
+
+      if (changedMetrics.length === 0) {
+        showSnackbar('No changes to save', 'error');
+        setSaving(false);
+        return;
+      }
+
+      // Update only changed metrics
+      await Promise.all(
+        changedMetrics.map(metric =>
+          campaignService.updateCampaignSetting(metric, goals[metric])
+        )
+      );
+
+      // Reload data to get updated stats
+      await loadData();
+
+      showSnackbar(
+        `Campaign settings updated for ${changedMetrics.length} metric(s)`,
+        'success'
+      );
+    } catch (error) {
+      console.error('Error saving campaign settings:', error);
+      showSnackbar('Failed to save campaign settings', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const showSnackbar = (message: string, severity: 'success' | 'error') => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const getProgressColor = (progress: number): string => {
+    if (progress >= 70) return '#10b981'; // green
+    if (progress >= 40) return '#fbbf24'; // yellow
+    return '#ef4444'; // red
+  };
+
+  const getProgressBadgeColor = (progress: number): 'success' | 'warning' | 'error' => {
+    if (progress >= 70) return 'success';
+    if (progress >= 40) return 'warning';
+    return 'error';
+  };
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '400px'
+        }}
+      >
+        <CircularProgress size={60} sx={{ color: '#10b981' }} />
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ maxWidth: 1800, mx: 'auto' }}>
+        {/* Header - Compact */}
+        <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ 
+              p: 1, 
+              borderRadius: 2, 
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              display: 'flex'
+            }}>
+              <TrendingUp size={24} color="white" />
+            </Box>
+            <Box>
+              <Typography
+                variant="h5"
+                sx={{
+                  fontWeight: 700,
+                  color: isDarkMode ? '#fff' : '#1f2937',
+                  letterSpacing: '-0.01em'
+                }}
+              >
+                Campaign Goals
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ color: isDarkMode ? '#94a3b8' : '#64748b' }}
+              >
+                Set and track your key metrics
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Unsaved Changes Indicator */}
+          {hasUnsavedChanges && (
+            <Chip 
+              label="Unsaved changes" 
+              color="info" 
+              size="small"
+              sx={{ fontWeight: 600 }}
+            />
+          )}
+        </Box>
+
+        {/* Metrics Grid - 4 columns */}
+        <Box sx={{ 
+          display: 'grid', 
+          gridTemplateColumns: { 
+            xs: '1fr', 
+            sm: 'repeat(2, 1fr)',
+            lg: 'repeat(4, 1fr)' 
+          },
+          gap: 2, 
+          mb: 3 
+        }}>
+        {Object.values(metricsConfig).map((metric, index) => {
+          const stat = statsOverview?.[metric.name as keyof CampaignStatsResponse];
+          const progress = stat?.progress || 0;
+          const currentValue = stat?.current_value || 0;
+
+          return (
+            <motion.div
+              key={metric.name}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+            >
+              <Card
+                sx={{
+                  position: 'relative',
+                  height: '100%',
+                  background: isDarkMode
+                    ? 'rgba(30, 41, 59, 0.6)'
+                    : 'rgba(255, 255, 255, 0.9)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid',
+                  borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
+                  borderRadius: 2,
+                  transition: 'all 0.2s',
+                  overflow: 'hidden',
+                  '&:hover': {
+                    borderColor: metric.color,
+                    boxShadow: `0 4px 20px ${metric.color}20`
+                  },
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '3px',
+                    background: metric.bgGradient,
+                  }
+                }}
+              >
+                  <CardContent sx={{ p: 2, position: 'relative', zIndex: 1 }}>
+                    {/* Icon and Badge */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                      <Avatar
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          background: metric.bgGradient,
+                          boxShadow: `0 4px 12px ${metric.color}40`
+                        }}
+                      >
+                        <metric.icon size={20} color="white" />
+                      </Avatar>
+
+                      <Chip
+                        label={`${progress.toFixed(0)}%`}
+                        color={getProgressBadgeColor(progress)}
+                        size="small"
+                        sx={{ fontWeight: 600, fontSize: '0.75rem' }}
+                      />
+                    </Box>
+
+                    {/* Metric Label */}
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        fontWeight: 600,
+                        color: isDarkMode ? '#fff' : '#1f2937',
+                        mb: 1
+                      }}
+                    >
+                      {metric.label}
+                    </Typography>
+
+                    {/* Current Value with Growth */}
+                    <Box sx={{ mb: 1.5 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: isDarkMode ? '#94a3b8' : '#64748b', fontSize: '0.7rem', mb: 0.5, display: 'block' }}
+                      >
+                        Current Value
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            fontWeight: 700,
+                            background: metric.bgGradient,
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            lineHeight: 1
+                          }}
+                        >
+                          {metric.name === 'rating'
+                            ? currentValue.toFixed(1)
+                            : currentValue.toLocaleString()}
+                          {metric.unit && (
+                            <Typography
+                              component="span"
+                              variant="caption"
+                              sx={{ color: isDarkMode ? '#94a3b8' : '#64748b', ml: 0.5 }}
+                            >
+                              {metric.unit}
+                            </Typography>
+                          )}
+                        </Typography>
+                        {stat && (
+                          <Chip
+                            label={`${stat.growth >= 0 ? '+' : ''}${stat.growth.toFixed(1)}%`}
+                            size="small"
+                            sx={{
+                              height: 18,
+                              fontSize: '0.65rem',
+                              bgcolor: stat.growth >= 0 
+                                ? 'rgba(16, 185, 129, 0.15)' 
+                                : 'rgba(239, 68, 68, 0.15)',
+                              color: stat.growth >= 0 ? '#10b981' : '#ef4444',
+                              fontWeight: 600,
+                              border: '1px solid',
+                              borderColor: stat.growth >= 0 
+                                ? 'rgba(16, 185, 129, 0.3)' 
+                                : 'rgba(239, 68, 68, 0.3)'
+                            }}
+                          />
+                        )}
+                      </Box>
+                    </Box>
+
+                    {/* Goal Input - Minimal */}
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Goal"
+                      size="small"
+                      value={goals[metric.name] || ''}
+                      onChange={(e) => handleGoalChange(metric.name, e.target.value)}
+                      inputProps={{ min: 0, step: metric.name === 'rating' ? 0.1 : 1 }}
+                      sx={{ 
+                        mb: 1.5,
+                        '& .MuiOutlinedInput-root': {
+                          '&.Mui-focused': {
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: metric.color
+                            }
+                          }
+                        },
+                        '& .MuiInputLabel-root.Mui-focused': {
+                          color: metric.color
+                        }
+                      }}
+                    />
+
+                    {/* Progress Bar - Clean */}
+                    <Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                        <Typography 
+                          variant="caption" 
+                          sx={{ 
+                            color: isDarkMode ? '#94a3b8' : '#64748b', 
+                            fontSize: '0.7rem' 
+                          }}
+                        >
+                          Progress
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{ 
+                            color: getProgressColor(progress), 
+                            fontWeight: 600, 
+                            fontSize: '0.7rem' 
+                          }}
+                        >
+                          {progress.toFixed(0)}%
+                        </Typography>
+                      </Box>
+                      <LinearProgress
+                        variant="determinate"
+                        value={Math.min(progress, 100)}
+                        sx={{
+                          height: 6,
+                          borderRadius: 1,
+                          bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.06)',
+                          '& .MuiLinearProgress-bar': {
+                            background: metric.bgGradient,
+                            borderRadius: 1
+                          }
+                        }}
+                      />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </motion.div>
+          );
+        })}
+        </Box>
+
+        {/* Save Button - Compact */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            variant="contained"
+            startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <Save size={16} />}
+            onClick={handleSave}
+            disabled={!hasUnsavedChanges || saving}
+            sx={{
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: 'white',
+              px: 3,
+              py: 1,
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              textTransform: 'none',
+              borderRadius: 1,
+              boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)'
+              },
+              '&:disabled': {
+                background: isDarkMode ? '#374151' : '#9ca3af',
+                color: isDarkMode ? '#6b7280' : 'white',
+                boxShadow: 'none'
+              }
+            }}
+          >
+            {saving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Box>
+  );
+};
+
+export default AdminCampaignSettings;
+

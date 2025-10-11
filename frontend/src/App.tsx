@@ -24,25 +24,21 @@ const Login = lazy(() => import('./pages/Login'));
 // Detail pages
 const ArticleDetail = lazy(() => import('./pages/ArticleDetail'));
 const VideoDetail = lazy(() => import('./pages/VideoDetail'));
-const ToolDetail = lazy(() => import('./pages/ToolDetail'));
-const BookDetail = lazy(() => import('./pages/BookDetail'));
-const EssentialDetail = lazy(() => import('./pages/EssentialDetail'));
-const PotDetail = lazy(() => import('./pages/PotDetail'));
-const AccessoryDetail = lazy(() => import('./pages/AccessoryDetail'));
-const SuggestionDetail = lazy(() => import('./pages/SuggestionDetail'));
+const TechniqueDetail = lazy(() => import('./pages/TechniqueDetail'));
 
 // Admin pages
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
-const AdminTools = lazy(() => import('./pages/admin/AdminTools'));
-const AdminEssentials = lazy(() => import('./pages/admin/AdminEssentials'));
-const AdminPots = lazy(() => import('./pages/admin/AdminPots'));
-const AdminAccessories = lazy(() => import('./pages/admin/AdminAccessories'));
-const AdminAbout = lazy(() => import('./pages/admin/AdminAbout'));
 const AdminAboutUs = lazy(() => import('./pages/AdminAboutUs'));
-const AdminArticles = lazy(() => import('./pages/admin/AdminArticles'));
-const AdminVideos = lazy(() => import('./pages/admin/AdminVideos'));
-const AdminBooks = lazy(() => import('./pages/admin/AdminBooks'));
-const AdminSuggestions = lazy(() => import('./pages/admin/AdminSuggestions'));
+// TODO: Create these admin pages when needed
+// const AdminTools = lazy(() => import('./pages/admin/AdminTools'));
+// const AdminEssentials = lazy(() => import('./pages/admin/AdminEssentials'));
+// const AdminPots = lazy(() => import('./pages/admin/AdminPots'));
+// const AdminAccessories = lazy(() => import('./pages/admin/AdminAccessories'));
+// const AdminAbout = lazy(() => import('./pages/admin/AdminAbout'));
+// const AdminArticles = lazy(() => import('./pages/admin/AdminArticles'));
+// const AdminVideos = lazy(() => import('./pages/admin/AdminVideos'));
+// const AdminBooks = lazy(() => import('./pages/admin/AdminBooks'));
+// const AdminSuggestions = lazy(() => import('./pages/admin/AdminSuggestions'));
 
 function App() {
   return (
@@ -52,6 +48,66 @@ function App() {
           <Router>
             <Routes>
               <Route path="/login" element={<Login />} />
+              
+              {/* Admin Routes - No Layout */}
+              <Route path="/admin" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/about-us" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminAboutUs />
+                </ProtectedRoute>
+              } />
+              {/* TODO: Uncomment these routes when admin pages are created */}
+              {/* <Route path="/admin/tools" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminTools />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/essentials" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminEssentials />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/pots" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminPots />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/accessories" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminAccessories />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/about" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminAbout />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/articles" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminArticles />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/videos" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminVideos />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/books" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminBooks />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/suggestions" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminSuggestions />
+                </ProtectedRoute>
+              } /> */}
+              
+              {/* Regular Routes - With Layout */}
               <Route path="/*" element={
                 <Layout>
                   <Suspense fallback={<LoadingSpinner />}>
@@ -66,73 +122,12 @@ function App() {
                         <Route path="/suggestions" element={<Suggestions />} />
                         <Route path="/videos" element={<Videos />} />
                         <Route path="/books" element={<Books />} />
-                      <Route path="/about-us" element={<AboutUs />} />
-                      
-                      {/* Detail Pages */}
-                      <Route path="/article/:slug" element={<ArticleDetail />} />
-                      <Route path="/video/:slug" element={<VideoDetail />} />
-                      <Route path="/tool/:slug" element={<ToolDetail />} />
-                      <Route path="/book/:slug" element={<BookDetail />} />
-                      <Route path="/essential/:slug" element={<EssentialDetail />} />
-                      <Route path="/pot/:slug" element={<PotDetail />} />
-                      <Route path="/accessory/:slug" element={<AccessoryDetail />} />
-                      <Route path="/suggestion/:slug" element={<SuggestionDetail />} />
-                      
-                      <Route path="/admin" element={
-                          <ProtectedRoute requireAdmin={true}>
-                            <AdminDashboard />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/admin/tools" element={
-                          <ProtectedRoute requireAdmin={true}>
-                            <AdminTools />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/admin/essentials" element={
-                          <ProtectedRoute requireAdmin={true}>
-                            <AdminEssentials />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/admin/pots" element={
-                          <ProtectedRoute requireAdmin={true}>
-                            <AdminPots />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/admin/accessories" element={
-                          <ProtectedRoute requireAdmin={true}>
-                            <AdminAccessories />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/admin/about" element={
-                          <ProtectedRoute requireAdmin={true}>
-                            <AdminAbout />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/admin/about-us" element={
-                          <ProtectedRoute requireAdmin={true}>
-                            <AdminAboutUs />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/admin/articles" element={
-                          <ProtectedRoute requireAdmin={true}>
-                            <AdminArticles />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/admin/videos" element={
-                          <ProtectedRoute requireAdmin={true}>
-                            <AdminVideos />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/admin/books" element={
-                          <ProtectedRoute requireAdmin={true}>
-                            <AdminBooks />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/admin/suggestions" element={
-                          <ProtectedRoute requireAdmin={true}>
-                            <AdminSuggestions />
-                          </ProtectedRoute>
-                        } />
+                        <Route path="/about-us" element={<AboutUs />} />
+                        
+                        {/* Detail Pages */}
+                        <Route path="/article/:slug" element={<ArticleDetail />} />
+                        <Route path="/video/:slug" element={<VideoDetail />} />
+                        <Route path="/technique/:slug" element={<TechniqueDetail />} />
                       </Routes>
                     </AnimatePresence>
                   </Suspense>

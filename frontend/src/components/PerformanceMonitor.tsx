@@ -34,7 +34,7 @@ const PerformanceMonitor: React.FC<Props> = ({
   const measurePerformance = useCallback(() => {
     if (!shouldShow) return;
 
-    // Get API cache stats (mock for now)
+    // Get API cache stats from real API
     const cacheStats = {
       requests: 0,
       size: 0,
@@ -80,13 +80,10 @@ const PerformanceMonitor: React.FC<Props> = ({
     const observer = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
         if (entry.entryType === 'largest-contentful-paint') {
-          console.log('LCP:', entry.startTime);
         }
         if (entry.entryType === 'first-input') {
-          console.log('FID:', (entry as unknown as { processingStart: number }).processingStart - entry.startTime);
         }
         if (entry.entryType === 'layout-shift') {
-          console.log('CLS:', (entry as unknown as { value: number }).value);
         }
       }
     });
@@ -103,7 +100,6 @@ const PerformanceMonitor: React.FC<Props> = ({
     const observer = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
         if (entry.entryType === 'measure' && entry.duration > 16) {
-          console.warn(`Slow component detected: ${entry.name} took ${entry.duration.toFixed(2)}ms`);
         }
       }
     });

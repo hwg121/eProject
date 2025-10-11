@@ -26,58 +26,22 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
     order: 0
   },
   { 
-    path: '/techniques', 
-    icon: Zap, 
-    label: 'Techniques', 
-    emoji: '⚡', 
-    color: 'from-yellow-500 to-orange-500',
-    isVisible: true,
-    order: 1
-  },
-  { 
-    path: '/tools', 
-    icon: Hammer, 
-    label: 'Tools', 
-    emoji: '🔨', 
-    color: 'from-blue-500 to-indigo-500',
-    isVisible: true,
-    order: 2
-  },
-  { 
     path: '/essentials', 
     icon: Leaf, 
     label: 'Essentials', 
     emoji: '🍃', 
     color: 'from-green-500 to-emerald-500',
     isVisible: true,
-    order: 3
+    order: 1
   },
   { 
-    path: '/pots', 
-    icon: FlowerPot, 
-    label: 'Pots', 
-    emoji: '🪴', 
-    color: 'from-amber-500 to-orange-500',
+    path: '/techniques', 
+    icon: Zap, 
+    label: 'Techniques', 
+    emoji: '⚡', 
+    color: 'from-yellow-500 to-orange-500',
     isVisible: true,
-    order: 4
-  },
-  { 
-    path: '/accessories', 
-    icon: Palette, 
-    label: 'Accessories', 
-    emoji: '🎨', 
-    color: 'from-pink-500 to-rose-500',
-    isVisible: true,
-    order: 5
-  },
-  { 
-    path: '/suggestions', 
-    icon: Award, 
-    label: 'Suggestions', 
-    emoji: '🏆', 
-    color: 'from-purple-500 to-violet-500',
-    isVisible: true,
-    order: 6
+    order: 2
   },
   { 
     path: '/videos', 
@@ -86,7 +50,34 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
     emoji: '▶️', 
     color: 'from-red-500 to-pink-500',
     isVisible: true,
-    order: 7
+    order: 3
+  },
+  { 
+    path: '/tools', 
+    icon: Hammer, 
+    label: 'Tools', 
+    emoji: '🔨', 
+    color: 'from-blue-500 to-indigo-500',
+    isVisible: true,
+    order: 4
+  },
+  { 
+    path: '/pots', 
+    icon: FlowerPot, 
+    label: 'Pots', 
+    emoji: '🪴', 
+    color: 'from-amber-500 to-orange-500',
+    isVisible: true,
+    order: 5
+  },
+  { 
+    path: '/accessories', 
+    icon: Palette, 
+    label: 'Accessories', 
+    emoji: '🎨', 
+    color: 'from-pink-500 to-rose-500',
+    isVisible: true,
+    order: 6
   },
   { 
     path: '/books', 
@@ -94,6 +85,15 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
     label: 'Books', 
     emoji: '📚', 
     color: 'from-indigo-500 to-purple-500',
+    isVisible: true,
+    order: 7
+  },
+  { 
+    path: '/suggestions', 
+    icon: Award, 
+    label: 'Suggestions', 
+    emoji: '🏆', 
+    color: 'from-purple-500 to-violet-500',
     isVisible: true,
     order: 8
   },

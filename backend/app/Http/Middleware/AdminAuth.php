@@ -10,13 +10,11 @@ class AdminAuth
 {
     /**
      * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Get user from request (set by ApiAuth middleware)
-        $user = $request->get('auth_user');
+        // Get user from request (set by auth:sanctum middleware)
+        $user = $request->user();
 
         if (!$user) {
             return response()->json([
@@ -26,11 +24,11 @@ class AdminAuth
             ], 401);
         }
 
-        // Check if user has admin role
-        if ($user['role'] !== 'admin') {
+        // Check if user has admin or moderator role
+        if (!in_array($user->role, ['admin', 'moderator'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'Access denied. Admin privileges required.',
+                'message' => 'Access denied. Admin or Moderator privileges required.',
                 'error' => 'INSUFFICIENT_PRIVILEGES'
             ], 403);
         }

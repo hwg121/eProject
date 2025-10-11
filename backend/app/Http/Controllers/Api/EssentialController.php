@@ -4,79 +4,164 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Essential;
-use App\Http\Resources\EssentialResource;
 use Illuminate\Http\Request;
 
 class EssentialController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Essential::query();
+        try {
+            $query = Essential::query();
 
-        if ($request->has('type')) {
-            $query->where('type', $request->type);
+            // Filter by status
+            if ($request->has('status')) {
+                $query->where('status', $request->status);
+            } else {
+                $query->where('status', 'published');
+            }
+
+            // Search
+            if ($request->has('search') && $request->search) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
+
+            // Sort
+            $sortBy = $request->get('sortBy', 'created_at');
+            $sortOrder = $request->get('sortOrder', 'desc');
+            $query->orderBy($sortBy, $sortOrder);
+
+            // Pagination
+            $perPage = min($request->get('per_page', 15), 50);
+            $essentials = $query->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => $essentials->items(),
+                'meta' => [
+                    'current_page' => $essentials->currentPage(),
+                    'last_page' => $essentials->lastPage(),
+                    'per_page' => $essentials->perPage(),
+                    'total' => $essentials->total(),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching essentials: ' . $e->getMessage()
+            ], 500);
         }
-
-        if ($request->has('season')) {
-            $query->where('season', $request->season);
-        }
-
-        $perPage = $request->get('per_page', 10);
-        $essentials = $query->paginate($perPage);
-
-        return EssentialResource::collection($essentials);
     }
 
     public function show($id)
     {
-        $essential = Essential::findOrFail($id);
-        return new EssentialResource($essential);
+        try {
+            $essential = Essential::findOrFail($id);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $essential
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching essential: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'featured_image' => 'nullable|string',
-            'category' => 'nullable|string|max:100',
-            'tags' => 'nullable|string',
-            'is_featured' => 'boolean',
-            'views' => 'integer|min:0',
-            'rating' => 'numeric|min:0|max:5',
-        ]);
+        try {
+            $validated = $request->validate([
+                'type' => 'required|string|max:255',
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'content' => 'nullable|string',
+                'image' => 'nullable|string',
+                'cover' => 'nullable|string',
+                'status' => 'required|in:draft,published',
+                'views' => 'nullable|integer|min:0',
+                'likes' => 'nullable|integer|min:0',
+                'brand' => 'nullable|string',
+                'material' => 'nullable|string',
+                'size' => 'nullable|string',
+                'color' => 'nullable|string',
+                'is_waterproof' => 'nullable|boolean',
+                'is_durable' => 'nullable|boolean',
+                'season' => 'nullable|string',
+            ]);
 
-        $Essential = Essential::create($request->all());
-        return new EssentialResource($Essential);
+            $essential = Essential::create($validated);
+
+            return response()->json([
+                'success' => true,
+                'data' => $essential
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error creating essential: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function update(Request $request, $id)
     {
-        $Essential = Essential::findOrFail($id);
-        
-        $request->validate([
-            'title' => 'sometimes|required|string|max:255',
-            'description' => 'nullable|string',
-            'featured_image' => 'nullable|string',
-            'category' => 'nullable|string|max:100',
-            'tags' => 'nullable|string',
-            'is_featured' => 'boolean',
-            'views' => 'integer|min:0',
-            'rating' => 'numeric|min:0|max:5',
-        ]);
+        try {
+            $essential = Essential::findOrFail($id);
 
-        $Essential->update($request->all());
-        return new EssentialResource($Essential);
+            $validated = $request->validate([
+                'type' => 'sometimes|string|max:255',
+                'name' => 'sometimes|string|max:255',
+                'description' => 'nullable|string',
+                'content' => 'nullable|string',
+                'image' => 'nullable|string',
+                'cover' => 'nullable|string',
+                'status' => 'sometimes|in:draft,published',
+                'views' => 'nullable|integer|min:0',
+                'likes' => 'nullable|integer|min:0',
+                'brand' => 'nullable|string',
+                'material' => 'nullable|string',
+                'size' => 'nullable|string',
+                'color' => 'nullable|string',
+                'is_waterproof' => 'nullable|boolean',
+                'is_durable' => 'nullable|boolean',
+                'season' => 'nullable|string',
+            ]);
+
+            $essential->update($validated);
+
+            return response()->json([
+                'success' => true,
+                'data' => $essential
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating essential: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function destroy($id)
     {
-        $Essential = Essential::findOrFail($id);
-        $Essential->delete();
-        
-        return response()->json([
-            'message' => 'Essential deleted successfully'
-        ], 200);
-    }
+        try {
+            $essential = Essential::findOrFail($id);
+            $essential->delete();
 
+            return response()->json([
+                'success' => true,
+                'message' => 'Essential deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting essential: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

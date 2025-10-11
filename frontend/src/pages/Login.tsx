@@ -7,34 +7,49 @@ import { useTheme } from '../contexts/ThemeContext';
 import Card from '../components/UI/Card';
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState('admin@greengroves.com'); // Pre-fill for testing
-  const [password, setPassword] = useState('admin123'); // Pre-fill for testing
+  const [email, setEmail] = useState(''); // Empty for production
+  const [password, setPassword] = useState(''); // Empty for production
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const { login, isLoading } = useAuth();
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
 
+  // Email validation helper
+  const validateEmail = (email: string): boolean => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
-    console.log('Form submitted with:', { email, password }); // Debug log
-    
-    if (!email || !password) {
+    // Validation
+    if (!email.trim() || !password.trim()) {
       setError('Vui lòng nhập cả email và mật khẩu');
       return;
     }
     
+    if (!validateEmail(email)) {
+      setError('Email không đúng định dạng');
+      return;
+    }
+    
+    if (password.length < 6) {
+      setError('Mật khẩu phải có ít nhất 6 ký tự');
+      return;
+    }
+    
     try {
-      const success = await login(email, password);
-      console.log('Login result:', success); // Debug log
+      const result = await login(email, password);
+      console.log('Login result:', result); // Debug log
       
-      if (success) {
+      if (result.success) {
         console.log('Login successful, navigating to admin...'); // Debug log
         navigate('/admin');
       } else {
-        setError('Thông tin đăng nhập không đúng. Vui lòng sử dụng: admin@greengroves.com / admin123');
+        setError(result.error || 'Thông tin đăng nhập không đúng. Vui lòng sử dụng: admin@greengroves.com / password123');
       }
     } catch (error) {
       console.error('Login error:', error);
