@@ -39,6 +39,12 @@ class ActivityLogController extends Controller
                 ]
             ]);
         } catch (\Exception $e) {
+            \Log::error('ActivityLogController::index failed', [
+                'error' => $e->getMessage(),
+                'request' => $request->all(),
+                'user_id' => auth()->id(),
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch activity logs',
@@ -65,6 +71,12 @@ class ActivityLogController extends Controller
                 'data' => $logs
             ]);
         } catch (\Exception $e) {
+            \Log::error('ActivityLogController::getPublicActivities failed', [
+                'error' => $e->getMessage(),
+                'limit' => $request->input('limit', 20),
+                'user_id' => auth()->id(),
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch public activities',
@@ -91,6 +103,12 @@ class ActivityLogController extends Controller
                 'data' => $logs
             ]);
         } catch (\Exception $e) {
+            \Log::error('ActivityLogController::getSecurityActivities failed', [
+                'error' => $e->getMessage(),
+                'limit' => $request->input('limit', 20),
+                'user_id' => auth()->id(),
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch security activities',
@@ -116,6 +134,12 @@ class ActivityLogController extends Controller
                 'data' => $logs
             ]);
         } catch (\Exception $e) {
+            \Log::error('ActivityLogController::getRecentActivities failed', [
+                'error' => $e->getMessage(),
+                'limit' => $request->input('limit', 20),
+                'user_id' => auth()->id(),
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch recent activities',
@@ -141,6 +165,12 @@ class ActivityLogController extends Controller
                 'deleted_count' => $deletedCount
             ]);
         } catch (\Exception $e) {
+            \Log::error('ActivityLogController::clearOldLogs failed', [
+                'error' => $e->getMessage(),
+                'days' => $request->input('days', 90),
+                'user_id' => auth()->id(),
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to clear old logs',
