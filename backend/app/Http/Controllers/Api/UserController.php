@@ -27,48 +27,61 @@ class UserController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = User::query();
+        try {
+            $query = User::query();
 
-        // Search
-        if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%")
-                  ->orWhere('company', 'like', "%{$search}%");
-            });
+            // Search
+            if ($request->has('search') && $request->search) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhere('phone', 'like', "%{$search}%")
+                      ->orWhere('company', 'like', "%{$search}%");
+                });
+            }
+
+            // Filter by role
+            if ($request->has('role') && $request->role) {
+                $query->where('role', $request->role);
+            }
+
+            // Filter by status
+            if ($request->has('status') && $request->status) {
+                $query->where('status', $request->status);
+            }
+
+            // Sort
+            $sortBy = $request->get('sortBy', 'created_at');
+            $sortOrder = $request->get('sortOrder', 'desc');
+            $query->orderBy($sortBy, $sortOrder);
+
+            // Paginate
+            $perPage = $request->get('per_page', 15);
+            $users = $query->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => $users->items(),
+                'meta' => [
+                    'current_page' => $users->currentPage(),
+                    'last_page' => $users->lastPage(),
+                    'per_page' => $users->perPage(),
+                    'total' => $users->total(),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('UserController::index failed', [
+                'error' => $e->getMessage(),
+                'request' => $request->all(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching users: ' . $e->getMessage()
+            ], 500);
         }
-
-        // Filter by role
-        if ($request->has('role') && $request->role) {
-            $query->where('role', $request->role);
-        }
-
-        // Filter by status
-        if ($request->has('status') && $request->status) {
-            $query->where('status', $request->status);
-        }
-
-        // Sort
-        $sortBy = $request->get('sortBy', 'created_at');
-        $sortOrder = $request->get('sortOrder', 'desc');
-        $query->orderBy($sortBy, $sortOrder);
-
-        // Paginate
-        $perPage = $request->get('per_page', 15);
-        $users = $query->paginate($perPage);
-
-        return response()->json([
-            'success' => true,
-            'data' => $users->items(),
-            'meta' => [
-                'current_page' => $users->currentPage(),
-                'last_page' => $users->lastPage(),
-                'per_page' => $users->perPage(),
-                'total' => $users->total(),
-            ]
-        ]);
     }
 
     /**
@@ -157,6 +170,12 @@ class UserController extends Controller
                 'errors' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
+            \Log::error('UserController::store failed', [
+                'error' => $e->getMessage(),
+                'request' => $request->except(['password', 'security_password']),
+                'user_id' => auth()->id(),
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Error creating user: ' . $e->getMessage()
@@ -169,12 +188,25 @@ class UserController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        $user = User::findOrFail($id);
+        try {
+            $user = User::findOrFail($id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $user
-        ]);
+            return response()->json([
+                'success' => true,
+                'data' => $user
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('UserController::show failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
     }
 
     /**
@@ -289,6 +321,13 @@ class UserController extends Controller
                 'errors' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
+            \Log::error('UserController::update failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'request' => $request->except(['password']),
+                'user_id' => auth()->id(),
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'User update failed: ' . $e->getMessage()
@@ -347,6 +386,12 @@ class UserController extends Controller
                 'message' => 'User not found'
             ], 404);
         } catch (\Exception $e) {
+            \Log::error('UserController::destroy failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to delete user: ' . $e->getMessage()
@@ -359,12 +404,31 @@ class UserController extends Controller
      */
     public function profile(Request $request): JsonResponse
     {
-        $user = $request->user();
+        try {
+            $user = $request->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not authenticated'
+                ], 401);
+            }
 
-        return response()->json([
-            'success' => true,
-            'data' => $user
-        ]);
+            return response()->json([
+                'success' => true,
+                'data' => $user
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('UserController::profile failed', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching profile: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
