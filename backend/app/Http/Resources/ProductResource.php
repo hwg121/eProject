@@ -21,8 +21,8 @@ class ProductResource extends JsonResource
             'slug' => $this->slug,
             'description' => $this->description,
             'category' => $this->category,
-            'subcategory' => $this->subcategory,
-            'price' => $this->price,
+            'subcategory' => $this->subcategory ?? '', // Ensure always string
+            'price' => $this->price ? (float) $this->price : 0.0, // Ensure always float
             'brand' => $this->brand,
             'material' => $this->material,
             'size' => $this->size,
