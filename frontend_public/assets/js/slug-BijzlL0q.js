@@ -1,1 +1,0 @@
-function e(e){return e.toLowerCase().trim().replace(/[^\w\s-]/g,"").replace(/[\s_-]+/g,"-").replace(/^-+|-+$/g,"")}function r(r,t,n="slug",u="title"){return r.find(r=>{const c=r[n],o=r[u];return c===t||!(!o||!function(r,t){return r===e(t)}(t,o))})}export{r as f,e as g};
