@@ -18,6 +18,7 @@ import {
 import { useTheme } from '../../contexts/ThemeContext';
 import Toast from '../../components/UI/Toast';
 import { apiClient } from '../../services/api';
+import { validateRequired, validatePassword, hasErrors } from '../../utils/validation';
 
 const AdminSecuritySettings: React.FC = () => {
   const { isDarkMode } = useTheme();
@@ -64,28 +65,34 @@ const AdminSecuritySettings: React.FC = () => {
   const validateForm = (): boolean => {
     const newErrors: {[key: string]: string} = {};
 
-    if (!formData.accountPassword.trim()) {
-      newErrors.accountPassword = 'Account password is required';
+    // Account Password - required only
+    const accountPasswordError = validateRequired(formData.accountPassword, 'Account password');
+    if (accountPasswordError) {
+      newErrors.accountPassword = accountPasswordError;
     }
 
-    if (!formData.currentSecurityPassword.trim()) {
-      newErrors.currentSecurityPassword = 'Current security password is required';
+    // Current Security Password - required only
+    const currentPasswordError = validateRequired(formData.currentSecurityPassword, 'Current security password');
+    if (currentPasswordError) {
+      newErrors.currentSecurityPassword = currentPasswordError;
     }
 
-    if (!formData.newSecurityPassword.trim()) {
-      newErrors.newSecurityPassword = 'New security password is required';
-    } else if (formData.newSecurityPassword.length < 8) {
-      newErrors.newSecurityPassword = 'New security password must be at least 8 characters';
+    // New Security Password - required + min 8 chars
+    const newPasswordError = validatePassword(formData.newSecurityPassword);
+    if (newPasswordError) {
+      newErrors.newSecurityPassword = newPasswordError;
     }
 
-    if (!formData.confirmSecurityPassword.trim()) {
-      newErrors.confirmSecurityPassword = 'Please confirm new security password';
+    // Confirm Password - required + must match
+    const confirmPasswordError = validateRequired(formData.confirmSecurityPassword, 'Confirm new security password');
+    if (confirmPasswordError) {
+      newErrors.confirmSecurityPassword = confirmPasswordError;
     } else if (formData.newSecurityPassword !== formData.confirmSecurityPassword) {
       newErrors.confirmSecurityPassword = 'Passwords do not match';
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return !hasErrors(newErrors);
   };
 
   const handleSubmit = async () => {
