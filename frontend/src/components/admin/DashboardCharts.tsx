@@ -108,7 +108,7 @@ const DashboardCharts: React.FC<DashboardChartsProps> = ({ stats, onNavigate }) 
     );
   };
 
-  const DonutChart = ({ data }: { data: typeof contentDistribution }) => {
+  const DonutChart = ({ data, onNavigate }: { data: typeof contentDistribution, onNavigate?: (section: string) => void }) => {
     let cumulativePercentage = 0;
     const totalItems = data.reduce((sum, item) => sum + item.count, 0);
     const [hoveredSegment, setHoveredSegment] = React.useState<string | null>(null);
@@ -148,7 +148,10 @@ const DashboardCharts: React.FC<DashboardChartsProps> = ({ stats, onNavigate }) 
                       filter: hoveredSegment === item.type ? 'brightness(1.2)' : 'brightness(1)',
                       opacity: hoveredSegment && hoveredSegment !== item.type ? 0.6 : 1
                     }}
-                    onClick={() => onNavigate && onNavigate(item.navigate)}
+                    onClick={() => {
+                      console.log('Chart segment clicked:', item.type, item.navigate);
+                      onNavigate && onNavigate(item.navigate);
+                    }}
                     onMouseEnter={() => setHoveredSegment(item.type)}
                     onMouseLeave={() => setHoveredSegment(null)}
                   />
@@ -231,7 +234,7 @@ const DashboardCharts: React.FC<DashboardChartsProps> = ({ stats, onNavigate }) 
             <Divider sx={{ mb: 3, borderColor: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }} />
 
         <div className="flex items-center justify-center mb-6">
-          <DonutChart data={contentDistribution} />
+          <DonutChart data={contentDistribution} onNavigate={onNavigate} />
         </div>
 
         <div className="space-y-3">

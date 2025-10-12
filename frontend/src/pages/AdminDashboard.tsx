@@ -149,6 +149,7 @@ const AdminDashboard: React.FC = () => {
 
   // Navigation handler for Quick Actions
   const handleSectionChange = (section: string, action?: string) => {
+    console.log('handleSectionChange called with:', section, action);
     if (section === 'content') {
       if (action === 'create-article') {
         setActiveTab('content-create');
