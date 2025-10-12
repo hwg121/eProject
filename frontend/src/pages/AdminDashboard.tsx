@@ -159,6 +159,13 @@ const AdminDashboard: React.FC = () => {
       } else if (action === 'create-product') {
         setActiveTab('product-create');
       }
+    } else if (section === 'content-list') {
+      setActiveTab('content-list');
+    } else if (section === 'product-list') {
+      setActiveTab('product-list');
+    } else {
+      // Direct tab navigation
+      setActiveTab(section);
     }
   };
 
