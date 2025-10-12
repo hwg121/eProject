@@ -210,35 +210,38 @@ class CampaignSettingController extends Controller
                     return (float) ($articleViews + $videoViews + $productViews);
 
                 case 'content':
-                    // Total content items
-                    $articles = Schema::hasTable('articles') ? Article::count() : 0;
-                    $videos = Schema::hasTable('videos') ? Video::count() : 0;
-                    $products = Schema::hasTable('products') ? Product::count() : 0;
+                    // Total content items (only published)
+                    $articles = Schema::hasTable('articles') ? Article::where('status', 'published')->count() : 0;
+                    $videos = Schema::hasTable('videos') ? Video::where('status', 'published')->count() : 0;
+                    $products = Schema::hasTable('products') ? Product::where('status', 'published')->count() : 0;
                     return (float) ($articles + $videos + $products);
 
                 case 'rating':
-                    // Average rating across all content
+                    // Average rating across all published content
                     $allContent = collect();
                     
-                    // Get articles with ratings
+                    // Get articles with ratings (only published)
                     if (Schema::hasTable('articles')) {
-                        $articles = Article::whereNotNull('rating')
+                        $articles = Article::where('status', 'published')
+                            ->whereNotNull('rating')
                             ->where('rating', '>', 0)
                             ->pluck('rating');
                         $allContent = $allContent->merge($articles);
                     }
                     
-                    // Get videos with ratings
+                    // Get videos with ratings (only published)
                     if (Schema::hasTable('videos')) {
-                        $videos = Video::whereNotNull('rating')
+                        $videos = Video::where('status', 'published')
+                            ->whereNotNull('rating')
                             ->where('rating', '>', 0)
                             ->pluck('rating');
                         $allContent = $allContent->merge($videos);
                     }
                     
-                    // Get products with ratings
+                    // Get products with ratings (only published)
                     if (Schema::hasTable('products')) {
-                        $products = Product::whereNotNull('rating')
+                        $products = Product::where('status', 'published')
+                            ->whereNotNull('rating')
                             ->where('rating', '>', 0)
                             ->pluck('rating');
                         $allContent = $allContent->merge($products);

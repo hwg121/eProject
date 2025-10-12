@@ -30,11 +30,19 @@ class VideoController extends Controller
             $query = Video::query();
 
             // Filter by status
-            // Admin can see all, but if status param provided, filter by it
-            if ($request->has('status') && $request->status !== 'all') {
-                $query->where('status', $request->status);
+            // Check if user is authenticated admin/moderator
+            $isAdmin = auth()->check() && in_array(auth()->user()->role, ['admin', 'moderator']);
+            
+            if ($isAdmin) {
+                // Admin can see all, but if status param provided, filter by it
+                if ($request->has('status') && $request->status !== 'all') {
+                    $query->where('status', $request->status);
+                }
+                // If no status param or status=all, show all videos for admin
+            } else {
+                // Public access: only show published videos
+                $query->where('status', 'published');
             }
-            // If no status param or status=all, show all videos for admin
 
             // Search
             if ($request->has('search') && $request->search) {
@@ -82,7 +90,16 @@ class VideoController extends Controller
     public function show($id)
     {
         try {
-            $video = Video::findOrFail($id);
+            // Check if user is authenticated admin/moderator
+            $isAdmin = auth()->check() && in_array(auth()->user()->role, ['admin', 'moderator']);
+            
+            if ($isAdmin) {
+                // Admin can view any video
+                $video = Video::findOrFail($id);
+            } else {
+                // Public can only view published videos
+                $video = Video::where('status', 'published')->findOrFail($id);
+            }
             
             // Use atomic increment to prevent race conditions
             Video::where('id', $id)->increment('views');

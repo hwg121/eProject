@@ -34,11 +34,19 @@ class ArticleController extends Controller
             $query = Article::query();
 
             // Filter by status
-            // Admin can see all, but if status param provided, filter by it
-            if ($request->has('status') && $request->status !== 'all') {
-                $query->where('status', $request->status);
+            // Check if user is authenticated admin/moderator
+            $isAdmin = auth()->check() && in_array(auth()->user()->role, ['admin', 'moderator']);
+            
+            if ($isAdmin) {
+                // Admin can see all, but if status param provided, filter by it
+                if ($request->has('status') && $request->status !== 'all') {
+                    $query->where('status', $request->status);
+                }
+                // If no status param or status=all, show all articles for admin
+            } else {
+                // Public access: only show published articles
+                $query->where('status', 'published');
             }
-            // If no status param or status=all, show all articles for admin
 
             // Filter by category
             if ($request->has('category_id')) {
@@ -104,7 +112,16 @@ class ArticleController extends Controller
     public function show($id)
     {
         try {
-            $article = Article::findOrFail($id);
+            // Check if user is authenticated admin/moderator
+            $isAdmin = auth()->check() && in_array(auth()->user()->role, ['admin', 'moderator']);
+            
+            if ($isAdmin) {
+                // Admin can view any article
+                $article = Article::findOrFail($id);
+            } else {
+                // Public can only view published articles
+                $article = Article::where('status', 'published')->findOrFail($id);
+            }
             
             // Use atomic increment to prevent race conditions
             Article::where('id', $id)->increment('views');
