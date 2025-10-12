@@ -256,9 +256,9 @@ const AdminSecuritySettings: React.FC = () => {
         }}
       >
         <CardContent sx={{ p: 4 }}>
-          <Grid container spacing={3}>
-            {/* Account Password */}
-            <Grid item xs={12}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {/* Account Password Section */}
+            <Box>
               <Typography
                 variant="subtitle1"
                 sx={{
@@ -296,14 +296,12 @@ const AdminSecuritySettings: React.FC = () => {
                   ),
                 }}
               />
-            </Grid>
+            </Box>
 
-            <Grid item xs={12}>
-              <Divider sx={{ borderColor: isDarkMode ? 'rgba(75, 85, 99, 0.3)' : 'rgba(0, 0, 0, 0.12)' }} />
-            </Grid>
+            <Divider sx={{ borderColor: isDarkMode ? 'rgba(75, 85, 99, 0.3)' : 'rgba(0, 0, 0, 0.12)' }} />
 
-            {/* Current Security Password */}
-            <Grid item xs={12}>
+            {/* Current Security Password Section */}
+            <Box>
               <Typography
                 variant="subtitle1"
                 sx={{
@@ -341,14 +339,12 @@ const AdminSecuritySettings: React.FC = () => {
                   ),
                 }}
               />
-            </Grid>
+            </Box>
 
-            <Grid item xs={12}>
-              <Divider sx={{ borderColor: isDarkMode ? 'rgba(75, 85, 99, 0.3)' : 'rgba(0, 0, 0, 0.12)' }} />
-            </Grid>
+            <Divider sx={{ borderColor: isDarkMode ? 'rgba(75, 85, 99, 0.3)' : 'rgba(0, 0, 0, 0.12)' }} />
 
-            {/* New Security Password */}
-            <Grid item xs={12}>
+            {/* New Security Password Section */}
+            <Box>
               <Typography
                 variant="subtitle1"
                 sx={{
@@ -386,10 +382,10 @@ const AdminSecuritySettings: React.FC = () => {
                   ),
                 }}
               />
-            </Grid>
+            </Box>
 
-            {/* Confirm New Security Password */}
-            <Grid item xs={12}>
+            {/* Confirm New Security Password Section */}
+            <Box>
               <TextField
                 fullWidth
                 type="password"
@@ -400,11 +396,10 @@ const AdminSecuritySettings: React.FC = () => {
                 helperText={errors.confirmSecurityPassword || 'Re-enter the new security password to confirm'}
                 sx={textFieldStyles}
               />
-            </Grid>
+            </Box>
 
             {/* Action Buttons */}
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
                 <Button
                   variant="outlined"
                   onClick={() => {
@@ -446,9 +441,8 @@ const AdminSecuritySettings: React.FC = () => {
                 >
                   {loading ? 'Updating...' : 'Update Security Password'}
                 </Button>
-              </Box>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </CardContent>
       </Card>
 
