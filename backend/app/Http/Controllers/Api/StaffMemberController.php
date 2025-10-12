@@ -193,9 +193,14 @@ class StaffMemberController extends Controller
     public function reorder(Request $request): JsonResponse
     {
         try {
+            // Log incoming data for debugging
+            Log::info('Staff reorder request', [
+                'data' => $request->all()
+            ]);
+
             $validated = $request->validate([
                 'orders' => 'required|array',
-                'orders.*.id' => 'required|exists:staff_members,id',
+                'orders.*.id' => 'required|integer|exists:staff_members,id',
                 'orders.*.display_order' => 'required|integer',
             ]);
 
@@ -205,10 +210,29 @@ class StaffMemberController extends Controller
             }
 
             return response()->json([
+                'success' => true,
                 'message' => 'Staff members reordered successfully'
             ], 200);
-        } catch (\Exception $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Staff reorder validation failed', [
+                'errors' => $e->errors(),
+                'data' => $request->all()
+            ]);
+            
             return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Staff reorder failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'data' => $request->all()
+            ]);
+            
+            return response()->json([
+                'success' => false,
                 'message' => 'Error reordering staff members: ' . $e->getMessage()
             ], 500);
         }

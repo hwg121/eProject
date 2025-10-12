@@ -243,39 +243,34 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <motion.button
-                  onClick={() => item.children ? toggleSection(item.id) : handleItemClick(item.id)}
-                  className={`group relative w-full flex items-center justify-between px-3 py-3 rounded-lg font-medium transition-all duration-300 ${
-                    activeTab === item.id || (item.children && item.children.some(child => activeTab === child.id))
-                      ? `text-white bg-gradient-to-r ${item.color} shadow-lg border border-white/10`
-                      : isDarkMode
-                        ? 'text-gray-300 hover:bg-emerald-500/10 hover:text-emerald-200 border border-transparent hover:border-emerald-400/20'
-                        : 'text-gray-600 hover:bg-emerald-50/80 hover:text-emerald-700 border border-transparent hover:border-emerald-200/30'
-                  }`}
-                  whileTap={{ scale: 0.98 }}
+                <Tooltip 
+                  title={isCollapsed ? item.label : ''} 
+                  placement="right"
+                  arrow
                 >
-                  <div className="flex items-center space-x-3">
-                    <div className={`relative p-1.5 rounded-md transition-all duration-200 ${
+                  <motion.button
+                    onClick={() => item.children ? toggleSection(item.id) : handleItemClick(item.id)}
+                    className={`group relative w-full flex items-center ${
+                      isCollapsed ? 'justify-center px-2' : 'justify-between px-3'
+                    } py-3 rounded-lg font-medium transition-all duration-300 ${
                       activeTab === item.id || (item.children && item.children.some(child => activeTab === child.id))
-                        ? 'bg-white/20 text-white' 
-                        : isDarkMode 
-                          ? 'bg-emerald-500/10 text-emerald-300 group-hover:bg-emerald-400/15 group-hover:text-emerald-200'
-                          : 'bg-emerald-50/60 text-emerald-500 group-hover:bg-emerald-100/70 group-hover:text-emerald-600'
-                    }`}>
-                      {item.icon && <item.icon className="h-4 w-4 flex-shrink-0" />}
-                      {activeTab === item.id && (
-                        <motion.div
-                          className="absolute inset-0 rounded-lg bg-gradient-to-r from-white/10 to-transparent"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 0.3 }}
-                        />
+                        ? `text-white bg-gradient-to-r ${item.color} shadow-lg border border-white/10`
+                        : isDarkMode
+                          ? 'text-gray-300 hover:bg-emerald-500/10 hover:text-emerald-200 border border-transparent hover:border-emerald-400/20'
+                          : 'text-gray-600 hover:bg-emerald-50/80 hover:text-emerald-700 border border-transparent hover:border-emerald-200/30'
+                    }`}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div className={`flex items-center ${isCollapsed ? '' : 'space-x-3'}`}>
+                      {item.icon && (
+                        <item.icon className={`${
+                          isCollapsed ? 'h-5 w-5' : 'h-4 w-4'
+                        } flex-shrink-0 transition-all duration-200`} />
+                      )}
+                      {!isCollapsed && (
+                        <span className="text-sm font-medium">{item.label}</span>
                       )}
                     </div>
-                    {!isCollapsed && (
-                      <span className="text-sm font-medium">{item.label}</span>
-                    )}
-                  </div>
                   
                   {!isCollapsed && (
                     <div className="flex items-center space-x-2">
@@ -304,16 +299,17 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     </div>
                   )}
                   
-                  {/* Active indicator */}
-                  {(activeTab === item.id || (item.children && item.children.some(child => activeTab === child.id))) && (
-                    <motion.div
-                      className="absolute left-0 top-1/2 w-1 h-6 bg-white rounded-r-full"
-                      initial={{ scaleY: 0 }}
-                      animate={{ scaleY: 1 }}
-                      transition={{ duration: 0.2 }}
-                    />
-                  )}
-                </motion.button>
+                    {/* Active indicator */}
+                    {(activeTab === item.id || (item.children && item.children.some(child => activeTab === child.id))) && (
+                      <motion.div
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"
+                        initial={{ scaleY: 0 }}
+                        animate={{ scaleY: 1 }}
+                        transition={{ duration: 0.2 }}
+                      />
+                    )}
+                  </motion.button>
+                </Tooltip>
               </motion.div>
 
               {/* Children Items */}

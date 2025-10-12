@@ -10,13 +10,12 @@ import {
   LinearProgress,
   Chip,
   Avatar,
-  Alert,
   Tooltip,
-  CircularProgress,
-  Snackbar
+  CircularProgress
 } from '@mui/material';
 import { Users, Eye, FileText, Star, Save, TrendingUp, type LucideIcon } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
+import Toast from '../../components/UI/Toast';
 import { campaignService, CampaignStatsResponse } from '../../services/campaignService';
 
 interface MetricConfig {
@@ -479,21 +478,13 @@ const AdminCampaignSettings: React.FC = () => {
         </Box>
       </Box>
 
-      {/* Snackbar for notifications */}
-      <Snackbar
+      {/* Toast for notifications */}
+      <Toast
         open={snackbar.open}
-        autoHideDuration={4000}
+        message={snackbar.message}
+        severity={snackbar.severity}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      />
     </Box>
   );
 };

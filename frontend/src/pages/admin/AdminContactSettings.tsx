@@ -46,6 +46,7 @@ import {
   Grid
 } from '@mui/material';
 import { validateEmail, validatePhone, validateText, validateURL, hasErrors } from '../../utils/validation';
+import StatusBadge from '../../components/UI/StatusBadge';
 
 const AdminContactSettings: React.FC = () => {
   const [contactSettings, setContactSettings] = useState<ContactSetting[]>([]);
@@ -629,10 +630,7 @@ const AdminContactSettings: React.FC = () => {
                     </span>
                   </div>
                   {setting.is_active && (
-                    <div className="flex items-center space-x-1 px-2 py-1 bg-white/20 rounded-full">
-                      <Check className="h-3 w-3 text-white" />
-                      <span className="text-xs text-white font-medium">Active</span>
-                    </div>
+                    <StatusBadge status="active" size="small" />
                   )}
                 </div>
               </div>

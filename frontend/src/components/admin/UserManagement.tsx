@@ -326,9 +326,10 @@ const UserManagement: React.FC<UserManagementProps> = ({
                         <span className={`text-xs px-2 py-1 rounded-full ${getRoleColor(user.role)}`}>
                           {user.role}
                         </span>
-                        <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(user.status)}`}>
-                          {user.status}
-                        </span>
+                        <StatusBadge 
+                          status={user.status as 'active' | 'inactive'}
+                          size="small"
+                        />
                         {user.lastLogin && (
                           <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                             Last login: {getTimeAgo(user.lastLogin)}

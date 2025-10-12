@@ -186,11 +186,11 @@ Route::middleware(['cors'])->group(function () {
         // Staff Members
         Route::get('/admin/staff-members', [StaffMemberController::class, 'index']);
         Route::post('/admin/staff-members', [StaffMemberController::class, 'store']);
+        Route::post('/admin/staff-members/reorder', [StaffMemberController::class, 'reorder']); // Must be before {id} routes
         Route::get('/admin/staff-members/{id}', [StaffMemberController::class, 'show']);
         Route::put('/admin/staff-members/{id}', [StaffMemberController::class, 'update']);
         Route::post('/admin/staff-members/{id}', [StaffMemberController::class, 'update']); // For multipart/form-data with _method=PUT
         Route::delete('/admin/staff-members/{id}', [StaffMemberController::class, 'destroy']);
-        Route::post('/admin/staff-members/reorder', [StaffMemberController::class, 'reorder']);
         
         // Map Settings
         Route::get('/admin/map-settings', [MapSettingController::class, 'index']);

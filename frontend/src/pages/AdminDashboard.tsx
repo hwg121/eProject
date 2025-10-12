@@ -987,15 +987,19 @@ Updated: ${product.updatedAt}
 
       showToast('User profile updated successfully!', 'success');
       
-      // Reload user data from server to get updated avatar
-      window.location.reload();
-      
       // Update local state with response data
       if (response.success && response.data) {
         setUserProfile(prev => ({
           ...prev,
           ...response.data,
           avatarPreview: response.data.avatar || prev.avatarPreview
+        }));
+        
+        // Update user data in localStorage
+        const currentUser = JSON.parse(localStorage.getItem('greengroves_user') || '{}');
+        localStorage.setItem('greengroves_user', JSON.stringify({
+          ...currentUser,
+          ...response.data
         }));
       }
     } catch (error) {
@@ -1535,7 +1539,7 @@ Updated: ${product.updatedAt}
           stats={stats} 
           isDarkMode={isDarkMode} 
           campaignStats={campaignStats}
-          onCardClick={() => setActiveTab('campaign-settings')}
+          onCardClick={userRole === 'admin' ? () => setActiveTab('campaign-settings') : undefined}
         />
       )}
 
@@ -1673,9 +1677,9 @@ Updated: ${product.updatedAt}
       {activeTab === 'hero-section' && <AdminHeroSection />}
       {activeTab === 'staff-management' && <AdminStaffManagement />}
       {activeTab === 'map-settings' && <AdminMapSettings />}
-      {activeTab === 'contact-settings' && <AdminContactSettings />}
+      {activeTab === 'contact-settings' && userRole === 'admin' && <AdminContactSettings />}
       {activeTab === 'contact-messages' && <AdminContactMessages />}
-      {activeTab === 'campaign-settings' && <AdminCampaignSettings />}
+      {activeTab === 'campaign-settings' && userRole === 'admin' && <AdminCampaignSettings />}
 
       {/* Modal for Create/Edit */}
       <AnimatePresence>

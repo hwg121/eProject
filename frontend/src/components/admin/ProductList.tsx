@@ -5,6 +5,7 @@ import {
   Package, Star, DollarSign, Tag, Filter
 } from 'lucide-react';
 import { apiClient } from '../../services/api';
+import StatusBadge from '../UI/StatusBadge';
 import {
   Box,
   Card,
@@ -129,6 +130,14 @@ const ProductList: React.FC<ProductListProps> = ({
         return (a.price || 0) - (b.price || 0);
       case 'price-high':
         return (b.price || 0) - (a.price || 0);
+      case 'archived':
+        return a.status === 'archived' ? -1 : b.status === 'archived' ? 1 : 0;
+      case 'published':
+        return a.status === 'published' ? -1 : b.status === 'published' ? 1 : 0;
+      case 'featured':
+        return ((b.featured || b.is_featured) ? 1 : 0) - ((a.featured || a.is_featured) ? 1 : 0);
+      case 'rating':
+        return (Number(b.rating) || 0) - (Number(a.rating) || 0);
       default:
         return 0;
     }
@@ -401,61 +410,49 @@ const ProductList: React.FC<ProductListProps> = ({
 
       {/* Stats */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2, mb: 3 }}>
-        <Card sx={{ background: isDarkMode ? '#1e293b' : '#ffffff', p: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box>
-              <Typography variant="caption" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b', fontWeight: 600 }}>Archived</Typography>
-              <Typography variant="h5" fontWeight={700} sx={{ color: isDarkMode ? '#f1f5f9' : '#1e293b' }}>
-                {products.filter(p => p.status === 'archived').length}
-              </Typography>
-            </Box>
-            <Avatar sx={{ bgcolor: '#6b728020', width: 44, height: 44 }}>
-              <Package className="w-5 h-5" style={{ color: '#6b7280' }} />
-            </Avatar>
-          </Box>
-        </Card>
-        <Card sx={{ background: isDarkMode ? '#1e293b' : '#ffffff', p: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box>
-              <Typography variant="caption" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b', fontWeight: 600 }}>Published</Typography>
-              <Typography variant="h5" fontWeight={700} sx={{ color: isDarkMode ? '#f1f5f9' : '#1e293b' }}>
-                {products.filter(p => p.status === 'published').length}
-              </Typography>
-            </Box>
-            <Avatar sx={{ bgcolor: '#10b98120', width: 44, height: 44 }}>
-              <Eye className="w-5 h-5" style={{ color: '#10b981' }} />
-            </Avatar>
-          </Box>
-        </Card>
-        <Card sx={{ background: isDarkMode ? '#1e293b' : '#ffffff', p: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box>
-              <Typography variant="caption" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b', fontWeight: 600 }}>Featured</Typography>
-              <Typography variant="h5" fontWeight={700} sx={{ color: isDarkMode ? '#f1f5f9' : '#1e293b' }}>
-                {products.filter(p => (p as any).featured || p.is_featured).length}
-              </Typography>
-            </Box>
-            <Avatar sx={{ bgcolor: '#fbbf2420', width: 44, height: 44 }}>
-              <Star className="w-5 h-5" style={{ color: '#fbbf24' }} />
-            </Avatar>
-          </Box>
-        </Card>
-        <Card sx={{ background: isDarkMode ? '#1e293b' : '#ffffff', p: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box>
-              <Typography variant="caption" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b', fontWeight: 600 }}>Avg Rating</Typography>
-              <Typography variant="h5" fontWeight={700} sx={{ color: isDarkMode ? '#f1f5f9' : '#1e293b' }}>
-                {products.length > 0 
-                  ? (products.reduce((sum, p) => sum + (p.rating || 0), 0) / products.length).toFixed(1)
-                  : '0.0'
+        {[
+          { label: 'Archived', value: products.filter(p => p.status === 'archived').length, icon: Package, color: '#6b7280', sortKey: 'archived' },
+          { label: 'Published', value: products.filter(p => p.status === 'published').length, icon: Eye, color: '#10b981', sortKey: 'published' },
+          { label: 'Featured', value: products.filter(p => (p as any).featured || p.is_featured).length, icon: Star, color: '#fbbf24', sortKey: 'featured' },
+          { 
+            label: 'Avg Rating', 
+            value: products.length > 0 
+              ? (products.reduce((sum, p) => sum + (p.rating || 0), 0) / products.length).toFixed(1)
+              : '0.0',
+            icon: Star, 
+            color: '#3b82f6',
+            sortKey: 'rating'
+          },
+        ].map((stat, index) => (
+          <Grow key={index} in={true} timeout={300 + index * 100}>
+            <Card 
+              onClick={() => setSortBy(stat.sortKey)}
+              sx={{ 
+                background: isDarkMode ? '#1e293b' : '#ffffff', 
+                p: 2,
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                border: sortBy === stat.sortKey ? `2px solid ${stat.color}` : '2px solid transparent',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: `0 8px 20px ${stat.color}30`,
                 }
-              </Typography>
-            </Box>
-            <Avatar sx={{ bgcolor: '#3b82f620', width: 44, height: 44 }}>
-              <Star className="w-5 h-5" style={{ color: '#3b82f6' }} />
-            </Avatar>
-          </Box>
-        </Card>
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box>
+                  <Typography variant="caption" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b', fontWeight: 600 }}>{stat.label}</Typography>
+                  <Typography variant="h5" fontWeight={700} sx={{ color: isDarkMode ? '#f1f5f9' : '#1e293b' }}>
+                    {stat.value}
+                  </Typography>
+                </Box>
+                <Avatar sx={{ bgcolor: `${stat.color}20`, width: 44, height: 44 }}>
+                  <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
+                </Avatar>
+              </Box>
+            </Card>
+          </Grow>
+        ))}
       </Box>
 
       {/* Filters */}
@@ -493,6 +490,7 @@ const ProductList: React.FC<ProductListProps> = ({
                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#10b981' },
               }}
             >
+              <MenuItem value="none">None</MenuItem>
               <MenuItem value="latest">Latest</MenuItem>
               <MenuItem value="oldest">Oldest</MenuItem>
               <MenuItem value="title">Title A-Z</MenuItem>
@@ -500,6 +498,10 @@ const ProductList: React.FC<ProductListProps> = ({
               <MenuItem value="likes">Most Likes</MenuItem>
               <MenuItem value="price-low">Price: Low to High</MenuItem>
               <MenuItem value="price-high">Price: High to Low</MenuItem>
+              <MenuItem value="archived">Archived</MenuItem>
+              <MenuItem value="published">Published</MenuItem>
+              <MenuItem value="featured">Featured</MenuItem>
+              <MenuItem value="rating">Highest Rating</MenuItem>
             </Select>
           </FormControl>
         </Box>
@@ -599,11 +601,9 @@ const ProductList: React.FC<ProductListProps> = ({
                     />
                   </TableCell>
                   <TableCell>
-                    <Chip
-                      label={product.status}
+                    <StatusBadge 
+                      status={product.status as 'published' | 'archived' | 'draft'}
                       size="small"
-                      color={product.status === 'published' ? 'success' : 'warning'}
-                      sx={{ fontWeight: 600, fontSize: '0.75rem', textTransform: 'capitalize' }}
                     />
                   </TableCell>
                   <TableCell>

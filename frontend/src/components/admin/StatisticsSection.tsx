@@ -98,14 +98,14 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({ stats, isDarkMode
                 : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)'} !important`,
               border: '1px solid !important',
               borderColor: `${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'} !important`,
+              cursor: `${onCardClick ? 'pointer' : 'default'} !important`,
               transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important',
-              cursor: 'pointer !important',
               borderRadius: '16px !important',
               boxShadow: `0 8px 32px ${stat.color}20 !important`,
-              '&:hover': {
+              '&:hover': onCardClick ? {
                 transform: 'translateY(-16px) scale(1.03) !important',
                 boxShadow: `0 24px 80px ${stat.color}60 !important`,
-              },
+              } : {},
               '&::before': {
                 content: '""',
                 position: 'absolute',

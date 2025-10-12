@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Save, X, User, Mail, Lock, Shield, UserPlus } from 'lucide-react';
-import { Snackbar, Alert } from '@mui/material';
 import Card from '../UI/Card';
+import Toast from '../UI/Toast';
 import ImageUpload from '../ImageUpload';
 import SecurityPasswordModal from './SecurityPasswordModal';
 
@@ -363,20 +363,12 @@ const UserCreate: React.FC<UserCreateProps> = ({
       />
       
       {/* Toast Notifications */}
-      <Snackbar
+      <Toast
         open={snackbar.open}
-        autoHideDuration={4000}
+        message={snackbar.message}
+        severity={snackbar.severity}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      />
     </div>
   );
 };

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Plus, Edit, Trash2, Eye, Save, X, Mail, Phone, MapPin, Facebook, Instagram, Youtube } from 'lucide-react';
-import { TextField, Checkbox, FormControlLabel, Snackbar, Alert } from '@mui/material';
+import { TextField, Checkbox, FormControlLabel } from '@mui/material';
 import Card from '../components/UI/Card';
 import PageHeader from '../components/UI/PageHeader';
+import Toast from '../components/UI/Toast';
 import { aboutUsService } from '../services/api.ts';
 import { validateText, validateEmail, validatePhone, validateURL, hasErrors } from '../utils/validation';
 
@@ -719,20 +720,12 @@ const AdminAboutUs: React.FC = () => {
       )}
       
       {/* Toast Notifications */}
-      <Snackbar
+      <Toast
         open={snackbar.open}
-        autoHideDuration={4000}
+        message={snackbar.message}
+        severity={snackbar.severity}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      />
     </div>
   );
 };

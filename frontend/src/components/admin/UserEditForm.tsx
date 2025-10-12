@@ -3,6 +3,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { apiClient } from '../../services/api';
 import ImageUpload from '../ImageUpload';
 import SecurityPasswordModal from './SecurityPasswordModal';
+import StatusBadge from '../UI/StatusBadge';
 import {
   Box,
   Card,
@@ -193,10 +194,9 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
           <CardContent sx={{ p: 3 }}>
             {/* User Status */}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
-              <Chip
-                label={formData.status}
-                color={formData.status === 'active' ? 'success' : 'error'}
-                sx={{ fontWeight: 700, textTransform: 'capitalize' }}
+              <StatusBadge 
+                status={formData.status as 'active' | 'inactive'}
+                size="medium"
               />
             </Box>
 

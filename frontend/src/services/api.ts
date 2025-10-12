@@ -63,6 +63,12 @@ class ApiClient {
     // Check if this is a file upload request
     const isFileUpload = options.body instanceof FormData;
     
+    // Stringify body if it's an object (but not FormData or string)
+    let processedBody = options.body;
+    if (options.body && !isFileUpload && typeof options.body === 'object') {
+      processedBody = JSON.stringify(options.body);
+    }
+    
     const config: RequestInit = {
       headers: {
         // Don't set Content-Type for FormData uploads - let browser set it with boundary
@@ -73,6 +79,7 @@ class ApiClient {
         ...options.headers,
       },
       ...options,
+      body: processedBody,
     };
 
     try {
@@ -1603,9 +1610,9 @@ export const staffMemberService = {
     body: data,
   }),
   delete: (id: string) => apiClient.request(`/admin/staff-members/${id}`, { method: 'DELETE' }),
-  reorder: (orders: Array<{ id: string; display_order: number }>) => apiClient.request('/admin/staff-members/reorder', {
+  reorder: (orders: Array<{ id: string | number; display_order: number }>) => apiClient.request('/admin/staff-members/reorder', {
     method: 'POST',
-    body: JSON.stringify({ orders }),
+    body: { orders: orders.map(o => ({ id: Number(o.id), display_order: o.display_order })) },
   }),
 };
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Snackbar, Alert } from '@mui/material';
 import { useTheme } from '../../contexts/ThemeContext';
+import Toast from '../UI/Toast';
 import ImageUpload from '../ImageUpload';
 
 interface UserProfileComponentProps {
@@ -313,20 +313,12 @@ const UserProfileComponent: React.FC<UserProfileComponentProps> = ({
       </div>
       
       {/* Toast Notifications */}
-      <Snackbar
+      <Toast
         open={snackbar.open}
-        autoHideDuration={4000}
+        message={snackbar.message}
+        severity={snackbar.severity}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      />
     </div>
   );
 };

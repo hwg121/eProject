@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Eye, Trash2, X, Calendar, User, MessageSquare } from 'lucide-react';
 import PageHeader from '../../components/UI/PageHeader';
+import Toast from '../../components/UI/Toast';
+import { useTheme } from '../../contexts/ThemeContext';
 import { contactService } from '../../services/api.ts';
 import {
   Card,
@@ -44,6 +46,7 @@ interface ContactMessage {
 }
 
 const AdminContactMessages: React.FC = () => {
+  const { isDarkMode } = useTheme();
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -123,16 +126,14 @@ const AdminContactMessages: React.FC = () => {
       />
 
       {/* Snackbar for errors */}
-      <Snackbar 
-        open={!!error} 
-        autoHideDuration={6000} 
+      <Toast
+        open={!!error}
+        message={error || ''}
+        severity="error"
         onClose={() => setError(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert onClose={() => setError(null)} severity="error" sx={{ width: '100%' }}>
-          {error}
-        </Alert>
-      </Snackbar>
+        position={{ vertical: 'top', horizontal: 'center' }}
+        autoHideDuration={6000}
+      />
 
       {/* Stats */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3, mb: 4, mt: 3 }}>

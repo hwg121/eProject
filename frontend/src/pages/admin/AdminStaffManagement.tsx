@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Save, X, Users, Upload, Image as ImageIcon, ArrowUp, ArrowDown } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import PageHeader from '../../components/UI/PageHeader';
+import StatusBadge from '../../components/UI/StatusBadge';
+import Toast from '../../components/UI/Toast';
 import { staffMemberService } from '../../services/api.ts';
 import {
   Table,
@@ -235,11 +237,14 @@ const AdminStaffManagement: React.FC = () => {
       display_order: idx + 1
     }));
     
+    console.log('Reorder request (moveUp):', orders);
     try {
       await staffMemberService.reorder(orders);
+      setSnackbar({ open: true, message: 'Staff order updated successfully', severity: 'success' });
       loadStaffMembers();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error reordering staff:', err);
+      setSnackbar({ open: true, message: `Failed to reorder: ${err.message || 'Unknown error'}`, severity: 'error' });
     }
   };
 
@@ -253,11 +258,14 @@ const AdminStaffManagement: React.FC = () => {
       display_order: idx + 1
     }));
     
+    console.log('Reorder request (moveDown):', orders);
     try {
       await staffMemberService.reorder(orders);
+      setSnackbar({ open: true, message: 'Staff order updated successfully', severity: 'success' });
       loadStaffMembers();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error reordering staff:', err);
+      setSnackbar({ open: true, message: `Failed to reorder: ${err.message || 'Unknown error'}`, severity: 'error' });
     }
   };
 
@@ -408,11 +416,9 @@ const AdminStaffManagement: React.FC = () => {
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  <Chip 
-                    label={item.is_active ? 'Active' : 'Inactive'}
-                    color={item.is_active ? 'success' : 'default'}
+                  <StatusBadge 
+                    status={item.is_active ? 'active' : 'inactive'}
                     size="small"
-                    sx={{ fontWeight: 600 }}
                   />
                 </TableCell>
                 <TableCell align="center">
@@ -665,15 +671,21 @@ const AdminStaffManagement: React.FC = () => {
             </Box>
           </DialogContent>
 
-          <DialogActions sx={{ px: 3, py: 2, bgcolor: '#f9fafb', borderTop: '1px solid #e5e7eb' }}>
+          <DialogActions sx={{ 
+            px: 3, 
+            py: 2, 
+            bgcolor: isDarkMode ? 'rgba(51, 65, 85, 0.8)' : '#f9fafb', 
+            borderTop: '1px solid',
+            borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : '#e5e7eb'
+          }}>
             <Button
               onClick={() => setShowForm(false)}
               sx={{ 
-                color: '#6b7280',
+                color: isDarkMode ? '#94a3b8' : '#6b7280',
                 textTransform: 'none',
                 fontWeight: 600,
                 '&:hover': {
-                  bgcolor: '#f3f4f6'
+                  bgcolor: isDarkMode ? 'rgba(255,255,255,0.1)' : '#f3f4f6'
                 }
               }}
             >
@@ -699,20 +711,12 @@ const AdminStaffManagement: React.FC = () => {
       </Dialog>
       
       {/* Toast Notifications */}
-      <Snackbar
+      <Toast
         open={snackbar.open}
-        autoHideDuration={4000}
+        message={snackbar.message}
+        severity={snackbar.severity}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      />
     </Box>
   );
 };

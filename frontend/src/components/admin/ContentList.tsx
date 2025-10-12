@@ -4,6 +4,7 @@ import {
   FileText, Star
 } from 'lucide-react';
 import { ContentItem } from '../../types/admin';
+import StatusBadge from '../UI/StatusBadge';
 import {
   Box,
   Card,
@@ -87,6 +88,14 @@ const ContentList: React.FC<ContentListProps> = ({
         return (b.views || 0) - (a.views || 0);
       case 'likes':
         return (b.likes || 0) - (a.likes || 0);
+      case 'archived':
+        return a.status === 'archived' ? -1 : b.status === 'archived' ? 1 : 0;
+      case 'published':
+        return a.status === 'published' ? -1 : b.status === 'published' ? 1 : 0;
+      case 'featured':
+        return (b.featured ? 1 : 0) - (a.featured ? 1 : 0);
+      case 'rating':
+        return (Number(b.rating) || 0) - (Number(a.rating) || 0);
       default:
         return 0;
     }
@@ -253,9 +262,9 @@ const ContentList: React.FC<ContentListProps> = ({
       {/* Stats */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2, mb: 3 }}>
         {[
-          { label: 'Archived', value: contentData.filter(c => c.status === 'archived').length, icon: FileText, color: '#6b7280' },
-          { label: 'Published', value: contentData.filter(c => c.status === 'published').length, icon: Eye, color: '#10b981' },
-          { label: 'Featured', value: contentData.filter(c => c.featured).length, icon: Star, color: '#fbbf24' },
+          { label: 'Archived', value: contentData.filter(c => c.status === 'archived').length, icon: FileText, color: '#6b7280', sortKey: 'archived' },
+          { label: 'Published', value: contentData.filter(c => c.status === 'published').length, icon: Eye, color: '#10b981', sortKey: 'published' },
+          { label: 'Featured', value: contentData.filter(c => c.featured).length, icon: Star, color: '#fbbf24', sortKey: 'featured' },
           { 
             label: 'Avg Rating', 
             value: (() => {
@@ -268,19 +277,24 @@ const ContentList: React.FC<ContentListProps> = ({
                   return isNaN(avgRating) ? '0.0' : avgRating.toFixed(1);
             })(), 
             icon: Star, 
-            color: '#3b82f6' 
+            color: '#3b82f6',
+            sortKey: 'rating'
           },
         ].map((stat, index) => (
           <Grow key={index} in={true} timeout={300 + index * 100}>
-            <Card sx={{ 
-              background: isDarkMode ? '#1e293b' : '#ffffff',
-              borderRadius: 2,
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-4px)',
-                boxShadow: `0 8px 20px ${stat.color}30`,
-              }
-            }}>
+            <Card 
+              onClick={() => setSortBy(stat.sortKey)}
+              sx={{ 
+                background: isDarkMode ? '#1e293b' : '#ffffff',
+                borderRadius: 2,
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                border: sortBy === stat.sortKey ? `2px solid ${stat.color}` : '2px solid transparent',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: `0 8px 20px ${stat.color}30`,
+                }
+              }}>
               <CardContent sx={{ p: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Box>
@@ -344,11 +358,16 @@ const ContentList: React.FC<ContentListProps> = ({
                 },
               }}
             >
+              <MenuItem value="none">None</MenuItem>
               <MenuItem value="latest">Latest</MenuItem>
               <MenuItem value="oldest">Oldest</MenuItem>
               <MenuItem value="title">Title A-Z</MenuItem>
               <MenuItem value="views">Most Views</MenuItem>
               <MenuItem value="likes">Most Likes</MenuItem>
+              <MenuItem value="archived">Archived</MenuItem>
+              <MenuItem value="published">Published</MenuItem>
+              <MenuItem value="featured">Featured</MenuItem>
+              <MenuItem value="rating">Highest Rating</MenuItem>
             </Select>
           </FormControl>
         </Box>
@@ -444,11 +463,9 @@ const ContentList: React.FC<ContentListProps> = ({
                       />
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        label={item.status}
+                      <StatusBadge 
+                        status={item.status as 'published' | 'archived' | 'draft'}
                         size="small"
-                        color={item.status === 'published' ? 'success' : item.status === 'archived' ? 'default' : 'warning'}
-                        sx={{ fontWeight: 600, fontSize: '0.75rem', textTransform: 'capitalize' }}
                       />
                     </TableCell>
                     <TableCell>

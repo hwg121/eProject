@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { TextField, MenuItem, Checkbox, FormControlLabel, Snackbar, Alert } from '@mui/material';
+import { TextField, MenuItem, Checkbox, FormControlLabel } from '@mui/material';
+import Toast from '../UI/Toast';
 import { validateText, validateNumber, validateURL } from '../../utils/validation';
 
 interface Product {
@@ -675,20 +676,12 @@ const ProductForm: React.FC<ProductFormProps> = ({
       </div>
       
       {/* Toast Notifications */}
-      <Snackbar
+      <Toast
         open={snackbar.open}
-        autoHideDuration={4000}
+        message={snackbar.message}
+        severity={snackbar.severity}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      />
     </form>
   );
 };
