@@ -9,6 +9,9 @@ interface ImageUploadProps {
   placeholder?: string;
   accept?: string;
   maxSize?: number; // in MB
+  shape?: 'rounded' | 'rounded-full'; // Shape of the image
+  modelType?: string; // For backend folder
+  folder?: string; // For backend folder
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({
@@ -18,7 +21,10 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   className = '',
   placeholder = 'Click to upload image',
   accept = 'image/jpeg,image/jpg,image/png,image/gif,image/webp',
-  maxSize = 10
+  maxSize = 10,
+  shape = 'rounded',
+  modelType,
+  folder
 }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(value || null);
@@ -31,8 +37,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
   // Upload via backend API
   const uploadToBackend = async (file: File): Promise<string> => {
-
-    const response = await apiClient.uploadImage(file, 'featured-images', 'video');
+    const uploadFolder = folder || 'featured-images';
+    const uploadModelType = modelType || 'video';
+    const response = await apiClient.uploadImage(file, uploadFolder, uploadModelType);
     
     // Extract URL from response object - check both 'url' and 'secure_url'
     if (response && typeof response === 'object' && 'success' in response && response.success && 'data' in response && response.data && typeof response.data === 'object') {
@@ -143,7 +150,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         onClick={handleClick}
         disabled={isUploading}
         className={`
-          w-full border-2 border-dashed rounded-lg p-4 cursor-pointer transition-all duration-200
+          ${shape === 'rounded-full' ? 'w-32 h-32 mx-auto flex items-center justify-center' : 'w-full'} border-2 border-dashed ${shape === 'rounded-full' ? 'rounded-full' : 'rounded-lg'} ${shape === 'rounded-full' ? 'p-0' : 'p-4'} cursor-pointer transition-all duration-200
           ${preview ? 'border-green-500 bg-green-50 hover:bg-green-100' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'}
           ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-sm'}
           focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2
@@ -152,11 +159,11 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         aria-describedby={preview ? "image-preview" : "upload-instructions"}
       >
         {preview ? (
-          <div className="relative">
+          <div className={`relative ${shape === 'rounded-full' ? 'w-full h-full' : ''}`}>
             <img
               src={preview}
-              alt="Featured image preview"
-              className="w-full h-32 object-cover rounded"
+              alt="Image preview"
+              className={`w-full h-full object-cover ${shape}`}
             />
             <button
               type="button"
@@ -171,7 +178,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
             </button>
           </div>
         ) : (
-          <div className="text-center">
+          <div className={`text-center ${shape === 'rounded-full' ? 'flex flex-col items-center justify-center h-full' : ''}`}>
             <div className="text-gray-500 mb-2">
               {isUploading ? (
                 <div className="flex flex-col items-center justify-center">
@@ -184,11 +191,15 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                 </div>
               ) : (
                 <>
-                  <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                  <svg className={`mx-auto text-gray-400 ${shape === 'rounded-full' ? 'h-8 w-8' : 'h-12 w-12'}`} stroke="currentColor" fill="none" viewBox="0 0 48 48">
                     <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  <p className="text-sm text-gray-600 mt-2" id="upload-instructions">{placeholder}</p>
-                  <p className="text-xs text-gray-500 mt-1">Max size: {Math.min(maxSize, 10)}MB • JPG, PNG, GIF, WebP</p>
+                  {shape !== 'rounded-full' && (
+                    <>
+                      <p className="text-sm text-gray-600 mt-2" id="upload-instructions">{placeholder}</p>
+                      <p className="text-xs text-gray-500 mt-1">Max size: {Math.min(maxSize, 10)}MB • JPG, PNG, GIF, WebP</p>
+                    </>
+                  )}
                 </>
               )}
             </div>

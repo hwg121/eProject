@@ -327,7 +327,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                           {user.role}
                         </span>
                         <StatusBadge 
-                          status={user.status as 'active' | 'inactive'}
+                          status={user.status as 'active' | 'inactive' | 'banned'}
                           size="small"
                         />
                         {user.lastLogin && (

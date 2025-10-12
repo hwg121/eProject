@@ -1,9 +1,9 @@
 import React from 'react';
-import { Check, X, Clock, Eye, EyeOff } from 'lucide-react';
+import { Check, X, Clock, Eye, EyeOff, CheckCircle, Ban } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface StatusBadgeProps {
-  status: 'active' | 'published' | 'archived' | 'inactive' | 'draft';
+  status: 'active' | 'published' | 'archived' | 'inactive' | 'draft' | 'banned';
   size?: 'small' | 'medium' | 'large';
   className?: string;
 }
@@ -21,11 +21,11 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
       case 'published':
         return {
           label: status === 'active' ? 'Active' : 'Published',
-          icon: Check,
-          bgColor: isDarkMode ? '#064e3b' : '#eafaf4',
-          textColor: isDarkMode ? '#6ee7b7' : '#047857',
-          iconColor: isDarkMode ? '#10b981' : '#10b981',
-          borderColor: isDarkMode ? '#065f46' : '#a7f3d0'
+          icon: CheckCircle,
+          bgColor: isDarkMode ? '#064e3b' : '#d1fae5', // bg-green-100
+          textColor: isDarkMode ? '#6ee7b7' : '#166534', // text-green-800
+          iconColor: isDarkMode ? '#10b981' : '#166534',
+          borderColor: 'transparent'
         };
       case 'archived':
         return {
@@ -53,6 +53,15 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
           textColor: isDarkMode ? '#fcd34d' : '#d97706',
           iconColor: isDarkMode ? '#fbbf24' : '#d97706',
           borderColor: isDarkMode ? '#92400e' : '#fde68a'
+        };
+      case 'banned':
+        return {
+          label: 'Banned',
+          icon: Ban,
+          bgColor: isDarkMode ? '#7f1d1d' : '#fee2e2', // bg-red-100
+          textColor: isDarkMode ? '#fca5a5' : '#dc2626', // text-red-800
+          iconColor: isDarkMode ? '#ef4444' : '#dc2626',
+          borderColor: 'transparent'
         };
       default:
         return {

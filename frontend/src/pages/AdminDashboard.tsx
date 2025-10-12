@@ -44,6 +44,7 @@ import AdminMapSettings from './admin/AdminMapSettings';
 import AdminContactSettings from './admin/AdminContactSettings';
 import AdminContactMessages from './admin/AdminContactMessages';
 import AdminCampaignSettings from './admin/AdminCampaignSettings';
+import AdminSecuritySettings from './admin/AdminSecuritySettings';
 
 // Import types and utils
 import { 
@@ -1624,6 +1625,7 @@ Updated: ${product.updatedAt}
           onSave={handleSaveUserEdit}
           onCancel={handleCancelUserEdit}
           currentUserRole={user?.role}
+          currentUserId={user?.id}
         />
       )}
 
@@ -1688,6 +1690,7 @@ Updated: ${product.updatedAt}
       {activeTab === 'contact-settings' && user?.role === 'admin' && <AdminContactSettings />}
       {activeTab === 'contact-messages' && <AdminContactMessages />}
       {activeTab === 'campaign-settings' && user?.role === 'admin' && <AdminCampaignSettings />}
+      {activeTab === 'security-settings' && user?.role === 'admin' && <AdminSecuritySettings />}
 
       {/* Modal for Create/Edit */}
       <AnimatePresence>

@@ -121,7 +121,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
         { id: 'map-settings', label: 'Map Settings', icon: null, adminOnly: true },
         { id: 'contact-settings', label: 'Contact Settings', icon: null, adminOnly: true },
         { id: 'contact-messages', label: 'Contact Messages', icon: null },
-        { id: 'campaign-settings', label: 'Campaign Settings', icon: null, adminOnly: true }
+        { id: 'campaign-settings', label: 'Campaign Settings', icon: null, adminOnly: true },
+        { id: 'security-settings', label: 'Security Settings', icon: null, adminOnly: true }
       ]
     }
   ];

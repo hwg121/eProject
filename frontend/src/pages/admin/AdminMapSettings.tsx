@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Save, X, Map, MapPin, CheckCircle, Eye } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, Map, MapPin, Eye } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import PageHeader from '../../components/UI/PageHeader';
 import Toast from '../../components/UI/Toast';
+import StatusBadge from '../../components/UI/StatusBadge';
 import { mapSettingService } from '../../services/api.ts';
 import {
   Card,
@@ -252,10 +253,7 @@ const AdminMapSettings: React.FC = () => {
                     {item.location_name || 'Map Setting'}
                   </h3>
                   {item.is_active && (
-                    <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium flex items-center space-x-1">
-                      <CheckCircle className="h-4 w-4" />
-                      <span>Active</span>
-                    </span>
+                    <StatusBadge status="active" size="medium" />
                   )}
                 </div>
                 {item.address && (

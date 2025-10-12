@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Save, X, Monitor, CheckCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, Monitor } from 'lucide-react';
 import { Card, TextField, Checkbox, FormControlLabel } from '@mui/material';
 import { useTheme } from '../../contexts/ThemeContext';
 import PageHeader from '../../components/UI/PageHeader';
 import Toast from '../../components/UI/Toast';
+import StatusBadge from '../../components/UI/StatusBadge';
 import { heroSectionService } from '../../services/api';
 import { validateText, hasErrors } from '../../utils/validation';
 
@@ -215,10 +216,7 @@ const AdminHeroSection: React.FC = () => {
                 <div className="flex items-center space-x-3 mb-3">
                   <h3 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-emerald-800'}`}>{item.title}</h3>
                   {item.is_active && (
-                    <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium flex items-center space-x-1">
-                      <CheckCircle className="h-4 w-4" />
-                      <span>Active</span>
-                    </span>
+                    <StatusBadge status="active" size="medium" />
                   )}
                 </div>
                 <p className={`mb-2 leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-emerald-600'}`}>{item.description}</p>

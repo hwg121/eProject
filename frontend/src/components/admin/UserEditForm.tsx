@@ -33,13 +33,15 @@ interface UserEditFormProps {
   onSave: (userData: any) => void;
   onCancel: () => void;
   currentUserRole?: string;
+  currentUserId?: string | number;
 }
 
 const UserEditForm: React.FC<UserEditFormProps> = ({
   userData,
   onSave,
   onCancel,
-  currentUserRole = 'admin'
+  currentUserRole = 'admin',
+  currentUserId
 }) => {
   const { isDarkMode } = useTheme();
   
@@ -92,7 +94,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
     zip_code: userData?.zip_code || '',
     role: userData?.role || 'moderator',
     status: userData?.status || 'active',
-    is_banned: userData?.is_banned || false,
+    is_banned: userData?.is_banned || userData?.status === 'banned' || false,
     avatar: userData?.avatar || '',
     avatar_public_id: userData?.avatar_public_id || ''
   });
@@ -101,6 +103,9 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
   const [pendingData, setPendingData] = useState<any>(null);
   
   const originalRole = userData?.role || 'moderator';
+  
+  // Check if editing self
+  const isEditingSelf = currentUserId && userData?.id && String(currentUserId) === String(userData.id);
 
   // Update formData when userData changes (e.g., after F5/reload)
   useEffect(() => {
@@ -118,7 +123,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
         zip_code: userData.zip_code || '',
         role: userData.role || 'moderator',
         status: userData.status || 'active',
-        is_banned: userData.is_banned || false,
+        is_banned: userData.is_banned || userData.status === 'banned' || false,
         avatar: userData.avatar || '',
         avatar_public_id: userData.avatar_public_id || ''
       });
@@ -195,7 +200,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
             {/* User Status */}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
               <StatusBadge 
-                status={formData.status as 'active' | 'inactive'}
+                status={formData.status as 'active' | 'inactive' | 'banned'}
                 size="medium"
               />
             </Box>
@@ -212,6 +217,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                 folder="user-avatar"
                 modelType="user"
                 maxSize={3}
+                shape="rounded-full"
               />
             </Box>
 
@@ -226,6 +232,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                 control={
                   <Switch
                     checked={formData.is_banned}
+                    disabled={isEditingSelf}
                     onChange={(e) => {
                       setFormData(prev => ({ 
                         ...prev, 
@@ -246,7 +253,9 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                 label={
                   <Box>
                     <Typography variant="body2" fontWeight={600} sx={{ color: isDarkMode ? '#fff' : '#000' }}>Banned</Typography>
-                    <Typography variant="caption" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b' }}>Disable account access</Typography>
+                    <Typography variant="caption" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b' }}>
+                      {isEditingSelf ? 'Cannot ban yourself' : 'Disable account access'}
+                    </Typography>
                   </Box>
                 }
               />
@@ -408,7 +417,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                   sx={textFieldStyles}
                 />
 
-                {currentUserRole === 'admin' && (
+                {currentUserRole === 'admin' && !isEditingSelf && (
                   <FormControl fullWidth>
                     <InputLabel sx={{ '&.Mui-focused': { color: '#047857' } }}>Role</InputLabel>
                     <Select
@@ -430,11 +439,23 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                     )}
                   </FormControl>
                 )}
+                
+                {isEditingSelf && (
+                  <TextField
+                    fullWidth
+                    label="Role"
+                    value={formData.role === 'admin' ? 'Admin' : 'Moderator'}
+                    disabled
+                    helperText="Cannot change your own role"
+                    sx={textFieldStyles}
+                  />
+                )}
 
                 <FormControl fullWidth>
                   <InputLabel sx={{ '&.Mui-focused': { color: '#047857' } }}>Status</InputLabel>
                   <Select
                     value={formData.status}
+                    disabled={isEditingSelf}
                     onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
                     label="Status"
                     sx={{
@@ -445,6 +466,11 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                     <MenuItem value="active">Active</MenuItem>
                     <MenuItem value="banned">Banned</MenuItem>
                   </Select>
+                  {isEditingSelf && (
+                    <Typography variant="caption" sx={{ mt: 1, color: '#d97706', display: 'block' }}>
+                      ⚠️ Cannot change your own status
+                    </Typography>
+                  )}
                 </FormControl>
               </Box>
             </form>

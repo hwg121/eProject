@@ -2,6 +2,8 @@ import React, { useState, memo } from 'react';
 import { Search } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import Card from '../UI/Card';
+import StatusBadge from '../UI/StatusBadge';
+import RoleBadge from '../UI/RoleBadge';
 import UserCreate from './UserCreate';
 import UserProfileComponent from './UserProfileComponent';
 
@@ -125,25 +127,17 @@ const UserManagementSection: React.FC<UserManagementSectionProps> = memo(({
                 </td>
                 <td className={`py-3 px-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{userItem.name}</td>
                 <td className={`py-3 px-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{userItem.email}</td>
-                <td className={`py-3 px-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    userItem.role === 'admin' 
-                      ? 'bg-purple-100 text-purple-800' 
-                      : userItem.role === 'moderator'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {userItem.role}
-                  </span>
+                <td className="py-3 px-4">
+                  <RoleBadge 
+                    role={userItem.role as 'admin' | 'moderator' | 'user'}
+                    size="small"
+                  />
                 </td>
-                <td className={`py-3 px-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    userItem.status === 'active' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {userItem.status}
-                  </span>
+                <td className="py-3 px-4">
+                  <StatusBadge 
+                    status={userItem.status as 'active' | 'inactive' | 'banned'}
+                    size="small"
+                  />
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex space-x-2">

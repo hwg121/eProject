@@ -109,20 +109,30 @@ const DashboardCharts: React.FC<DashboardChartsProps> = ({ stats, onNavigate }) 
   };
 
   const DonutChart = ({ data, onNavigate }: { data: typeof contentDistribution, onNavigate?: (section: string) => void }) => {
-    let cumulativePercentage = 0;
     const totalItems = data.reduce((sum, item) => sum + item.count, 0);
     const [hoveredSegment, setHoveredSegment] = React.useState<string | null>(null);
     
     return (
       <div className="relative w-32 h-32 mx-auto group">
-        <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
+        <svg 
+          className="w-32 h-32 transform -rotate-90" 
+          viewBox="0 0 100 100"
+          style={{ pointerEvents: 'none', position: 'relative', zIndex: 10 }}
+        >
           {data.map((item, index) => {
             const percentage = totalItems > 0 ? (item.count / totalItems) * 100 : 0;
             const circumference = 2 * Math.PI * 45; // radius = 45
+            
+            // Calculate cumulative percentage for this segment
+            let cumulativePercentage = 0;
+            for (let i = 0; i < index; i++) {
+              cumulativePercentage += (data[i].count / totalItems) * 100;
+            }
+            
             const strokeDasharray = `${(percentage / 100) * circumference} ${circumference}`;
             const strokeDashoffset = -(cumulativePercentage / 100) * circumference;
             
-            cumulativePercentage += percentage;
+            console.log(`${item.type}: ${percentage.toFixed(1)}%, cumulative: ${cumulativePercentage.toFixed(1)}%, dashOffset: ${strokeDashoffset.toFixed(1)}`);
             
             return (
               <g key={item.type}>
@@ -137,22 +147,33 @@ const DashboardCharts: React.FC<DashboardChartsProps> = ({ stats, onNavigate }) 
                     r="45"
                     fill="none"
                     stroke={index === 0 ? '#3b82f6' : '#10b981'} // Blue for Content, Emerald for Products
-                    strokeWidth={hoveredSegment === item.type ? "12" : "10"}
+                    strokeWidth="10"
                     strokeDasharray={strokeDasharray}
                     strokeDashoffset={strokeDashoffset}
                     initial={{ strokeDasharray: `0 ${circumference}` }}
                     animate={{ strokeDasharray }}
                     transition={{ duration: 1, delay: index * 0.2 }}
-                    className="drop-shadow-sm cursor-pointer transition-all duration-200"
+                    className="transition-all duration-300 ease-out cursor-pointer"
                     style={{
-                      filter: hoveredSegment === item.type ? 'brightness(1.2)' : 'brightness(1)',
-                      opacity: hoveredSegment && hoveredSegment !== item.type ? 0.6 : 1
+                      opacity: hoveredSegment && hoveredSegment !== item.type ? 0.4 : 1,
+                      filter: hoveredSegment === item.type 
+                        ? 'brightness(1.3) drop-shadow(0 0 12px rgba(59, 130, 246, 0.5)) saturate(1.2)' 
+                        : hoveredSegment && hoveredSegment !== item.type
+                          ? 'brightness(0.8) saturate(0.7)'
+                          : 'brightness(1)',
+                      pointerEvents: 'auto',
+                      strokeLinecap: 'round',
+                      transition: 'all 0.3s ease-out',
+                      strokeWidth: hoveredSegment === item.type ? '12' : '10'
                     }}
                     onClick={() => {
-                      console.log('Chart segment clicked:', item.type, item.navigate);
+                      console.log(`Segment clicked: ${item.type}`);
                       onNavigate && onNavigate(item.navigate);
                     }}
-                    onMouseEnter={() => setHoveredSegment(item.type)}
+                    onMouseEnter={() => {
+                      console.log(`Hovering: ${item.type}`);
+                      setHoveredSegment(item.type);
+                    }}
                     onMouseLeave={() => setHoveredSegment(null)}
                   />
                 </Tooltip>
@@ -160,13 +181,17 @@ const DashboardCharts: React.FC<DashboardChartsProps> = ({ stats, onNavigate }) 
             );
           })}
         </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <div className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="text-center transition-all duration-300 ease-out">
+            <div className={`text-lg font-bold transition-all duration-300 ${
+              isDarkMode ? 'text-white' : 'text-gray-800'
+            } ${hoveredSegment ? 'scale-125 drop-shadow-lg' : 'scale-100'}`}>
               {totalItems}
             </div>
-            <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              Total
+            <div className={`text-xs transition-all duration-300 ${
+              isDarkMode ? 'text-gray-400' : 'text-gray-500'
+            } ${hoveredSegment ? 'opacity-70 scale-110' : 'opacity-100 scale-100'}`}>
+              Total {hoveredSegment ? `(${hoveredSegment})` : ''}
             </div>
           </div>
         </div>
