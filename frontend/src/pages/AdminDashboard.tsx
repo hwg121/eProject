@@ -1539,7 +1539,7 @@ Updated: ${product.updatedAt}
           stats={stats} 
           isDarkMode={isDarkMode} 
           campaignStats={campaignStats}
-          onCardClick={userRole === 'admin' ? () => setActiveTab('campaign-settings') : undefined}
+          onCardClick={user?.role === 'admin' ? () => setActiveTab('campaign-settings') : undefined}
         />
       )}
 
@@ -1677,9 +1677,9 @@ Updated: ${product.updatedAt}
       {activeTab === 'hero-section' && <AdminHeroSection />}
       {activeTab === 'staff-management' && <AdminStaffManagement />}
       {activeTab === 'map-settings' && <AdminMapSettings />}
-      {activeTab === 'contact-settings' && userRole === 'admin' && <AdminContactSettings />}
+      {activeTab === 'contact-settings' && user?.role === 'admin' && <AdminContactSettings />}
       {activeTab === 'contact-messages' && <AdminContactMessages />}
-      {activeTab === 'campaign-settings' && userRole === 'admin' && <AdminCampaignSettings />}
+      {activeTab === 'campaign-settings' && user?.role === 'admin' && <AdminCampaignSettings />}
 
       {/* Modal for Create/Edit */}
       <AnimatePresence>
