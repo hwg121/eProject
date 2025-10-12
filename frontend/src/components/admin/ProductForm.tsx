@@ -67,8 +67,16 @@ const ProductForm: React.FC<ProductFormProps> = ({
   onCancel, 
   isDarkMode 
 }) => {
-  const [formData, setFormData] = useState<Partial<Product>>(
-    item || {
+  const [formData, setFormData] = useState<Partial<Product>>(() => {
+    if (item) {
+      // Handle both 'featured' and 'is_featured' fields
+      const featured = (item as any).featured ?? item.is_featured ?? false;
+      return {
+        ...item,
+        is_featured: featured
+      };
+    }
+    return {
       name: '',
       title: '',
       category: 'tool',
@@ -107,8 +115,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
       
       // Generic link
       link: ''
-    }
-  );
+    };
+  });
 
   // Validation error states
   const [nameError, setNameError] = useState('');

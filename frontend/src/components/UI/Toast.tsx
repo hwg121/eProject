@@ -1,5 +1,6 @@
 import React from 'react';
 import { Alert, Snackbar } from '@mui/material';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface ToastProps {
   open: boolean;
@@ -21,6 +22,8 @@ const Toast: React.FC<ToastProps> = ({
   autoHideDuration = 4000,
   position = { vertical: 'bottom', horizontal: 'center' }
 }) => {
+  const { isDarkMode } = useTheme();
+
   return (
     <Snackbar
       open={open}
@@ -31,7 +34,16 @@ const Toast: React.FC<ToastProps> = ({
       <Alert
         onClose={onClose}
         severity={severity}
-        sx={{ width: '100%' }}
+        sx={{ 
+          width: '100%',
+          bgcolor: isDarkMode ? '#05150f' : '#eafaf4',
+          color: isDarkMode ? '#6ee7b7' : '#047857',
+          border: '1px solid',
+          borderColor: isDarkMode ? 'rgba(16, 185, 129, 0.3)' : '#a7f3d0',
+          '& .MuiAlert-icon': {
+            color: isDarkMode ? '#6ee7b7' : '#10b981'
+          }
+        }}
       >
         {message}
       </Alert>
