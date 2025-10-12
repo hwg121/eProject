@@ -3,13 +3,16 @@
 
 import {
   validateEmail,
+  validateEmailUnique,
   validatePassword,
   validateURL,
   validateNumber,
   validateText,
   validatePhone,
+  validatePhoneUnique,
   validateRequired,
   validateUsername,
+  validateUsernameUnique,
   validateDate,
   validateFile,
   hasErrors,
@@ -36,6 +39,32 @@ describe('validateEmail', () => {
   test('should handle required/optional', () => {
     expect(validateEmail('', true)).toBe('Email is required');
     expect(validateEmail('', false)).toBeNull();
+  });
+});
+
+// Email uniqueness validation tests
+describe('validateEmailUnique', () => {
+  test('should validate unique email', () => {
+    const existingEmails = ['user1@example.com', 'user2@test.com'];
+    expect(validateEmailUnique('newuser@example.com', existingEmails)).toBeNull();
+  });
+
+  test('should reject duplicate email', () => {
+    const existingEmails = ['user1@example.com', 'user2@test.com'];
+    expect(validateEmailUnique('user1@example.com', existingEmails))
+      .toBe('Email already exists. Please use a different email address.');
+  });
+
+  test('should allow same email when editing current user', () => {
+    const existingEmails = ['user1@example.com', 'user2@test.com'];
+    expect(validateEmailUnique('user1@example.com', existingEmails, 'user1@example.com'))
+      .toBeNull();
+  });
+
+  test('should handle case insensitive comparison', () => {
+    const existingEmails = ['User1@Example.COM'];
+    expect(validateEmailUnique('user1@example.com', existingEmails))
+      .toBe('Email already exists. Please use a different email address.');
   });
 });
 
@@ -111,6 +140,34 @@ describe('validatePhone', () => {
   });
 });
 
+// Phone uniqueness validation tests
+describe('validatePhoneUnique', () => {
+  test('should validate unique phone', () => {
+    const existingPhones = ['1234567890', '0987654321'];
+    expect(validatePhoneUnique('5555555555', existingPhones)).toBeNull();
+  });
+
+  test('should reject duplicate phone', () => {
+    const existingPhones = ['1234567890', '0987654321'];
+    expect(validatePhoneUnique('1234567890', existingPhones))
+      .toBe('Phone number already exists. Please use a different phone number.');
+  });
+
+  test('should allow same phone when editing current user', () => {
+    const existingPhones = ['1234567890', '0987654321'];
+    expect(validatePhoneUnique('1234567890', existingPhones, '1234567890'))
+      .toBeNull();
+  });
+
+  test('should handle different phone formats', () => {
+    const existingPhones = ['123-456-7890'];
+    expect(validatePhoneUnique('1234567890', existingPhones))
+      .toBe('Phone number already exists. Please use a different phone number.');
+    expect(validatePhoneUnique('(123) 456-7890', existingPhones))
+      .toBe('Phone number already exists. Please use a different phone number.');
+  });
+});
+
 // Required validation tests
 describe('validateRequired', () => {
   test('should validate required values', () => {
@@ -143,6 +200,32 @@ describe('validateUsername', () => {
     expect(validateUsername('user@name')).toBe('Username can only contain letters, numbers, underscores, and hyphens');
     expect(validateUsername('_username')).toBe('Username cannot start or end with underscore or hyphen');
     expect(validateUsername('username_')).toBe('Username cannot start or end with underscore or hyphen');
+  });
+});
+
+// Username uniqueness validation tests
+describe('validateUsernameUnique', () => {
+  test('should validate unique username', () => {
+    const existingUsernames = ['user1', 'user2'];
+    expect(validateUsernameUnique('newuser', existingUsernames)).toBeNull();
+  });
+
+  test('should reject duplicate username', () => {
+    const existingUsernames = ['user1', 'user2'];
+    expect(validateUsernameUnique('user1', existingUsernames))
+      .toBe('Username already exists. Please choose a different username.');
+  });
+
+  test('should allow same username when editing current user', () => {
+    const existingUsernames = ['user1', 'user2'];
+    expect(validateUsernameUnique('user1', existingUsernames, 'user1'))
+      .toBeNull();
+  });
+
+  test('should handle case insensitive comparison', () => {
+    const existingUsernames = ['User1'];
+    expect(validateUsernameUnique('user1', existingUsernames))
+      .toBe('Username already exists. Please choose a different username.');
   });
 });
 

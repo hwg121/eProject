@@ -29,6 +29,44 @@ export const validateEmail = (email: string, required: boolean = true): string |
 };
 
 /**
+ * Validates email uniqueness (for user registration/editing)
+ * @param email - Email string to validate
+ * @param existingEmails - Array of existing emails to check against
+ * @param currentEmail - Current user's email (for editing, to exclude from duplicate check)
+ * @param required - Whether email is required (default: true)
+ * @returns Error message or null if valid
+ */
+export const validateEmailUnique = (
+  email: string, 
+  existingEmails: string[] = [], 
+  currentEmail?: string,
+  required: boolean = true
+): string | null => {
+  // First validate email format
+  const formatError = validateEmail(email, required);
+  if (formatError) return formatError;
+  
+  if (!email || email.trim() === '') {
+    return required ? 'Email is required' : null;
+  }
+  
+  const trimmedEmail = email.trim().toLowerCase();
+  const currentEmailLower = currentEmail ? currentEmail.trim().toLowerCase() : '';
+  
+  // Check if email already exists (excluding current user's email)
+  const isDuplicate = existingEmails.some(existingEmail => {
+    const existingEmailLower = existingEmail.trim().toLowerCase();
+    return existingEmailLower === trimmedEmail && existingEmailLower !== currentEmailLower;
+  });
+  
+  if (isDuplicate) {
+    return 'Email already exists. Please use a different email address.';
+  }
+  
+  return null;
+};
+
+/**
  * Validates password strength and format
  * @param password - Password string to validate
  * @param required - Whether password is required (default: true)
@@ -193,6 +231,47 @@ export const validatePhone = (phone: string, required: boolean = true): string |
 };
 
 /**
+ * Validates phone number uniqueness (for user registration/editing)
+ * @param phone - Phone number to validate
+ * @param existingPhones - Array of existing phone numbers to check against
+ * @param currentPhone - Current user's phone (for editing, to exclude from duplicate check)
+ * @param required - Whether phone is required (default: true)
+ * @returns Error message or null if valid
+ */
+export const validatePhoneUnique = (
+  phone: string, 
+  existingPhones: string[] = [], 
+  currentPhone?: string,
+  required: boolean = true
+): string | null => {
+  // First validate phone format
+  const formatError = validatePhone(phone, required);
+  if (formatError) return formatError;
+  
+  if (!phone || phone.trim() === '') {
+    return required ? 'Phone number is required' : null;
+  }
+  
+  // Clean phone numbers for comparison
+  const cleanPhone = (phoneNum: string) => phoneNum.replace(/[\s\-\(\)\+]/g, '');
+  
+  const cleanedPhone = cleanPhone(phone.trim());
+  const cleanedCurrentPhone = currentPhone ? cleanPhone(currentPhone.trim()) : '';
+  
+  // Check if phone already exists (excluding current user's phone)
+  const isDuplicate = existingPhones.some(existingPhone => {
+    const cleanedExisting = cleanPhone(existingPhone.trim());
+    return cleanedExisting === cleanedPhone && cleanedExisting !== cleanedCurrentPhone;
+  });
+  
+  if (isDuplicate) {
+    return 'Phone number already exists. Please use a different phone number.';
+  }
+  
+  return null;
+};
+
+/**
  * Validates required fields
  * @param value - Value to validate
  * @param fieldName - Name of the field for error messages
@@ -254,6 +333,44 @@ export const validateUsername = (username: string, required: boolean = true): st
   if (trimmed.startsWith('_') || trimmed.startsWith('-') || 
       trimmed.endsWith('_') || trimmed.endsWith('-')) {
     return 'Username cannot start or end with underscore or hyphen';
+  }
+  
+  return null;
+};
+
+/**
+ * Validates username uniqueness (for user registration/editing)
+ * @param username - Username to validate
+ * @param existingUsernames - Array of existing usernames to check against
+ * @param currentUsername - Current user's username (for editing, to exclude from duplicate check)
+ * @param required - Whether username is required (default: true)
+ * @returns Error message or null if valid
+ */
+export const validateUsernameUnique = (
+  username: string, 
+  existingUsernames: string[] = [], 
+  currentUsername?: string,
+  required: boolean = true
+): string | null => {
+  // First validate username format
+  const formatError = validateUsername(username, required);
+  if (formatError) return formatError;
+  
+  if (!username || username.trim() === '') {
+    return required ? 'Username is required' : null;
+  }
+  
+  const trimmedUsername = username.trim().toLowerCase();
+  const currentUsernameLower = currentUsername ? currentUsername.trim().toLowerCase() : '';
+  
+  // Check if username already exists (excluding current user's username)
+  const isDuplicate = existingUsernames.some(existingUsername => {
+    const existingUsernameLower = existingUsername.trim().toLowerCase();
+    return existingUsernameLower === trimmedUsername && existingUsernameLower !== currentUsernameLower;
+  });
+  
+  if (isDuplicate) {
+    return 'Username already exists. Please choose a different username.';
   }
   
   return null;

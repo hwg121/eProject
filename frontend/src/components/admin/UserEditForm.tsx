@@ -4,6 +4,7 @@ import { apiClient } from '../../services/api';
 import ImageUpload from '../ImageUpload';
 import SecurityPasswordModal from './SecurityPasswordModal';
 import StatusBadge from '../UI/StatusBadge';
+import Toast from '../UI/Toast';
 import {
   Box,
   Card,
@@ -22,9 +23,7 @@ import {
   Breadcrumbs,
   Link,
   Divider,
-  Grid,
-  Snackbar,
-  Alert
+  Grid
 } from '@mui/material';
 import { NavigateNext as NavigateNextIcon } from '@mui/icons-material';
 
@@ -491,20 +490,12 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
       />
       
       {/* Toast Notifications */}
-      <Snackbar
+      <Toast
         open={snackbar.open}
-        autoHideDuration={4000}
+        message={snackbar.message}
+        severity={snackbar.severity}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      />
     </Box>
   );
 };
