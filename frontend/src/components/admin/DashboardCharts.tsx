@@ -61,12 +61,14 @@ const DashboardCharts: React.FC<DashboardChartsProps> = ({ stats, onNavigate }) 
     { 
       type: 'Content', 
       count: stats.totalArticles + stats.totalVideos, 
-      color: 'bg-blue-500' 
+      color: 'bg-blue-500',
+      navigate: 'content-list'
     },
     { 
       type: 'Products', 
       count: stats.totalBooks + stats.totalSuggestions + ((stats as any).totalTools || 0) + ((stats as any).totalPots || 0) + ((stats as any).totalAccessories || 0), 
-      color: 'bg-emerald-500' 
+      color: 'bg-emerald-500',
+      navigate: 'product-list'
     }
   ].filter(item => item.count > 0); // Only show categories with content
 
@@ -109,9 +111,10 @@ const DashboardCharts: React.FC<DashboardChartsProps> = ({ stats, onNavigate }) 
   const DonutChart = ({ data }: { data: typeof contentDistribution }) => {
     let cumulativePercentage = 0;
     const totalItems = data.reduce((sum, item) => sum + item.count, 0);
+    const [hoveredSegment, setHoveredSegment] = React.useState<string | null>(null);
     
     return (
-      <div className="relative w-32 h-32 mx-auto">
+      <div className="relative w-32 h-32 mx-auto group">
         <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
           {data.map((item, index) => {
             const percentage = totalItems > 0 ? (item.count / totalItems) * 100 : 0;
@@ -122,21 +125,35 @@ const DashboardCharts: React.FC<DashboardChartsProps> = ({ stats, onNavigate }) 
             cumulativePercentage += percentage;
             
             return (
-              <motion.circle
-                key={item.type}
-                cx="50"
-                cy="50"
-                r="45"
-                fill="none"
-                stroke={index === 0 ? '#3b82f6' : '#10b981'} // Blue for Content, Emerald for Products
-                strokeWidth="10"
-                strokeDasharray={strokeDasharray}
-                strokeDashoffset={strokeDashoffset}
-                initial={{ strokeDasharray: `0 ${circumference}` }}
-                animate={{ strokeDasharray }}
-                transition={{ duration: 1, delay: index * 0.2 }}
-                className="drop-shadow-sm"
-              />
+              <g key={item.type}>
+                <Tooltip 
+                  title={`Click to view ${item.type}`} 
+                  placement="top"
+                  arrow
+                >
+                  <motion.circle
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    fill="none"
+                    stroke={index === 0 ? '#3b82f6' : '#10b981'} // Blue for Content, Emerald for Products
+                    strokeWidth={hoveredSegment === item.type ? "12" : "10"}
+                    strokeDasharray={strokeDasharray}
+                    strokeDashoffset={strokeDashoffset}
+                    initial={{ strokeDasharray: `0 ${circumference}` }}
+                    animate={{ strokeDasharray }}
+                    transition={{ duration: 1, delay: index * 0.2 }}
+                    className="drop-shadow-sm cursor-pointer transition-all duration-200"
+                    style={{
+                      filter: hoveredSegment === item.type ? 'brightness(1.2)' : 'brightness(1)',
+                      opacity: hoveredSegment && hoveredSegment !== item.type ? 0.6 : 1
+                    }}
+                    onClick={() => onNavigate && onNavigate(item.navigate)}
+                    onMouseEnter={() => setHoveredSegment(item.type)}
+                    onMouseLeave={() => setHoveredSegment(null)}
+                  />
+                </Tooltip>
+              </g>
             );
           })}
         </svg>
@@ -226,10 +243,13 @@ const DashboardCharts: React.FC<DashboardChartsProps> = ({ stats, onNavigate }) 
             return (
               <motion.div
                 key={item.type}
-                className="flex items-center justify-between"
+                className="flex items-center justify-between cursor-pointer hover:bg-opacity-10 hover:bg-gray-500 p-2 rounded-lg transition-all duration-200"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
+                onClick={() => onNavigate && onNavigate(item.navigate)}
+                whileHover={{ scale: 1.02, x: 4 }}
+                whileTap={{ scale: 0.98 }}
               >
                 <div className="flex items-center space-x-3">
                   <div className={`w-3 h-3 rounded-full ${colors[index]}`}></div>
