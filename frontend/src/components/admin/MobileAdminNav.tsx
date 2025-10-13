@@ -53,7 +53,12 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
       icon: FileText,
       emoji: '📝',
       color: 'from-emerald-500 to-green-600',
-      description: 'Quản lý nội dung'
+      description: 'Quản lý nội dung',
+      children: [
+        { id: 'articles', label: 'Articles' },
+        { id: 'videos', label: 'Videos' },
+        { id: 'techniques', label: 'Techniques' }
+      ]
     },
     {
       id: 'products',
@@ -61,7 +66,13 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
       icon: Package,
       emoji: '📦',
       color: 'from-emerald-500 to-green-600',
-      description: 'Quản lý sản phẩm'
+      description: 'Quản lý sản phẩm',
+      children: [
+        { id: 'tools', label: 'Tools' },
+        { id: 'pots', label: 'Pots' },
+        { id: 'accessories', label: 'Accessories' },
+        { id: 'books', label: 'Books' }
+      ]
     },
     {
       id: 'users',
@@ -69,7 +80,12 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
       icon: Users,
       emoji: '👥',
       color: 'from-emerald-500 to-green-600',
-      description: 'Quản lý người dùng'
+      description: 'Quản lý người dùng',
+      children: [
+        { id: 'user-list', label: 'User List' },
+        { id: 'user-create', label: 'Create User' },
+        { id: 'user-roles', label: 'User Roles' }
+      ]
     },
     {
       id: 'site-settings',
@@ -198,9 +214,9 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
       <AnimatePresence>
         {isMenuOpen && (
           <>
-            {/* Backdrop */}
+            {/* Backdrop - Stronger separation */}
             <motion.div
-              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+              className="fixed inset-0 bg-black/50 backdrop-blur-md z-40 lg:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -221,7 +237,11 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
                   : 'bg-white/95 backdrop-blur-xl'
               } shadow-2xl border-r ${
                 isDarkMode ? 'border-emerald-500/20' : 'border-emerald-100'
-              }`}>
+              }`} style={{ 
+                background: isDarkMode 
+                  ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' 
+                  : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)'
+              }}>
                 
                 {/* Header */}
                 <div className={`relative flex items-center justify-between p-6 border-b ${

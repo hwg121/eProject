@@ -338,9 +338,9 @@ const Header: React.FC = () => {
           <AnimatePresence>
             {isMenuOpen && (
               <>
-                {/* Backdrop */}
+                {/* Backdrop - Stronger separation */}
                 <motion.div
-                  className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+                  className="fixed inset-0 bg-black/50 backdrop-blur-md z-40 lg:hidden"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -361,7 +361,11 @@ const Header: React.FC = () => {
                       : 'bg-white'
                   } shadow-2xl border-l ${
                     isDarkMode ? 'border-emerald-500/20' : 'border-emerald-100'
-                  }`}>
+                  }`} style={{ 
+                    background: isDarkMode 
+                      ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' 
+                      : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)'
+                  }}>
                     
                     {/* Header - Perfect Mobile Spacing */}
                     <div className={`relative flex items-center justify-between p-4 sm:p-6 border-b ${
