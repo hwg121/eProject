@@ -224,7 +224,7 @@ class ProductController extends Controller
             }
             
             // Handle boolean fields: convert string/number to boolean
-            $booleanFields = ['is_featured', 'is_published', 'drainage_holes', 'is_waterproof', 'is_durable'];
+            $booleanFields = ['is_featured', 'drainage_holes', 'is_waterproof', 'is_durable'];
             foreach ($booleanFields as $field) {
                 if (isset($data[$field])) {
                     if (is_string($data[$field])) {
@@ -282,7 +282,6 @@ class ProductController extends Controller
                 'color' => 'nullable|string|max:255',
                 'status' => 'nullable|in:published,archived',
                 'is_featured' => 'nullable|boolean',
-                'is_published' => 'nullable|boolean',
                 'rating' => 'nullable|numeric|min:0|max:5',
                 'views' => 'nullable|integer|min:0',
                 'likes' => 'nullable|integer|min:0',
@@ -353,7 +352,7 @@ class ProductController extends Controller
             }
             
             // Handle boolean fields - convert string representations to actual booleans
-            $booleanFields = ['is_featured', 'is_published', 'drainage_holes', 'is_waterproof', 'is_durable'];
+            $booleanFields = ['is_featured', 'drainage_holes', 'is_waterproof', 'is_durable'];
             foreach ($booleanFields as $field) {
                 if (isset($data[$field])) {
                     // Convert various string representations to boolean
@@ -446,7 +445,6 @@ class ProductController extends Controller
                 'color' => 'nullable|string|max:255',
                 'status' => 'sometimes|required|in:published,archived',
                 'is_featured' => 'nullable|boolean',
-                'is_published' => 'nullable|boolean',
                 'rating' => 'nullable|numeric|min:0|max:5',
                 'views' => 'nullable|integer|min:0',
                 'likes' => 'nullable|integer|min:0',

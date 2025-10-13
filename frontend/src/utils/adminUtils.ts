@@ -184,7 +184,7 @@ export const transformAboutUsToContentItem = (aboutUs: any): ContentItem => ({
   id: aboutUs.id.toString(),
   title: aboutUs.title,
   category: 'About Us',
-  status: aboutUs.is_active ? 'published' : 'draft',
+  status: aboutUs.is_active ? 'published' : 'archived',
   rating: 5.0,
   views: 0,
   likes: 0,

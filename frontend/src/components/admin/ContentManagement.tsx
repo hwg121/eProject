@@ -12,7 +12,7 @@ interface ContentItem {
   author?: string;
   instructor?: string;
   category: string;
-  status: 'published' | 'draft';
+  status: 'published' | 'archived';
   views?: number;
   likes?: number;
   rating?: number;
@@ -101,8 +101,6 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
     switch (status) {
       case 'published':
         return 'bg-green-100 text-green-800';
-      case 'draft':
-        return 'bg-yellow-100 text-yellow-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }

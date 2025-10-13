@@ -34,7 +34,6 @@ class Product extends Model
         'link',
         'status',
         'is_featured',
-        'is_published',
         'views',
         'likes',
         'rating'
@@ -46,7 +45,6 @@ class Product extends Model
         'is_waterproof' => 'boolean',
         'is_durable' => 'boolean',
         'is_featured' => 'boolean',
-        'is_published' => 'boolean',
         'price' => 'decimal:2',
         'rating' => 'decimal:2'
     ];
@@ -54,7 +52,7 @@ class Product extends Model
     // Scopes
     public function scopePublished($query)
     {
-        return $query->where('status', 'published')->where('is_published', true);
+        return $query->where('status', 'published');
     }
 
     public function scopeByCategory($query, $category)

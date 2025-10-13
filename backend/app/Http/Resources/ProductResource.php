@@ -31,7 +31,6 @@ class ProductResource extends JsonResource
             'color' => $this->color,
             'status' => $this->status,
             'is_featured' => (bool) $this->is_featured,
-            'is_published' => (bool) $this->is_published,
             'views' => $this->views ?? 0,
             'likes' => $this->likes ?? 0,
             'rating' => is_numeric($this->rating) ? (float) $this->rating : 0.0,

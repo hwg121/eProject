@@ -11,7 +11,7 @@ interface Product {
   slug?: string;
   category: 'tool' | 'book' | 'pot' | 'accessory' | 'suggestion';
   subcategory?: string;
-  status: 'published' | 'draft' | 'archived';
+  status: 'published' | 'archived';
   description: string;
   content?: string;
   tags?: string[];

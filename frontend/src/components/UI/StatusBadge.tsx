@@ -3,7 +3,7 @@ import { Check, X, Clock, Eye, EyeOff, CheckCircle, Ban } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface StatusBadgeProps {
-  status: 'active' | 'published' | 'archived' | 'inactive' | 'draft' | 'banned';
+  status: 'active' | 'published' | 'archived' | 'inactive' | 'banned';
   size?: 'small' | 'medium' | 'large';
   className?: string;
 }
@@ -44,15 +44,6 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
           textColor: isDarkMode ? '#fca5a5' : '#dc2626',
           iconColor: isDarkMode ? '#ef4444' : '#dc2626',
           borderColor: isDarkMode ? '#991b1b' : '#fecaca'
-        };
-      case 'draft':
-        return {
-          label: 'Draft',
-          icon: Clock,
-          bgColor: isDarkMode ? '#78350f' : '#fffbeb',
-          textColor: isDarkMode ? '#fcd34d' : '#d97706',
-          iconColor: isDarkMode ? '#fbbf24' : '#d97706',
-          borderColor: isDarkMode ? '#92400e' : '#fde68a'
         };
       case 'banned':
         return {

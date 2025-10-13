@@ -54,7 +54,7 @@ interface Product {
   slug?: string;
   category: 'tool' | 'book' | 'pot' | 'accessory' | 'suggestion';
   subcategory?: string;
-  status: 'published' | 'draft' | 'archived';
+  status: 'published' | 'archived';
   description: string;
   image?: string;
   link?: string;
@@ -151,8 +151,6 @@ const ProductList: React.FC<ProductListProps> = ({
     switch (status) {
       case 'published':
         return 'bg-green-100 text-green-800';
-      case 'draft':
-        return 'bg-yellow-100 text-yellow-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -602,7 +600,7 @@ const ProductList: React.FC<ProductListProps> = ({
                   </TableCell>
                   <TableCell>
                     <StatusBadge 
-                      status={product.status as 'published' | 'archived' | 'draft'}
+                      status={product.status as 'published' | 'archived'}
                       size="small"
                     />
                   </TableCell>

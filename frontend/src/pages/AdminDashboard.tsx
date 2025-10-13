@@ -437,6 +437,19 @@ const AdminDashboard: React.FC = () => {
       const totalContactMessages = Array.isArray(contactMessagesData) ? contactMessagesData.length : 0;
       const totalUsers = Array.isArray(usersData) ? usersData.length : 0;
 
+      console.log('AdminDashboard - Published content counts:', {
+        articles: totalArticles,
+        videos: totalVideos,
+        books: totalBooks,
+        tools: totalTools,
+        pots: totalPots,
+        accessories: totalAccessories,
+        suggestions: totalSuggestions,
+        'CONTENT TOTAL (A+V)': totalArticles + totalVideos,
+        'PRODUCT TOTAL (B+T+P+Ac+S)': totalBooks + totalTools + totalPots + totalAccessories + totalSuggestions,
+        'GRAND TOTAL': totalArticles + totalVideos + totalBooks + totalTools + totalPots + totalAccessories + totalSuggestions
+      });
+
       // Calculate total views from published content only
       const publishedArticles = Array.isArray(articlesData) ? articlesData.filter((item: any) => item.status === 'published') : [];
       const publishedVideos = Array.isArray(videosData) ? videosData.filter((item: any) => item.status === 'published') : [];

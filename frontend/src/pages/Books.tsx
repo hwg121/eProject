@@ -14,7 +14,7 @@ interface Product {
   content?: string;
   category: 'tool' | 'book' | 'pot' | 'accessory' | 'suggestion';
   subcategory?: string;
-  status: 'published' | 'draft' | 'archived';
+  status: 'published' | 'archived';
   price?: number;
   image?: string;
   images_json?: string;

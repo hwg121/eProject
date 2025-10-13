@@ -238,9 +238,10 @@ class CampaignSettingController extends Controller
                         $allContent = $allContent->merge($videos);
                     }
                     
-                    // Get products with ratings (only published)
+                    // Get products with ratings (only published: status='published' AND is_published=1)
                     if (Schema::hasTable('products')) {
                         $products = Product::where('status', 'published')
+                            ->where('is_published', 1)
                             ->whereNotNull('rating')
                             ->where('rating', '>', 0)
                             ->pluck('rating');
