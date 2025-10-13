@@ -469,7 +469,7 @@ const AdminDashboard: React.FC = () => {
         ...publishedSuggestions
       ].reduce((sum, item) => sum + (item.views || 0), 0);
 
-      // Calculate average rating from published content only
+      // Calculate average rating from published content only (rating >= 1)
       const ratedContent = [
         ...publishedArticles,
         ...publishedVideos,
@@ -480,7 +480,7 @@ const AdminDashboard: React.FC = () => {
         ...publishedPots
       ].filter(item => {
         const rating = parseFloat(item.rating);
-        return !isNaN(rating) && rating > 0;
+        return !isNaN(rating) && rating >= 1;
       });
       
       const avgRating = ratedContent.length > 0 

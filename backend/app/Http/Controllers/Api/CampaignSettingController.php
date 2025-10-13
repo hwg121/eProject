@@ -217,34 +217,37 @@ class CampaignSettingController extends Controller
                     return (float) ($articles + $videos + $products);
 
                 case 'rating':
-                    // Average rating across all published content
+                    // Average rating across all published content with rating >= 1
                     $allContent = collect();
                     
-                    // Get articles with ratings (only published)
+                    // Get articles with ratings (only published, rating >= 1)
                     if (Schema::hasTable('articles')) {
                         $articles = Article::where('status', 'published')
                             ->whereNotNull('rating')
+                            ->where('rating', '>=', 1)
                             ->pluck('rating');
                         $allContent = $allContent->merge($articles);
                     }
                     
-                    // Get videos with ratings (only published)
+                    // Get videos with ratings (only published, rating >= 1)
                     if (Schema::hasTable('videos')) {
                         $videos = Video::where('status', 'published')
                             ->whereNotNull('rating')
+                            ->where('rating', '>=', 1)
                             ->pluck('rating');
                         $allContent = $allContent->merge($videos);
                     }
                     
-                    // Get products with ratings (only published)
+                    // Get products with ratings (only published, rating >= 1)
                     if (Schema::hasTable('products')) {
                         $products = Product::where('status', 'published')
                             ->whereNotNull('rating')
+                            ->where('rating', '>=', 1)
                             ->pluck('rating');
                         $allContent = $allContent->merge($products);
                     }
                     
-                    // Calculate average (including 0 ratings)
+                    // Calculate average (only items with rating >= 1)
                     if ($allContent->count() > 0) {
                         return (float) $allContent->avg();
                     }
