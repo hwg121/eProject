@@ -357,8 +357,8 @@ const Header: React.FC = () => {
                 >
                   <div className={`h-full ${
                     isDarkMode 
-                      ? 'bg-gray-900 backdrop-blur-2xl' 
-                      : 'bg-white backdrop-blur-xl'
+                      ? 'bg-gray-900' 
+                      : 'bg-white'
                   } shadow-2xl border-l ${
                     isDarkMode ? 'border-emerald-500/20' : 'border-emerald-100'
                   }`}>

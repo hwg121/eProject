@@ -305,7 +305,7 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
                             isDarkMode ? 'text-emerald-400' : 'text-emerald-500'
                           }`}
                           animate={item.children && item.children.length > 0 && expandedSections.includes(item.id) 
-                            ? { rotate: 90 } 
+                            ? { rotate: 180 } 
                             : { rotate: 0 }
                           }
                           transition={{ type: "spring", stiffness: 400 }}
