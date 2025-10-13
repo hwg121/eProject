@@ -182,16 +182,6 @@ class ApiClient {
   }
 
   // Dashboard Statistics
-  async getDashboardStats() {
-    return this.request<{
-      totalUsers: number;
-      totalViews: number;
-      totalArticles: number;
-      totalVideos: number;
-      avgRating: number;
-      monthlyGrowth: number;
-    }>('/admin/dashboard/stats');
-  }
 
   // Articles CRUD
   async getArticles(params?: {
@@ -1150,9 +1140,6 @@ class ApiClient {
     });
   }
 
-  async getAnalytics(timeRange: string = '30d') {
-    return this.request<unknown>(`/admin/analytics?range=${timeRange}`);
-  }
 
   // Generic delete method for different content types
   async deleteItem(id: string, type: string) {
@@ -1255,10 +1242,6 @@ export const videosService = {
 };
 
 
-export const dashboardService = {
-  getStats: () => apiClient.getDashboardStats(),
-  getAnalytics: (timeRange?: string) => apiClient.getAnalytics(timeRange),
-};
 
 export const uploadService = {
   uploadFile: (file: File, type?: 'image' | 'video') => apiClient.uploadFile(file, type),

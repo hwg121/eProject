@@ -208,57 +208,6 @@ Route::middleware(['cors'])->group(function () {
         Route::get('/admin/activity-logs/recent', [App\Http\Controllers\Api\ActivityLogController::class, 'getRecentActivities']);
         Route::delete('/admin/activity-logs/clear', [App\Http\Controllers\Api\ActivityLogController::class, 'clearOldLogs']);
         
-        // Admin Dashboard Stats
-        Route::get('/admin/dashboard/stats', function() {
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'totalUsers' => 150,
-                    'totalViews' => 1250,
-                    'totalArticles' => 25,
-                    'totalVideos' => 15,
-                    'avgRating' => 4.5,
-                    'monthlyGrowth' => 12.5
-                ]
-            ]);
-        });
-        
-        // Admin Analytics
-        Route::get('/admin/analytics', function(Request $request) {
-            $range = $request->get('range', '30d');
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'pageViews' => [
-                        'total' => 1250,
-                        'growth' => 12.5,
-                        'chart' => [
-                            ['date' => '2025-01-01', 'views' => 45],
-                            ['date' => '2025-01-02', 'views' => 52],
-                            ['date' => '2025-01-03', 'views' => 38],
-                            ['date' => '2025-01-04', 'views' => 61],
-                            ['date' => '2025-01-05', 'views' => 55]
-                        ]
-                    ],
-                    'users' => [
-                        'total' => 150,
-                        'growth' => 8.2,
-                        'chart' => [
-                            ['date' => '2025-01-01', 'users' => 12],
-                            ['date' => '2025-01-02', 'users' => 15],
-                            ['date' => '2025-01-03', 'users' => 9],
-                            ['date' => '2025-01-04', 'users' => 18],
-                            ['date' => '2025-01-05', 'users' => 14]
-                        ]
-                    ],
-                    'content' => [
-                        'articles' => 25,
-                        'videos' => 15,
-                        'products' => 120
-                    ]
-                ]
-            ]);
-        });
     });
 
     // User Management (Admin only)
