@@ -23,6 +23,8 @@ interface ContentManagementSectionProps {
   onCreate: (data: Partial<ContentItem>) => void;
   onCancelCreate?: () => void;
   onCancelEdit?: () => void;
+  onBulkDelete?: (ids: string[], types: string[]) => void;
+  onBulkStatusChange?: (ids: string[], status: string) => void;
 }
 
 const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
@@ -42,7 +44,9 @@ const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
   onView,
   onCreate,
   onCancelCreate,
-  onCancelEdit
+  onCancelEdit,
+  onBulkDelete,
+  onBulkStatusChange
 }) => {
 
   const handleEditClick = (content: ContentItem) => {
@@ -78,17 +82,16 @@ const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
       {activeTab === 'content-list' && (
         <ContentList
           contentData={contentData}
-          categories={categories}
           searchTerm={searchTerm}
           setSearchTerm={onSearchTermChange}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={onSelectedCategoryChange}
           sortBy={sortBy}
           setSortBy={onSortByChange}
           onEdit={handleEditClick}
           onDelete={onDelete}
           onView={onView}
           isDarkMode={isDarkMode}
+          onBulkDelete={onBulkDelete}
+          onBulkStatusChange={onBulkStatusChange}
         />
       )}
 

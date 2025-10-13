@@ -388,6 +388,16 @@ const AdminDashboard: React.FC = () => {
       
       console.log('AdminDashboard - Loaded products:', allProductsData);
       
+      // Debug products by status
+      const archivedProducts = allProductsData.filter((p: any) => p.status === 'archived');
+      const publishedProducts = allProductsData.filter((p: any) => p.status === 'published');
+      console.log('AdminDashboard - Products by status:', {
+        total: allProductsData.length,
+        archived: archivedProducts.length,
+        published: publishedProducts.length,
+        archivedSample: archivedProducts.slice(0, 3).map((p: any) => ({ id: p.id, name: p.name, status: p.status }))
+      });
+      
       // Debug specific product with rating
       if (allProductsData.length > 0) {
         const firstProduct = allProductsData[0];
@@ -752,6 +762,97 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  // Bulk delete handler
+  const handleBulkDelete = async (ids: string[], types: string[]) => {
+    try {
+      const deletePromises = ids.map((id, index) => {
+        const type = types[index];
+        let serviceType = type.toLowerCase();
+        if (type === 'Technique') serviceType = 'articles';
+        else if (type === 'Video') serviceType = 'videos';
+
+        switch (serviceType) {
+          case 'articles': return articlesService.delete(id);
+          case 'videos': return videosService.delete(id);
+          case 'books': return booksService.delete(id);
+          case 'tools': return toolsService.delete(id);
+          case 'pots': return potsService.delete(id);
+          case 'accessories': return accessoriesService.delete(id);
+          case 'suggestions': return suggestionsService.delete(id);
+          default: return Promise.resolve();
+        }
+      });
+
+      await Promise.all(deletePromises);
+      await loadData();
+      showToast(`Successfully deleted ${ids.length} items!`, 'success');
+    } catch (error) {
+      console.error('Error bulk deleting:', error);
+      showToast('Failed to delete some items. Please try again.', 'error');
+    }
+  };
+
+  // Bulk status change handler
+  const handleBulkStatusChange = async (ids: string[], status: string) => {
+    try {
+      const updatePromises = ids.map(id => {
+        // Find item in articles, videos, or products
+        const item = [...articles, ...videos, ...products].find(i => i.id === id);
+        if (!item) return Promise.resolve();
+
+        const type = item.category;
+        let serviceType = type?.toLowerCase();
+        if (type === 'Technique') serviceType = 'articles';
+        else if (type === 'Video') serviceType = 'videos';
+        // For products, use productService directly
+        else if (['tool', 'book', 'pot', 'accessory', 'suggestion'].includes(type?.toLowerCase() || '')) {
+          return productService.update(id, { status });
+        }
+
+        const updateData = { status };
+
+        switch (serviceType) {
+          case 'articles': return articlesService.update(id, updateData);
+          case 'videos': return videosService.update(id, updateData);
+          default: return Promise.resolve();
+        }
+      });
+
+      await Promise.all(updatePromises);
+      await loadData();
+      showToast(`Successfully updated ${ids.length} items to ${status}!`, 'success');
+    } catch (error) {
+      console.error('Error bulk updating status:', error);
+      showToast('Failed to update some items. Please try again.', 'error');
+    }
+  };
+
+  // Bulk delete handler for products
+  const handleProductBulkDelete = async (ids: string[]) => {
+    try {
+      const deletePromises = ids.map(id => productService.delete(id));
+      await Promise.all(deletePromises);
+      await loadData();
+      showToast(`Successfully deleted ${ids.length} products!`, 'success');
+    } catch (error) {
+      console.error('Error bulk deleting products:', error);
+      showToast('Failed to delete some products. Please try again.', 'error');
+    }
+  };
+
+  // Bulk status change handler for products
+  const handleProductBulkStatusChange = async (ids: string[], status: string) => {
+    try {
+      const updatePromises = ids.map(id => productService.update(id, { status }));
+      await Promise.all(updatePromises);
+      await loadData();
+      showToast(`Successfully updated ${ids.length} products to ${status}!`, 'success');
+    } catch (error) {
+      console.error('Error bulk updating products:', error);
+      showToast('Failed to update some products. Please try again.', 'error');
+    }
+  };
+
   // Helper function to generate slug from title
   const generateSlug = (title: string) => {
     return title
@@ -784,15 +885,19 @@ const AdminDashboard: React.FC = () => {
         formData.slug = generateSlug(formData.title);
       }
       
+      // Normalize currentContentType to plural form for consistency
+      let serviceType = currentContentType;
+      if (currentContentType === 'article') serviceType = 'articles';
+      if (currentContentType === 'video') serviceType = 'videos';
+      
       // Save logic based on currentContentType
       if (editingItem) {
         // Update existing item
-        switch (currentContentType) {
+        switch (serviceType) {
           case 'articles':
             await articlesService.update(editingItem.id, formData);
             break;
           case 'videos':
-
             await videosService.update(editingItem.id, formData);
             break;
           case 'books':
@@ -811,12 +916,12 @@ const AdminDashboard: React.FC = () => {
             await suggestionsService.update(editingItem.id, formData);
             break;
           default:
-            console.error('Unknown content type:', currentContentType);
+            console.error('Unknown content type:', currentContentType, '(normalized to:', serviceType, ')');
             return;
         }
       } else {
         // Create new item
-        switch (currentContentType) {
+        switch (serviceType) {
           case 'articles':
             await articlesService.create(formData);
             break;
@@ -839,7 +944,7 @@ const AdminDashboard: React.FC = () => {
             await suggestionsService.create(formData);
             break;
           default:
-            console.error('Unknown content type:', currentContentType);
+            console.error('Unknown content type:', currentContentType, '(normalized to:', serviceType, ')');
             return;
         }
       }
@@ -1694,6 +1799,8 @@ Updated: ${product.updatedAt}
             setEditingItem(null);
             setActiveTab('content-list');
           }}
+          onBulkDelete={handleBulkDelete}
+          onBulkStatusChange={handleBulkStatusChange}
         />
       )}
 
@@ -1718,6 +1825,8 @@ Updated: ${product.updatedAt}
           editingProduct={editingProduct}
           onEditCancel={handleProductEditCancel}
           onCancelCreate={() => setActiveTab('product-list')}
+          onBulkDelete={handleProductBulkDelete}
+          onBulkStatusChange={handleProductBulkStatusChange}
         />
       )}
 

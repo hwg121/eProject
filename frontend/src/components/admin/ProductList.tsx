@@ -32,7 +32,9 @@ import {
   Avatar,
   Pagination,
   Grow,
-  Badge
+  Badge,
+  Checkbox,
+  Button
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -86,6 +88,8 @@ interface ProductListProps {
   onView: (product: Product) => void;
   categories: string[];
   isDarkMode: boolean;
+  onBulkDelete?: (ids: string[]) => void;
+  onBulkStatusChange?: (ids: string[], status: string) => void;
 }
 
 const ProductList: React.FC<ProductListProps> = ({
@@ -100,11 +104,15 @@ const ProductList: React.FC<ProductListProps> = ({
   onDelete,
   onView,
   categories,
-  isDarkMode
+  isDarkMode,
+  onBulkDelete,
+  onBulkStatusChange
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [activeTab, setActiveTab] = useState<'all' | 'tool' | 'book' | 'pot' | 'accessory' | 'suggestion'>('all');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkStatus, setBulkStatus] = useState<string>('');
 
   const filteredProducts = products.filter((product) => {
     const productTitle = product.name || product.title || '';
@@ -183,6 +191,45 @@ const ProductList: React.FC<ProductListProps> = ({
         return '📦';
     }
   };
+
+  // Bulk selection handlers
+  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      setSelectedIds(paginatedProducts.map(p => p.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.length === 0) return;
+    if (!window.confirm(`Delete ${selectedIds.length} selected products?`)) return;
+    
+    if (onBulkDelete) {
+      onBulkDelete(selectedIds);
+      setSelectedIds([]);
+    }
+  };
+
+  const handleBulkStatusChange = () => {
+    if (selectedIds.length === 0 || !bulkStatus) return;
+    if (!window.confirm(`Change status of ${selectedIds.length} products to ${bulkStatus}?`)) return;
+    
+    if (onBulkStatusChange) {
+      onBulkStatusChange(selectedIds, bulkStatus);
+      setSelectedIds([]);
+      setBulkStatus('');
+    }
+  };
+
+  const isAllSelected = paginatedProducts.length > 0 && selectedIds.length === paginatedProducts.length;
+  const isSomeSelected = selectedIds.length > 0 && selectedIds.length < paginatedProducts.length;
 
   const formatPrice = (price?: number | string | null) => {
     // Check for null, undefined, or empty string
@@ -505,6 +552,71 @@ const ProductList: React.FC<ProductListProps> = ({
         </Box>
       </Paper>
 
+      {/* Bulk Actions Bar */}
+      {selectedIds.length > 0 && (
+        <Paper 
+          elevation={3} 
+          sx={{ 
+            p: 2, 
+            mb: 2, 
+            background: isDarkMode ? '#1e293b' : '#ffffff', 
+            borderRadius: 2,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            flexWrap: 'wrap'
+          }}
+        >
+          <Typography variant="body2" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b', fontWeight: 600 }}>
+            {selectedIds.length} product(s) selected
+          </Typography>
+          
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+            <FormControl size="small" sx={{ minWidth: 150 }}>
+              <InputLabel>Change Status</InputLabel>
+              <Select
+                value={bulkStatus}
+                onChange={(e) => setBulkStatus(e.target.value)}
+                label="Change Status"
+                sx={{
+                  bgcolor: isDarkMode ? '#0f172a' : '#f8fafc',
+                }}
+              >
+                <MenuItem value="published">Published</MenuItem>
+                <MenuItem value="archived">Archived</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <Button
+              variant="contained"
+              size="small"
+              onClick={handleBulkStatusChange}
+              disabled={!bulkStatus}
+              sx={{
+                bgcolor: '#10b981',
+                '&:hover': { bgcolor: '#059669' },
+                textTransform: 'none'
+              }}
+            >
+              Apply Status
+            </Button>
+            
+            <Button
+              variant="contained"
+              size="small"
+              onClick={handleBulkDelete}
+              sx={{
+                bgcolor: '#ef4444',
+                '&:hover': { bgcolor: '#dc2626' },
+                textTransform: 'none'
+              }}
+            >
+              Delete Selected
+            </Button>
+          </Box>
+        </Paper>
+      )}
+
       {/* Products Table */}
       <TableContainer 
         component={Paper} 
@@ -529,6 +641,18 @@ const ProductList: React.FC<ProductListProps> = ({
           <Table>
             <TableHead>
               <TableRow sx={{ bgcolor: isDarkMode ? '#0f172a' : '#f8fafc' }}>
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    checked={isAllSelected}
+                    indeterminate={isSomeSelected}
+                    onChange={handleSelectAll}
+                    sx={{
+                      color: isDarkMode ? '#94a3b8' : '#64748b',
+                      '&.Mui-checked': { color: '#10b981' },
+                      '&.MuiCheckbox-indeterminate': { color: '#10b981' },
+                    }}
+                  />
+                </TableCell>
                 <TableCell sx={{ fontWeight: 700, color: isDarkMode ? '#94a3b8' : '#475569' }}>Product</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: isDarkMode ? '#94a3b8' : '#475569' }}>Category</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: isDarkMode ? '#94a3b8' : '#475569' }}>Status</TableCell>
@@ -549,6 +673,16 @@ const ProductList: React.FC<ProductListProps> = ({
                     transition: 'background-color 0.2s',
                   }}
                 >
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={selectedIds.includes(product.id)}
+                      onChange={() => handleSelectOne(product.id)}
+                      sx={{
+                        color: isDarkMode ? '#94a3b8' : '#64748b',
+                        '&.Mui-checked': { color: '#10b981' },
+                      }}
+                    />
+                  </TableCell>
                   <TableCell>
                       <div className="flex items-center space-x-3">
                       <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center text-2xl">

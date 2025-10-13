@@ -29,7 +29,10 @@ import {
   IconButton,
   Tooltip,
   Avatar,
-  Grow
+  Grow,
+  Checkbox,
+  Button,
+  Menu
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -39,7 +42,9 @@ import {
   Article as ArticleIcon,
   VideoLibrary as VideoIcon,
   Assessment as AllIcon,
-  Favorite as FavoriteIcon
+  Favorite as FavoriteIcon,
+  CheckBox as CheckBoxIcon,
+  CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon
 } from '@mui/icons-material';
 
 interface ContentListProps {
@@ -52,6 +57,8 @@ interface ContentListProps {
   onDelete: (id: string, type: string) => void;
   onView: (item: ContentItem) => void;
   isDarkMode: boolean;
+  onBulkDelete?: (ids: string[], types: string[]) => void;
+  onBulkStatusChange?: (ids: string[], status: string) => void;
 }
 
 const ContentList: React.FC<ContentListProps> = ({
@@ -63,11 +70,15 @@ const ContentList: React.FC<ContentListProps> = ({
   onEdit,
   onDelete,
   onView,
-  isDarkMode
+  isDarkMode,
+  onBulkDelete,
+  onBulkStatusChange
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [activeTab, setActiveTab] = useState<'all' | 'technique' | 'video'>('all');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkStatus, setBulkStatus] = useState<string>('');
 
   const filteredContent = contentData.filter((item) => {
     const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -128,6 +139,48 @@ const ContentList: React.FC<ContentListProps> = ({
     if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`;
     return date.toLocaleDateString();
   };
+
+  // Bulk selection handlers
+  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      setSelectedIds(paginatedContent.map(item => item.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.length === 0) return;
+    if (!window.confirm(`Delete ${selectedIds.length} selected items?`)) return;
+    
+    const selectedItems = contentData.filter(item => selectedIds.includes(item.id));
+    const types = selectedItems.map(item => item.category);
+    
+    if (onBulkDelete) {
+      onBulkDelete(selectedIds, types);
+      setSelectedIds([]);
+    }
+  };
+
+  const handleBulkStatusChange = () => {
+    if (selectedIds.length === 0 || !bulkStatus) return;
+    if (!window.confirm(`Change status of ${selectedIds.length} items to ${bulkStatus}?`)) return;
+    
+    if (onBulkStatusChange) {
+      onBulkStatusChange(selectedIds, bulkStatus);
+      setSelectedIds([]);
+      setBulkStatus('');
+    }
+  };
+
+  const isAllSelected = paginatedContent.length > 0 && selectedIds.length === paginatedContent.length;
+  const isSomeSelected = selectedIds.length > 0 && selectedIds.length < paginatedContent.length;
 
 
   return (
@@ -373,6 +426,71 @@ const ContentList: React.FC<ContentListProps> = ({
         </Box>
       </Paper>
 
+      {/* Bulk Actions Bar */}
+      {selectedIds.length > 0 && (
+        <Paper 
+          elevation={3} 
+          sx={{ 
+            p: 2, 
+            mb: 2, 
+            background: isDarkMode ? '#1e293b' : '#ffffff', 
+            borderRadius: 2,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            flexWrap: 'wrap'
+          }}
+        >
+          <Typography variant="body2" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b', fontWeight: 600 }}>
+            {selectedIds.length} item(s) selected
+          </Typography>
+          
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+            <FormControl size="small" sx={{ minWidth: 150 }}>
+              <InputLabel>Change Status</InputLabel>
+              <Select
+                value={bulkStatus}
+                onChange={(e) => setBulkStatus(e.target.value)}
+                label="Change Status"
+                sx={{
+                  bgcolor: isDarkMode ? '#0f172a' : '#f8fafc',
+                }}
+              >
+                <MenuItem value="published">Published</MenuItem>
+                <MenuItem value="archived">Archived</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <Button
+              variant="contained"
+              size="small"
+              onClick={handleBulkStatusChange}
+              disabled={!bulkStatus}
+              sx={{
+                bgcolor: '#10b981',
+                '&:hover': { bgcolor: '#059669' },
+                textTransform: 'none'
+              }}
+            >
+              Apply Status
+            </Button>
+            
+            <Button
+              variant="contained"
+              size="small"
+              onClick={handleBulkDelete}
+              sx={{
+                bgcolor: '#ef4444',
+                '&:hover': { bgcolor: '#dc2626' },
+                textTransform: 'none'
+              }}
+            >
+              Delete Selected
+            </Button>
+          </Box>
+        </Paper>
+      )}
+
       {/* Content Table */}
       <TableContainer 
         component={Paper} 
@@ -397,6 +515,18 @@ const ContentList: React.FC<ContentListProps> = ({
           <Table>
             <TableHead>
               <TableRow sx={{ bgcolor: isDarkMode ? '#0f172a' : '#f8fafc' }}>
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    checked={isAllSelected}
+                    indeterminate={isSomeSelected}
+                    onChange={handleSelectAll}
+                    sx={{
+                      color: isDarkMode ? '#94a3b8' : '#64748b',
+                      '&.Mui-checked': { color: '#10b981' },
+                      '&.MuiCheckbox-indeterminate': { color: '#10b981' },
+                    }}
+                  />
+                </TableCell>
                 <TableCell sx={{ fontWeight: 700, color: isDarkMode ? '#94a3b8' : '#475569' }}>Content</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: isDarkMode ? '#94a3b8' : '#475569' }}>Type</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: isDarkMode ? '#94a3b8' : '#475569' }}>Status</TableCell>
@@ -419,6 +549,16 @@ const ContentList: React.FC<ContentListProps> = ({
                       transition: 'background-color 0.2s',
                     }}
                   >
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={selectedIds.includes(item.id)}
+                        onChange={() => handleSelectOne(item.id)}
+                        sx={{
+                          color: isDarkMode ? '#94a3b8' : '#64748b',
+                          '&.Mui-checked': { color: '#10b981' },
+                        }}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center text-2xl">
