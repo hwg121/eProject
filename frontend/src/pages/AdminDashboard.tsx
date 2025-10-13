@@ -202,7 +202,6 @@ const AdminDashboard: React.FC = () => {
     totalVideos: 0,
     totalBooks: 0,
     totalSuggestions: 0,
-    totalAboutUs: 0,
     totalContactMessages: 0,
     monthlyGrowth: 0,
     weeklyGrowth: 0,
@@ -356,6 +355,7 @@ const AdminDashboard: React.FC = () => {
         };
 
       // Load all content data using admin endpoints
+      console.log('AdminDashboard - Starting to load data...');
       const [articlesData, videosData, allProductsData, contactMessagesData, usersData, publicActivitiesData, securityActivitiesData] = await Promise.all([
           loadDataWithFallback(() => articlesService.getAll()),
           loadDataWithFallback(() => videosService.getAll()),
@@ -365,6 +365,14 @@ const AdminDashboard: React.FC = () => {
           loadDataWithFallback(() => activityLogService.getPublicActivities(20)),
           loadDataWithFallback(() => activityLogService.getSecurityActivities(20))
       ]);
+      
+      console.log('AdminDashboard - Loaded data:', {
+        articles: articlesData?.length || 0,
+        videos: videosData?.length || 0,
+        products: allProductsData?.length || 0,
+        contacts: contactMessagesData?.length || 0,
+        users: usersData?.length || 0
+      });
 
       // Load visitor statistics
       const visitorStats = await visitorService.getVisitorStatistics();
@@ -478,7 +486,6 @@ const AdminDashboard: React.FC = () => {
         totalVideos,
         totalBooks,
         totalSuggestions,
-        totalAboutUs,
         totalContactMessages,
         monthlyGrowth,
         weeklyGrowth,

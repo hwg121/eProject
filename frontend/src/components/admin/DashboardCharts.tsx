@@ -31,7 +31,6 @@ interface DashboardChartsProps {
     totalVideos: number;
     totalBooks: number;
     totalSuggestions: number;
-    totalAboutUs: number;
     totalContactMessages: number;
     monthlyGrowth: number;
     weeklyGrowth: number;

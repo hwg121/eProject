@@ -44,7 +44,6 @@ interface AdminSidebarProps {
     totalVideos: number;
     totalBooks: number;
     totalSuggestions: number;
-    totalAboutUs: number;
     totalContactMessages: number;
   };
   isCollapsed: boolean;

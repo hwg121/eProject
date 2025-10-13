@@ -84,7 +84,6 @@ export interface AdminStats {
   totalVideos: number;
   totalBooks: number;
   totalSuggestions: number;
-  totalAboutUs: number;
   totalContactMessages: number;
   monthlyGrowth: number;
   weeklyGrowth: number;
