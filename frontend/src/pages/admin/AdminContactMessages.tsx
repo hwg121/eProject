@@ -118,7 +118,7 @@ const AdminContactMessages: React.FC = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
 
       {/* Snackbar for errors */}
       <Toast
@@ -130,8 +130,14 @@ const AdminContactMessages: React.FC = () => {
         autoHideDuration={6000}
       />
 
-      {/* Stats */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3, mb: 4, mt: 3 }}>
+      {/* Stats - Responsive */}
+      <Box sx={{ 
+        display: 'grid', 
+        gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, 
+        gap: { xs: 2, sm: 3 }, 
+        mb: { xs: 3, sm: 4 }, 
+        mt: { xs: 2, sm: 3 } 
+      }}>
         {[
           { label: 'Unread Messages', value: messages.filter(m => m.status === 'unread').length, color: '#3b82f6', gradient: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' },
           { label: 'Replied', value: messages.filter(m => m.status === 'replied').length, color: '#10b981', gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' },
@@ -145,7 +151,11 @@ const AdminContactMessages: React.FC = () => {
                 boxShadow: `0 8px 24px ${stat.color}30`,
               }
             }}>
-              <CardContent sx={{ textAlign: 'center', py: 4 }}>
+              <CardContent sx={{ 
+                textAlign: 'center', 
+                py: { xs: 3, sm: 4 },
+                px: { xs: 2, sm: 3 }
+              }}>
                 <Typography 
                   variant="h3" 
                   fontWeight={800}
@@ -153,12 +163,20 @@ const AdminContactMessages: React.FC = () => {
                     background: stat.gradient,
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
-                    mb: 1
+                    mb: 1,
+                    fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' }
                   }}
                 >
                   {stat.value}
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 600 }}>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    color: '#64748b', 
+                    fontWeight: 600,
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                  }}
+                >
                   {stat.label}
                 </Typography>
               </CardContent>
@@ -167,18 +185,38 @@ const AdminContactMessages: React.FC = () => {
         ))}
       </Box>
 
-      {/* Messages List */}
+      {/* Messages List - Responsive */}
       <Box>
-        <Typography variant="h5" fontWeight={700} sx={{ mb: 3, color: '#047857' }}>
+        <Typography 
+          variant="h5" 
+          fontWeight={700} 
+          sx={{ 
+            mb: { xs: 2, sm: 3 }, 
+            color: '#047857',
+            fontSize: { xs: '1.25rem', sm: '1.5rem' }
+          }}
+        >
           All Messages
         </Typography>
         {messages.length === 0 ? (
-          <Paper elevation={2} sx={{ p: 12, textAlign: 'center', borderRadius: 3 }}>
-            <Mail className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <Typography variant="body1" sx={{ color: '#64748b' }}>No messages yet</Typography>
+          <Paper elevation={2} sx={{ 
+            p: { xs: 6, sm: 12 }, 
+            textAlign: 'center', 
+            borderRadius: 3 
+          }}>
+            <Mail className="h-12 w-12 sm:h-16 sm:w-16 text-gray-300 mx-auto mb-4" />
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: '#64748b',
+                fontSize: { xs: '0.875rem', sm: '1rem' }
+              }}
+            >
+              No messages yet
+            </Typography>
           </Paper>
         ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.5, sm: 2 } }}>
             {messages.map((message, index) => (
               <Grow key={message.id} in={true} timeout={200 + index * 50}>
                 <Card sx={{
@@ -188,10 +226,21 @@ const AdminContactMessages: React.FC = () => {
                     boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
                   }
                 }}>
-                  <CardContent sx={{ p: 3 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <Box sx={{ flex: 1 }}>
-                        <Box sx={{ display: 'flex', gap: 1.5, mb: 2, flexWrap: 'wrap' }}>
+                  <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      justifyContent: 'space-between', 
+                      alignItems: { xs: 'stretch', sm: 'flex-start' },
+                      gap: { xs: 2, sm: 0 }
+                    }}>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Box sx={{ 
+                          display: 'flex', 
+                          gap: { xs: 1, sm: 1.5 }, 
+                          mb: { xs: 1.5, sm: 2 }, 
+                          flexWrap: 'wrap' 
+                        }}>
                           <Chip
                             label={message.status}
                             size="small"
@@ -199,20 +248,40 @@ const AdminContactMessages: React.FC = () => {
                               message.status === 'unread' ? 'primary' :
                               message.status === 'replied' ? 'success' : 'default'
                             }
-                            sx={{ fontWeight: 700, textTransform: 'capitalize' }}
+                            sx={{ 
+                              fontWeight: 700, 
+                              textTransform: 'capitalize',
+                              fontSize: { xs: '0.7rem', sm: '0.75rem' }
+                            }}
                           />
                           <Chip
                             icon={<Calendar className="w-3 h-3" />}
                             label={new Date(message.created_at).toLocaleString()}
                             size="small"
                             variant="outlined"
-                            sx={{ fontSize: '0.75rem' }}
+                            sx={{ 
+                              fontSize: { xs: '0.7rem', sm: '0.75rem' }
+                            }}
                           />
                         </Box>
-                        <Typography variant="h6" fontWeight={700} sx={{ color: '#047857', mb: 2 }}>
+                        <Typography 
+                          variant="h6" 
+                          fontWeight={700} 
+                          sx={{ 
+                            color: '#047857', 
+                            mb: { xs: 1.5, sm: 2 },
+                            fontSize: { xs: '1rem', sm: '1.25rem' },
+                            lineHeight: 1.3
+                          }}
+                        >
                           {message.subject}
                         </Typography>
-                        <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+                        <Box sx={{ 
+                          display: 'flex', 
+                          gap: { xs: 1, sm: 2 }, 
+                          mb: { xs: 1.5, sm: 2 }, 
+                          flexWrap: 'wrap' 
+                        }}>
                           <Chip
                             icon={<User className="w-3 h-3" />}
                             label={message.name}
@@ -226,27 +295,55 @@ const AdminContactMessages: React.FC = () => {
                             sx={{ bgcolor: '#e0f2fe', color: '#0369a1', fontSize: '0.75rem' }}
                           />
                         </Box>
-                        <Typography variant="body2" sx={{ color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: '#64748b', 
+                            overflow: 'hidden', 
+                            textOverflow: 'ellipsis', 
+                            display: '-webkit-box', 
+                            WebkitLineClamp: 2, 
+                            WebkitBoxOrient: 'vertical',
+                            fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                            lineHeight: 1.4
+                          }}
+                        >
                           {message.message}
                         </Typography>
                       </Box>
-                      <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        gap: { xs: 0.5, sm: 1 }, 
+                        ml: { xs: 0, sm: 2 },
+                        mt: { xs: 2, sm: 0 },
+                        justifyContent: { xs: 'flex-end', sm: 'flex-start' }
+                      }}>
                         <Tooltip title="View">
                           <IconButton
                             onClick={() => handleView(message)}
                             size="small"
-                            sx={{ color: '#10b981', '&:hover': { bgcolor: '#d1fae5' } }}
+                            sx={{ 
+                              color: '#10b981', 
+                              '&:hover': { bgcolor: '#d1fae5' },
+                              minWidth: '32px',
+                              minHeight: '32px'
+                            }}
                           >
-                            <Eye className="h-5 w-5" />
+                            <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
                           </IconButton>
                         </Tooltip>
                         <Tooltip title="Delete">
                           <IconButton
                             onClick={() => handleDelete(message.id)}
                             size="small"
-                            sx={{ color: '#ef4444', '&:hover': { bgcolor: '#fee2e2' } }}
+                            sx={{ 
+                              color: '#ef4444', 
+                              '&:hover': { bgcolor: '#fee2e2' },
+                              minWidth: '32px',
+                              minHeight: '32px'
+                            }}
                           >
-                            <Trash2 className="h-5 w-5" />
+                            <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
                           </IconButton>
                         </Tooltip>
                       </Box>
@@ -259,7 +356,7 @@ const AdminContactMessages: React.FC = () => {
         )}
       </Box>
 
-      {/* Detail Modal */}
+      {/* Detail Modal - Responsive */}
       <Dialog
         open={showDetail && !!selectedMessage}
         onClose={() => setShowDetail(false)}
@@ -268,6 +365,8 @@ const AdminContactMessages: React.FC = () => {
         PaperProps={{
           sx: {
             borderRadius: 3,
+            maxHeight: { xs: '95vh', sm: '90vh' },
+            m: { xs: 1, sm: 2 }
           }
         }}
       >
@@ -277,25 +376,39 @@ const AdminContactMessages: React.FC = () => {
               bgcolor: '#f0fdf4', 
               color: '#047857',
               fontWeight: 700,
-              fontSize: '1.5rem',
+              fontSize: { xs: '1.25rem', sm: '1.5rem' },
               borderBottom: '2px solid #d1fae5',
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'center'
+              alignItems: 'center',
+              p: { xs: 2, sm: 3 }
             }}>
               <span>Message Details</span>
               <IconButton
                 onClick={() => setShowDetail(false)}
                 size="small"
-                sx={{ color: '#6b7280', '&:hover': { bgcolor: '#d1fae5' } }}
+                sx={{ 
+                  color: '#6b7280', 
+                  '&:hover': { bgcolor: '#d1fae5' },
+                  minWidth: '32px',
+                  minHeight: '32px'
+                }}
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4 sm:h-5 sm:w-5" />
               </IconButton>
             </DialogTitle>
             
-            <DialogContent sx={{ pt: 3 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Box sx={{ display: 'flex', gap: 2 }}>
+            <DialogContent sx={{ 
+              pt: { xs: 2, sm: 3 },
+              px: { xs: 2, sm: 3 },
+              pb: { xs: 2, sm: 3 }
+            }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3 } }}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  gap: { xs: 1, sm: 2 },
+                  flexWrap: 'wrap'
+                }}>
                   <Chip
                     label={selectedMessage.status}
                     size="small"

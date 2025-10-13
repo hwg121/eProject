@@ -11,7 +11,6 @@ import {
   CircularProgress,
   Paper,
   Divider,
-  Grid,
   InputAdornment,
   IconButton
 } from '@mui/material';
@@ -179,14 +178,21 @@ const AdminSecuritySettings: React.FC = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="p-6"
+      className="p-3 sm:p-4 md:p-6"
     >
-      {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+      {/* Header - Responsive */}
+      <Box sx={{ mb: { xs: 3, sm: 4 } }}>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: { xs: 1.5, sm: 2 }, 
+          mb: 1,
+          flexDirection: { xs: 'column', sm: 'row' },
+          textAlign: { xs: 'center', sm: 'left' }
+        }}>
           <Box
             sx={{
-              p: 1.5,
+              p: { xs: 1, sm: 1.5 },
               borderRadius: 2,
               background: isDarkMode
                 ? 'linear-gradient(135deg, rgba(220, 38, 38, 0.2), rgba(239, 68, 68, 0.2))'
@@ -196,7 +202,7 @@ const AdminSecuritySettings: React.FC = () => {
               justifyContent: 'center',
             }}
           >
-            <Shield className={`h-6 w-6 ${isDarkMode ? 'text-red-400' : 'text-red-600'}`} />
+            <Shield className={`h-5 w-5 sm:h-6 sm:w-6 ${isDarkMode ? 'text-red-400' : 'text-red-600'}`} />
           </Box>
           <Box>
             <Typography
@@ -208,13 +214,18 @@ const AdminSecuritySettings: React.FC = () => {
                   : 'linear-gradient(135deg, #dc2626, #991b1b)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
+                fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }
               }}
             >
               Security Settings
             </Typography>
             <Typography
               variant="body2"
-              sx={{ color: isDarkMode ? '#9ca3af' : '#6b7280', mt: 0.5 }}
+              sx={{ 
+                color: isDarkMode ? '#9ca3af' : '#6b7280', 
+                mt: 0.5,
+                fontSize: { xs: '0.75rem', sm: '0.875rem' }
+              }}
             >
               Update the security password for admin role operations
             </Typography>
@@ -262,22 +273,23 @@ const AdminSecuritySettings: React.FC = () => {
           backdropFilter: 'blur(10px)',
         }}
       >
-        <CardContent sx={{ p: 4 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 3, sm: 4 } }}>
             {/* Account Password Section */}
             <Box>
               <Typography
                 variant="subtitle1"
                 sx={{
                   fontWeight: 600,
-                  mb: 2,
+                  mb: { xs: 1.5, sm: 2 },
                   color: isDarkMode ? '#f3f4f6' : '#1f2937',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 1,
+                  fontSize: { xs: '1rem', sm: '1.125rem' }
                 }}
               >
-                <Lock className="h-4 w-4" />
+                <Lock className="h-4 w-4 sm:h-5 sm:w-5" />
                 Your Account Password
               </Typography>
               <TextField
@@ -434,6 +446,7 @@ const AdminSecuritySettings: React.FC = () => {
                   variant="contained"
                   onClick={handleSubmit}
                   disabled={loading}
+                  fullWidth
                   startIcon={loading ? <CircularProgress size={20} /> : <Save size={20} />}
                   sx={{
                     bgcolor: isDarkMode ? '#10b981' : '#059669',
@@ -444,6 +457,9 @@ const AdminSecuritySettings: React.FC = () => {
                     '&:disabled': {
                       bgcolor: isDarkMode ? 'rgba(75, 85, 99, 0.3)' : 'rgba(0, 0, 0, 0.12)',
                     },
+                    minHeight: '44px',
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                    py: { xs: 1.5, sm: 2 }
                   }}
                 >
                   {loading ? 'Updating...' : 'Update Security Password'}

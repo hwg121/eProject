@@ -10,7 +10,6 @@ import {
   LinearProgress,
   Chip,
   Avatar,
-  Tooltip,
   CircularProgress
 } from '@mui/material';
 import { Users, Eye, FileText, Star, Save, TrendingUp, type LucideIcon } from 'lucide-react';
@@ -194,33 +193,49 @@ const AdminCampaignSettings: React.FC = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
       <Box sx={{ maxWidth: 1800, mx: 'auto' }}>
-        {/* Header - Compact */}
-        <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        {/* Header - Responsive */}
+        <Box sx={{ 
+          mb: { xs: 2, sm: 3 }, 
+          display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'stretch', sm: 'center' }, 
+          justifyContent: 'space-between',
+          gap: { xs: 2, sm: 0 }
+        }}>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: { xs: 1.5, sm: 2 },
+            justifyContent: { xs: 'center', sm: 'flex-start' }
+          }}>
             <Box sx={{ 
-              p: 1, 
+              p: { xs: 0.75, sm: 1 }, 
               borderRadius: 2, 
               background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
               display: 'flex'
             }}>
-              <TrendingUp size={24} color="white" />
+              <TrendingUp size={20} color="white" className="sm:w-6 sm:h-6" />
             </Box>
-            <Box>
+            <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
               <Typography
                 variant="h5"
                 sx={{
                   fontWeight: 700,
                   color: isDarkMode ? '#fff' : '#1f2937',
-                  letterSpacing: '-0.01em'
+                  letterSpacing: '-0.01em',
+                  fontSize: { xs: '1.25rem', sm: '1.5rem' }
                 }}
               >
                 Campaign Goals
               </Typography>
               <Typography
                 variant="body2"
-                sx={{ color: isDarkMode ? '#94a3b8' : '#64748b' }}
+                sx={{ 
+                  color: isDarkMode ? '#94a3b8' : '#64748b',
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                }}
               >
                 Set and track your key metrics
               </Typography>
@@ -233,21 +248,26 @@ const AdminCampaignSettings: React.FC = () => {
               label="Unsaved changes" 
               color="info" 
               size="small"
-              sx={{ fontWeight: 600 }}
+              sx={{ 
+                fontWeight: 600,
+                fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                alignSelf: { xs: 'center', sm: 'flex-start' }
+              }}
             />
           )}
         </Box>
 
-        {/* Metrics Grid - 4 columns */}
+        {/* Metrics Grid - Responsive */}
         <Box sx={{ 
           display: 'grid', 
           gridTemplateColumns: { 
             xs: '1fr', 
             sm: 'repeat(2, 1fr)',
+            md: 'repeat(2, 1fr)',
             lg: 'repeat(4, 1fr)' 
           },
-          gap: 2, 
-          mb: 3 
+          gap: { xs: 1.5, sm: 2 }, 
+          mb: { xs: 2, sm: 3 } 
         }}>
         {Object.values(metricsConfig).map((metric, index) => {
           const stat = statsOverview?.[metric.name as keyof CampaignStatsResponse];
@@ -289,25 +309,37 @@ const AdminCampaignSettings: React.FC = () => {
                   }
                 }}
               >
-                  <CardContent sx={{ p: 2, position: 'relative', zIndex: 1 }}>
+                  <CardContent sx={{ 
+                    p: { xs: 1.5, sm: 2 }, 
+                    position: 'relative', 
+                    zIndex: 1 
+                  }}>
                     {/* Icon and Badge */}
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center', 
+                      mb: { xs: 1, sm: 1.5 } 
+                    }}>
                       <Avatar
                         sx={{
-                          width: 40,
-                          height: 40,
+                          width: { xs: 32, sm: 40 },
+                          height: { xs: 32, sm: 40 },
                           background: metric.bgGradient,
                           boxShadow: `0 4px 12px ${metric.color}40`
                         }}
                       >
-                        <metric.icon size={20} color="white" />
+                        <metric.icon size={16} color="white" className="sm:w-5 sm:h-5" />
                       </Avatar>
 
                       <Chip
                         label={`${progress.toFixed(0)}%`}
                         color={getProgressBadgeColor(progress)}
                         size="small"
-                        sx={{ fontWeight: 600, fontSize: '0.75rem' }}
+                        sx={{ 
+                          fontWeight: 600, 
+                          fontSize: { xs: '0.7rem', sm: '0.75rem' }
+                        }}
                       />
                     </Box>
 
@@ -317,21 +349,32 @@ const AdminCampaignSettings: React.FC = () => {
                       sx={{
                         fontWeight: 600,
                         color: isDarkMode ? '#fff' : '#1f2937',
-                        mb: 1
+                        mb: { xs: 0.75, sm: 1 },
+                        fontSize: { xs: '0.875rem', sm: '1rem' }
                       }}
                     >
                       {metric.label}
                     </Typography>
 
                     {/* Current Value with Growth */}
-                    <Box sx={{ mb: 1.5 }}>
+                    <Box sx={{ mb: { xs: 1, sm: 1.5 } }}>
                       <Typography
                         variant="caption"
-                        sx={{ color: isDarkMode ? '#94a3b8' : '#64748b', fontSize: '0.7rem', mb: 0.5, display: 'block' }}
+                        sx={{ 
+                          color: isDarkMode ? '#94a3b8' : '#64748b', 
+                          fontSize: { xs: '0.65rem', sm: '0.7rem' }, 
+                          mb: 0.5, 
+                          display: 'block' 
+                        }}
                       >
                         Current Value
                       </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'baseline', 
+                        gap: { xs: 0.5, sm: 1 },
+                        flexWrap: 'wrap'
+                      }}>
                         <Typography
                           variant="h6"
                           sx={{
@@ -339,7 +382,8 @@ const AdminCampaignSettings: React.FC = () => {
                             background: metric.bgGradient,
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent',
-                            lineHeight: 1
+                            lineHeight: 1,
+                            fontSize: { xs: '1rem', sm: '1.25rem' }
                           }}
                         >
                           {metric.name === 'rating'
@@ -349,7 +393,11 @@ const AdminCampaignSettings: React.FC = () => {
                             <Typography
                               component="span"
                               variant="caption"
-                              sx={{ color: isDarkMode ? '#94a3b8' : '#64748b', ml: 0.5 }}
+                              sx={{ 
+                                color: isDarkMode ? '#94a3b8' : '#64748b', 
+                                ml: 0.5,
+                                fontSize: { xs: '0.65rem', sm: '0.75rem' }
+                              }}
                             >
                               {metric.unit}
                             </Typography>
