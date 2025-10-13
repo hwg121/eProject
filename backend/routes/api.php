@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\{
     ProductController,
     UploadController,
     ImageController,
+    SimpleImageController,
     InteractionController,
     UserController,
     AuthController,
@@ -228,9 +229,10 @@ Route::middleware(['cors'])->group(function () {
 });
 
 // Simple upload routes - NO fopen() usage
-// Route::middleware(['cors'])->group(function () {
-//     // Simple Image Upload Routes
-//     Route::middleware(['auth:sanctum'])->group(function () {
-//         Route::post('/simple/upload/image', [SimpleImageController::class, 'upload']);
-//     });
-// });
+Route::middleware(['cors'])->group(function () {
+    
+    // Simple Image Upload Routes
+    Route::middleware(['auth:sanctum'])->group(function () {
+        Route::post('/simple/upload/image', [SimpleImageController::class, 'upload']);
+    });
+});

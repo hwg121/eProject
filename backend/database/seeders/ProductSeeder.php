@@ -28,6 +28,7 @@ class ProductSeeder extends Seeder
                 'link' => 'https://shopee.vn/xeng-trong-cay-chuyen-dung',
                 'status' => 'published',
                 'is_featured' => true,
+                'is_published' => true,
                 'rating' => 4.5,
                 'views' => 1250,
                 'likes' => 89
@@ -46,6 +47,7 @@ class ProductSeeder extends Seeder
                 'link' => 'https://shopee.vn/binh-tuoi-nuoc-2l',
                 'status' => 'published',
                 'is_featured' => false,
+                'is_published' => true,
                 'rating' => 4.3,
                 'views' => 980,
                 'likes' => 67
@@ -66,6 +68,7 @@ class ProductSeeder extends Seeder
                 'link' => 'https://tiki.vn/nghe-thuat-trong-cay-tu-a-z',
                 'status' => 'published',
                 'is_featured' => true,
+                'is_published' => true,
                 'rating' => 4.8,
                 'views' => 2100,
                 'likes' => 156
@@ -84,6 +87,7 @@ class ProductSeeder extends Seeder
                 'link' => 'https://tiki.vn/cay-canh-trong-nha-huong-dan-cham-soc',
                 'status' => 'published',
                 'is_featured' => false,
+                'is_published' => true,
                 'rating' => 4.6,
                 'views' => 1750,
                 'likes' => 123
@@ -105,6 +109,7 @@ class ProductSeeder extends Seeder
                 'link' => 'https://shopee.vn/chau-dat-nung-truyen-thong',
                 'status' => 'published',
                 'is_featured' => true,
+                'is_published' => true,
                 'rating' => 4.7,
                 'views' => 890,
                 'likes' => 45
@@ -124,6 +129,7 @@ class ProductSeeder extends Seeder
                 'link' => 'https://shopee.vn/chau-nhua-da-nang',
                 'status' => 'published',
                 'is_featured' => false,
+                'is_published' => true,
                 'rating' => 4.2,
                 'views' => 650,
                 'likes' => 32
@@ -146,6 +152,7 @@ class ProductSeeder extends Seeder
                 'link' => 'https://shopee.vn/phu-kien-trang-tri-mini',
                 'status' => 'published',
                 'is_featured' => true,
+                'is_published' => true,
                 'rating' => 4.4,
                 'views' => 720,
                 'likes' => 38
@@ -166,6 +173,7 @@ class ProductSeeder extends Seeder
                 'link' => 'https://shopee.vn/he-thong-tuoi-nuoc-tu-dong',
                 'status' => 'published',
                 'is_featured' => false,
+                'is_published' => true,
                 'rating' => 4.6,
                 'views' => 1100,
                 'likes' => 78
@@ -186,6 +194,7 @@ class ProductSeeder extends Seeder
                 'link' => 'https://blog.greengroves.vn/cach-trong-cay-xanh-trong-nha',
                 'status' => 'published',
                 'is_featured' => true,
+                'is_published' => true,
                 'rating' => 4.5,
                 'views' => 1000,
                 'likes' => 50
@@ -204,6 +213,7 @@ class ProductSeeder extends Seeder
                 'link' => 'https://blog.greengroves.vn/10-loai-cay-de-trong-nhat-cho-nguoi-moi',
                 'status' => 'published',
                 'is_featured' => false,
+                'is_published' => true,
                 'rating' => 4.3,
                 'views' => 800,
                 'likes' => 40
