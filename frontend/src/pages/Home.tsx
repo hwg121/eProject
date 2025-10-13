@@ -194,7 +194,7 @@ const Home: React.FC = () => {
           </motion.div>
           
           <motion.h1 
-            className="hero-title hero-title-compact font-black leading-tight text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl"
+            className="hero-title hero-title-compact font-black leading-tight text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl px-4 sm:px-6 md:px-8"
             {...(isMobile 
               ? { initial: { opacity: 1 }, animate: { opacity: 1 } }
               : {

@@ -381,22 +381,21 @@ select {
     backdrop-filter: blur(8px) !important;
   }
   
-  /* Beautiful gradients for mobile - keep them beautiful! */
+  /* Keep desktop gradients - only adjust opacity/intensity for mobile */
   .bg-gradient-to-br {
-    background: linear-gradient(135deg, #059669 0%, #10b981 25%, #34d399 50%, #6ee7b7 75%, #a7f3d0 100%) !important;
+    /* Keep original desktop gradient, just ensure it works on mobile */
   }
   
-  /* Enhanced mobile gradients */
   .bg-gradient-to-r {
-    background: linear-gradient(90deg, #059669 0%, #10b981 25%, #34d399 50%, #6ee7b7 75%, #a7f3d0 100%) !important;
+    /* Keep original desktop gradient, just ensure it works on mobile */
   }
   
   .bg-gradient-to-t {
-    background: linear-gradient(0deg, #059669 0%, #10b981 25%, #34d399 50%, #6ee7b7 75%, #a7f3d0 100%) !important;
+    /* Keep original desktop gradient, just ensure it works on mobile */
   }
   
   .bg-gradient-to-b {
-    background: linear-gradient(180deg, #059669 0%, #10b981 25%, #34d399 50%, #6ee7b7 75%, #a7f3d0 100%) !important;
+    /* Keep original desktop gradient, just ensure it works on mobile */
   }
   
   /* Beautiful shadows for mobile */

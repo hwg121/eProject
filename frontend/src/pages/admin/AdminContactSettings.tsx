@@ -278,48 +278,48 @@ const AdminContactSettings: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-3 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+        {/* Header - Responsive */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6 sm:mb-8"
         >
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-4 sm:gap-0">
             <div className="flex items-center space-x-3">
-              <div className="p-3 bg-gradient-to-r from-emerald-500 to-green-500 rounded-xl shadow-lg">
-                <Settings className="h-6 w-6 text-white" />
+              <div className="p-2 sm:p-3 bg-gradient-to-r from-emerald-500 to-green-500 rounded-xl shadow-lg">
+                <Settings className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 bg-clip-text text-transparent">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 bg-clip-text text-transparent">
                   Contact Settings
                 </h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-1">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
                   Manage contact information displayed on website
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
               <button
                 onClick={() => setShowActiveOnly(!showActiveOnly)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+                className={`flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation ${
                   showActiveOnly
                     ? 'bg-emerald-500 text-white shadow-lg'
                     : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-emerald-500'
                 }`}
               >
                 {showActiveOnly ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                <span className="text-sm font-medium">
+                <span className="text-xs sm:text-sm font-medium">
                   {showActiveOnly ? 'Show All' : 'Active Only'}
                 </span>
               </button>
               <button
                 onClick={handleAddNew}
-                className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                className="flex items-center justify-center space-x-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 min-h-[44px] touch-manipulation"
               >
-                <Plus className="h-5 w-5" />
-                <span className="font-medium">Add New</span>
+                <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="text-sm sm:text-base font-medium">Add New</span>
               </button>
             </div>
           </div>
@@ -611,8 +611,8 @@ const AdminContactSettings: React.FC = () => {
           )}
         </AnimatePresence>
 
-        {/* Contact Settings List */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        {/* Contact Settings List - Responsive */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
           {filteredSettings.map((setting, index) => (
             <motion.div
               key={setting.id}
@@ -621,11 +621,11 @@ const AdminContactSettings: React.FC = () => {
               transition={{ delay: index * 0.1 }}
               className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300"
             >
-              <div className={`p-4 ${setting.is_active ? 'bg-gradient-to-r from-emerald-500 to-green-500' : 'bg-gray-50 dark:bg-gray-700'}`}>
+              <div className={`p-3 sm:p-4 ${setting.is_active ? 'bg-gradient-to-r from-emerald-500 to-green-500' : 'bg-gray-50 dark:bg-gray-700'}`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <Settings className={`h-5 w-5 ${setting.is_active ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`} />
-                    <span className={`font-semibold ${setting.is_active ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
+                    <Settings className={`h-4 w-4 sm:h-5 sm:w-5 ${setting.is_active ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`} />
+                    <span className={`text-sm sm:text-base font-semibold ${setting.is_active ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
                       Contact Settings #{setting.id}
                     </span>
                   </div>
@@ -635,109 +635,114 @@ const AdminContactSettings: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 <div className="space-y-4">
                   {setting.email && (
-                    <div className="flex items-start space-x-3">
-                      <Mail className="h-4 w-4 text-emerald-500 mt-1" />
-                      <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Email</p>
-                        <p className="text-gray-900 dark:text-white font-medium">{setting.email}</p>
+                    <div className="flex items-start space-x-2 sm:space-x-3">
+                      <Mail className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-500 mt-1 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Email</p>
+                        <p className="text-xs sm:text-sm text-gray-900 dark:text-white font-medium break-all">{setting.email}</p>
                       </div>
                     </div>
                   )}
 
                   {setting.phone && (
-                    <div className="flex items-start space-x-3">
-                      <Phone className="h-4 w-4 text-emerald-500 mt-1" />
-                      <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Phone</p>
-                        <p className="text-gray-900 dark:text-white font-medium">{setting.phone}</p>
+                    <div className="flex items-start space-x-2 sm:space-x-3">
+                      <Phone className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-500 mt-1 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Phone</p>
+                        <p className="text-xs sm:text-sm text-gray-900 dark:text-white font-medium">{setting.phone}</p>
                       </div>
                     </div>
                   )}
 
                   {setting.address && (
-                    <div className="flex items-start space-x-3">
-                      <MapPin className="h-4 w-4 text-emerald-500 mt-1" />
-                      <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Address</p>
-                        <p className="text-gray-900 dark:text-white font-medium">{setting.address}</p>
+                    <div className="flex items-start space-x-2 sm:space-x-3">
+                      <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-500 mt-1 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Address</p>
+                        <p className="text-xs sm:text-sm text-gray-900 dark:text-white font-medium line-clamp-2">{setting.address}</p>
                       </div>
                     </div>
                   )}
 
                   {setting.working_hours && (
-                    <div className="flex items-start space-x-3">
-                      <Clock className="h-4 w-4 text-emerald-500 mt-1" />
-                      <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Hours</p>
-                        <p className="text-gray-900 dark:text-white font-medium">{setting.working_hours}</p>
+                    <div className="flex items-start space-x-2 sm:space-x-3">
+                      <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-500 mt-1 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Hours</p>
+                        <p className="text-xs sm:text-sm text-gray-900 dark:text-white font-medium line-clamp-2">{setting.working_hours}</p>
                       </div>
                     </div>
                   )}
 
-                  <div className="flex flex-wrap gap-2 pt-2">
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2 pt-2">
                     {setting.website && (
-                      <a href={setting.website} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md text-xs hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors">
+                      <a href={setting.website} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md text-xs hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors min-h-[32px] touch-manipulation">
                         <Globe className="h-3 w-3" />
-                        <span>Website</span>
+                        <span className="hidden sm:inline">Website</span>
+                        <span className="sm:hidden">Web</span>
                       </a>
                     )}
                     {setting.facebook && (
-                      <a href={setting.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1 px-2 py-1 bg-blue-600 text-white rounded-md text-xs hover:bg-blue-700 transition-colors">
+                      <a href={setting.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1 px-2 py-1 bg-blue-600 text-white rounded-md text-xs hover:bg-blue-700 transition-colors min-h-[32px] touch-manipulation">
                         <Facebook className="h-3 w-3" />
-                        <span>Facebook</span>
+                        <span className="hidden sm:inline">Facebook</span>
+                        <span className="sm:hidden">FB</span>
                       </a>
                     )}
                     {setting.instagram && (
-                      <a href={setting.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1 px-2 py-1 bg-pink-600 text-white rounded-md text-xs hover:bg-pink-700 transition-colors">
+                      <a href={setting.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1 px-2 py-1 bg-pink-600 text-white rounded-md text-xs hover:bg-pink-700 transition-colors min-h-[32px] touch-manipulation">
                         <Instagram className="h-3 w-3" />
-                        <span>Instagram</span>
+                        <span className="hidden sm:inline">Instagram</span>
+                        <span className="sm:hidden">IG</span>
                       </a>
                     )}
                     {setting.youtube && (
-                      <a href={setting.youtube} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1 px-2 py-1 bg-red-600 text-white rounded-md text-xs hover:bg-red-700 transition-colors">
+                      <a href={setting.youtube} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1 px-2 py-1 bg-red-600 text-white rounded-md text-xs hover:bg-red-700 transition-colors min-h-[32px] touch-manipulation">
                         <Youtube className="h-3 w-3" />
-                        <span>YouTube</span>
+                        <span className="hidden sm:inline">YouTube</span>
+                        <span className="sm:hidden">YT</span>
                       </a>
                     )}
                     {setting.linkedin && (
-                      <a href={setting.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1 px-2 py-1 bg-blue-700 text-white rounded-md text-xs hover:bg-blue-800 transition-colors">
+                      <a href={setting.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1 px-2 py-1 bg-blue-700 text-white rounded-md text-xs hover:bg-blue-800 transition-colors min-h-[32px] touch-manipulation">
                         <Linkedin className="h-3 w-3" />
-                        <span>LinkedIn</span>
+                        <span className="hidden sm:inline">LinkedIn</span>
+                        <span className="sm:hidden">LI</span>
                       </a>
                     )}
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-700 gap-3 sm:gap-0">
                   <span className="text-xs text-gray-500 dark:text-gray-400">
                     Created: {new Date(setting.created_at).toLocaleDateString()}
                   </span>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1 sm:space-x-2">
                     {!setting.is_active && (
                       <button
                         onClick={() => handleSetActive(setting.id)}
-                        className="p-2 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors"
+                        className="p-2 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors min-h-[32px] min-w-[32px] touch-manipulation"
                         title="Set as Active"
                       >
-                        <Check className="h-4 w-4" />
+                        <Check className="h-3 w-3 sm:h-4 sm:w-4" />
                       </button>
                     )}
                     <button
                       onClick={() => handleEdit(setting)}
-                      className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                      className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors min-h-[32px] min-w-[32px] touch-manipulation"
                       title="Edit"
                     >
-                      <Edit className="h-4 w-4" />
+                      <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(setting.id)}
-                      className="p-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                      className="p-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors min-h-[32px] min-w-[32px] touch-manipulation"
                       title="Delete"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                     </button>
                   </div>
                 </div>
