@@ -302,17 +302,19 @@ const UserManagement: React.FC<UserManagementProps> = ({
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                      isDarkMode ? 'bg-gray-600' : 'bg-gray-200'
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 overflow-hidden ${
+                      isDarkMode ? 'border-emerald-500/30 bg-emerald-900/20' : 'border-emerald-200 bg-emerald-50'
                     }`}>
                       {user.avatar ? (
                         <img 
                           src={user.avatar} 
                           alt={user.name}
-                          className="w-12 h-12 rounded-full object-cover"
+                          className="w-full h-full object-cover"
                         />
                       ) : (
-                        <User className="w-6 h-6 text-gray-400" />
+                        <span className={`text-xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                          {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                        </span>
                       )}
                     </div>
                     <div>

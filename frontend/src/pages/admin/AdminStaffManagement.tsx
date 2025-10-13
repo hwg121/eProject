@@ -282,11 +282,6 @@ const AdminStaffManagement: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <PageHeader
-        title="Staff Management"
-        subtitle="Manage staff members displayed on About Us page (Maximum 5)"
-        icon={<Users className="h-10 w-10" />}
-      />
 
       {/* Snackbar for errors */}
       <Snackbar 

@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Lightbulb, User, Calendar, ArrowRight } from 'lucide-react';
+import { Lightbulb, User, Calendar, ArrowRight, Star } from 'lucide-react';
 import Card from '../components/UI/Card';
 import PageHeader from '../components/UI/PageHeader';
 import Carousel from '../components/UI/Carousel';
 import { publicService } from '../services/api.ts';
 import { generateSlug } from '../utils/slug';
+import { useResponsiveDesign } from '../utils/responsiveDesign';
 
 const Techniques: React.FC = () => {
+  const { isMobile, isSmallMobile, isLargeMobile, isTablet, isDesktop, isTouchDevice } = useResponsiveDesign();
   const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
+  const itemsPerPage = isMobile ? 6 : 9;
 
   useEffect(() => {
     const loadArticles = async () => {
@@ -110,6 +112,12 @@ const Techniques: React.FC = () => {
                     alt={article.title}
                     className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                   />
+                  {article.is_featured && (
+                    <div className="absolute top-3 left-3 bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1 shadow-lg">
+                      <Star className="h-3.5 w-3.5 fill-white" />
+                      Featured
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
                     <ArrowRight className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>

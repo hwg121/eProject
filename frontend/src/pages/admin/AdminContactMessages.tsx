@@ -119,11 +119,6 @@ const AdminContactMessages: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <PageHeader
-        title="Contact Messages"
-        subtitle="View and manage contact form submissions"
-        icon={<Mail className="h-10 w-10" />}
-      />
 
       {/* Snackbar for errors */}
       <Toast

@@ -109,8 +109,8 @@ const UserManagementSection: React.FC<UserManagementSectionProps> = memo(({
             {filteredUsers.map((userItem) => (
               <tr key={userItem.id} className={`border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                 <td className="py-3 px-4">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center overflow-hidden ${
-                    isDarkMode ? 'bg-emerald-900/30' : 'bg-emerald-100'
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden border-2 ${
+                    isDarkMode ? 'border-emerald-500/30 bg-emerald-900/20' : 'border-emerald-200 bg-emerald-50'
                   }`}>
                     {userItem.avatar ? (
                       <img 
@@ -119,7 +119,7 @@ const UserManagementSection: React.FC<UserManagementSectionProps> = memo(({
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span className={`text-sm font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                      <span className={`text-lg font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
                         {userItem.name?.charAt(0)?.toUpperCase() || 'U'}
                       </span>
                     )}

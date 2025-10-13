@@ -2,23 +2,6 @@ import React, { useState } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import Toast from '../UI/Toast';
 import ImageUpload from '../ImageUpload';
-import StatusBadge from '../UI/StatusBadge';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  TextField,
-  Button,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Breadcrumbs,
-  Link,
-  Divider,
-} from '@mui/material';
-import { NavigateNext as NavigateNextIcon } from '@mui/icons-material';
 
 interface UserProfileComponentProps {
   profileData: any;
@@ -37,28 +20,6 @@ const UserProfileComponent: React.FC<UserProfileComponentProps> = ({
 }) => {
   const { isDarkMode } = useTheme();
   
-  // Dark mode TextField styles
-  const textFieldStyles = {
-    '& .MuiOutlinedInput-root': {
-      color: isDarkMode ? '#fff' : '#000',
-      '& .MuiOutlinedInput-notchedOutline': {
-        borderColor: isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.23)'
-      },
-      '&:hover .MuiOutlinedInput-notchedOutline': {
-        borderColor: '#10b981'
-      },
-      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-        borderColor: '#10b981'
-      }
-    },
-    '& .MuiInputLabel-root': {
-      color: isDarkMode ? '#94a3b8' : '#64748b',
-      '&.Mui-focused': {
-        color: '#10b981'
-      }
-    }
-  };
-  
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -73,263 +34,284 @@ const UserProfileComponent: React.FC<UserProfileComponentProps> = ({
     setSnackbar({ open: true, message, severity });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Update parent state with local changes
-    Object.keys(profileData).forEach(key => {
-      if ((profileData as any)[key] !== (userProfile as any)[key]) {
-        onUserProfileChange(key, (profileData as any)[key]);
-      }
-    });
-    onSaveUserProfile();
-  };
-
   return (
-    <Box sx={{ maxWidth: 1400, mx: 'auto', p: 3 }}>
+    <div className="max-w-6xl mx-auto">
       {/* Breadcrumb */}
-      <Breadcrumbs 
-        separator={<NavigateNextIcon fontSize="small" />} 
-        sx={{ mb: 3 }}
-      >
-        <Link underline="hover" color="inherit" href="#">
-          <Typography variant="body2">Dashboard</Typography>
-        </Link>
-        <Link underline="hover" color="inherit" href="#">
-          <Typography variant="body2">User</Typography>
-        </Link>
-        <Typography variant="body2" color="primary" fontWeight={600}>{profileData.name}</Typography>
-      </Breadcrumbs>
+      <div className="flex items-center space-x-2 mb-6">
+        <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Dashboard</span>
+        <div className={`w-1 h-1 rounded-full ${isDarkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
+        <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>User</span>
+        <div className={`w-1 h-1 rounded-full ${isDarkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
+        <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{profileData.name}</span>
+      </div>
 
       {/* Main Profile Layout */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 2fr' }, gap: 3 }}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - User Status and Actions */}
-        <Card 
-          elevation={3}
-          sx={{ 
-            borderRadius: 3,
-            background: isDarkMode 
-              ? 'rgba(30, 41, 59, 0.6)' 
-              : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid',
-            borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(16, 185, 129, 0.1)',
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              boxShadow: isDarkMode 
-                ? '0 12px 40px rgba(16, 185, 129, 0.3)' 
-                : '0 12px 40px rgba(16, 185, 129, 0.15)',
-              transform: 'translateY(-4px)',
-            }
-          }}
-        >
-          <CardContent sx={{ p: 3 }}>
-            {/* User Status */}
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
-              <StatusBadge 
-                status={profileData.status as 'active' | 'inactive' | 'banned'}
-                size="medium"
-              />
-            </Box>
+        <div>
+          <div className={`relative overflow-hidden rounded-3xl p-4 sm:p-6 lg:p-8 transition-all duration-700 group backdrop-blur-xl border shadow-xl hover:shadow-3xl hover:scale-[1.02] ${
+            isDarkMode
+              ? 'bg-gray-800/60 border-gray-700/50 shadow-emerald-500/10 hover:shadow-emerald-500/20 hover:border-emerald-500/40'
+              : 'bg-white/90 border-gray-200/30 shadow-emerald-100/20 border-emerald-100/40 hover:shadow-emerald-200/40 hover:border-emerald-200/60'
+          }`}>
+            <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-3xl bg-gradient-to-br ${
+              isDarkMode ? 'from-emerald-900/0 via-emerald-800/10 to-emerald-700/20' : 'from-emerald-50/0 via-emerald-100/20 to-green-100/30'
+            }`}></div>
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 overflow-hidden rounded-3xl">
+              <div className={`absolute inset-0 bg-gradient-to-r from-transparent to-transparent -skew-x-12 ${
+                isDarkMode ? 'via-emerald-500/10' : 'via-white/30'
+              }`} style={{transform: 'translateX(100%)'}}></div>
+            </div>
+            <div className="relative z-10">
+              <div className="p-6">
+                {/* Pending Status */}
+                <div className="flex justify-end mb-6">
+                  <span className="px-3 py-1 text-sm font-medium rounded-full bg-orange-100 text-orange-800">
+                    Pending
+                  </span>
+                </div>
 
-            {/* Profile Picture */}
-            <Box sx={{ mb: 4 }}>
-              <Typography variant="h6" fontWeight={700} sx={{ mb: 2, color: isDarkMode ? '#fff' : '#1e293b' }}>
-                Profile Picture
-              </Typography>
-              <ImageUpload
-                value={profileData.avatar}
-                onChange={(url) => {
-                  setProfileData(prev => ({ ...prev, avatar: url }));
-                  onUserProfileChange('avatar', url);
-                }}
-                onError={(error) => showToast(error, 'error')}
-                folder="user-avatar"
-                modelType="user"
-                maxSize={3}
-                shape="rounded-full"
-              />
-            </Box>
+                {/* Profile Picture */}
+                <div className="mb-8">
+                  <h3 className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Profile Picture</h3>
+                  <ImageUpload
+                    value={profileData.avatar}
+                    onChange={(url) => {
+                      setProfileData(prev => ({ ...prev, avatar: url }));
+                      onUserProfileChange('avatar', url);
+                    }}
+                    onError={(error) => showToast(error, 'error')}
+                    folder="user-avatar"
+                    modelType="user"
+                    maxSize={3}
+                    shape="rounded-full"
+                  />
+                </div>
 
-            <Divider sx={{ my: 3 }} />
+                {/* Account Settings */}
+                <div className="mb-8">
+                  <h3 className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Account Settings</h3>
+                  <div className="space-y-6">
+                    {/* Status Display (Read-only) */}
+                    <div className="space-y-2">
+                      <h4 className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Account Status</h4>
+                      <div className={`px-4 py-3 border rounded-lg ${
+                        isDarkMode ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
+                      }`}>
+                        <div className="flex items-center">
+                          <div className={`w-3 h-3 rounded-full mr-3 ${profileData.status === 'active' ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                          <span className={`font-medium ${profileData.status === 'active' ? 'text-green-700' : 'text-red-700'}`}>
+                            {profileData.status === 'active' ? 'Active' : 'Banned'}
+                          </span>
+                        </div>
+                        <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          {profileData.status === 'active' 
+                            ? 'Your account is active and you can access all features.' 
+                            : 'Your account has been banned. Please contact administrator for assistance.'
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-            {/* Note */}
-            <Box 
-              sx={{ 
-                bgcolor: '#eff6ff', 
-                border: '1px solid #bfdbfe',
-                borderRadius: 2,
-                p: 2
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
-                <Box sx={{ flexShrink: 0, mr: 1.5 }}>
-                  <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor" style={{ width: 20, height: 20, color: '#60a5fa' }}>
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
-                </Box>
-                <Box>
-                  <Typography variant="body2" fontWeight={600} sx={{ color: '#1e40af', mb: 0.5 }}>
-                    Account Management
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#1e40af' }}>
-                    To change your account status or delete your account, please contact an administrator.
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-
-            <Divider sx={{ my: 3 }} />
-
-            {/* Action Button */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Button 
-                type="submit"
-                form="user-profile-form"
-                variant="contained"
-                fullWidth
-                sx={{
-                  bgcolor: '#3b82f6',
-                  '&:hover': { bgcolor: '#2563eb' },
-                  textTransform: 'none',
-                  fontWeight: 700,
-                  py: 1.5,
-                }}
-              >
-                Save Changes
-              </Button>
-            </Box>
-          </CardContent>
-        </Card>
+                {/* Note about account management */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-blue-800">
+                        Account Management
+                      </h3>
+                      <div className="mt-2 text-sm text-blue-700">
+                        <p>To change your account status or delete your account, please contact an administrator.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 -translate-y-16 translate-x-16 bg-gradient-to-br from-emerald-200/20 via-green-200/10 to-transparent"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 translate-y-12 -translate-x-12 bg-gradient-to-tr from-teal-200/20 via-emerald-200/10 to-transparent"></div>
+          </div>
+        </div>
 
         {/* Right Column - Profile Details Form */}
-        <Card 
-          elevation={3}
-          sx={{ 
-            borderRadius: 3,
-            background: isDarkMode 
-              ? 'rgba(30, 41, 59, 0.6)' 
-              : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid',
-            borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(16, 185, 129, 0.1)',
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              boxShadow: isDarkMode 
-                ? '0 12px 40px rgba(16, 185, 129, 0.3)' 
-                : '0 12px 40px rgba(16, 185, 129, 0.15)',
-              transform: 'translateY(-4px)',
-            }
-          }}
-        >
-          <CardContent sx={{ p: 3 }}>
-            <Typography variant="h6" fontWeight={700} sx={{ mb: 3, color: isDarkMode ? '#fff' : '#1e293b' }}>
-              Profile Details
-            </Typography>
-            
-            <form id="user-profile-form" onSubmit={handleSubmit}>
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
-                <TextField
-                  fullWidth
-                  label="Full Name"
-                  required
-                  value={profileData.name}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Full name"
-                  sx={textFieldStyles}
-                />
+        <div className="lg:col-span-2">
+          <div className={`relative overflow-hidden rounded-3xl p-4 sm:p-6 lg:p-8 transition-all duration-700 group backdrop-blur-xl border shadow-xl hover:shadow-3xl hover:scale-[1.02] ${
+            isDarkMode
+              ? 'bg-gray-800/60 border-gray-700/50 shadow-emerald-500/10 hover:shadow-emerald-500/20 hover:border-emerald-500/40'
+              : 'bg-white/90 border-gray-200/30 shadow-emerald-100/20 border-emerald-100/40 hover:shadow-emerald-200/40 hover:border-emerald-200/60'
+          }`}>
+            <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-3xl bg-gradient-to-br ${
+              isDarkMode ? 'from-emerald-900/0 via-emerald-800/10 to-emerald-700/20' : 'from-emerald-50/0 via-emerald-100/20 to-green-100/30'
+            }`}></div>
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 overflow-hidden rounded-3xl">
+              <div className={`absolute inset-0 bg-gradient-to-r from-transparent to-transparent -skew-x-12 ${
+                isDarkMode ? 'via-emerald-500/10' : 'via-white/30'
+              }`} style={{transform: 'translateX(100%)'}}></div>
+            </div>
+            <div className="relative z-10">
+              <div className="p-6">
+                <h3 className={`text-lg font-semibold mb-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Profile Details</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Full name */}
+                <div className="space-y-2">
+                  <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>Full name</label>
+                  <input
+                    type="text"
+                    value={profileData.name}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-0 focus:border-emerald-500 ${
+                      isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'
+                    }`}
+                    placeholder="Full name"
+                  />
+                </div>
 
-                <TextField
-                  fullWidth
-                  label="Email Address"
-                  type="email"
-                  required
-                  value={profileData.email}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="Email address"
-                  sx={textFieldStyles}
-                />
+                {/* Email address */}
+                <div className="space-y-2">
+                  <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>Email address</label>
+                  <input
+                    type="email"
+                    value={profileData.email}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-0 focus:border-emerald-500 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'}`}
+                    placeholder="Email address"
+                  />
+                </div>
 
-                <TextField
-                  fullWidth
-                  label="Password"
-                  type="password"
-                  value={profileData.password || ''}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, password: e.target.value }))}
-                  placeholder="Enter new password (leave blank to keep current)"
-                  helperText="Leave blank to keep current password"
-                  sx={textFieldStyles}
-                />
+                <div className="space-y-2">
+                  <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>Password</label>
+                  <input
+                    type="password"
+                    value={profileData.password || ''}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, password: e.target.value }))}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-0 focus:border-emerald-500 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'}`}
+                    placeholder="Enter new password (leave blank to keep current)"
+                  />
+                  <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Leave blank to keep current password</p>
+                </div>
 
-                <TextField
-                  fullWidth
-                  label="Phone Number"
-                  type="tel"
-                  value={profileData.phone}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="Enter phone number"
-                  sx={textFieldStyles}
-                />
+                {/* Phone number */}
+                <div className="space-y-2">
+                  <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>Phone number</label>
+                  <div className="flex">
+                    <select 
+                      value={profileData.phone_country_code || 'VN'}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, phone_country_code: e.target.value }))}
+                      className={`px-3 py-3 border border-r-0 rounded-l-lg focus:outline-none focus:ring-0 focus:border-emerald-500 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                    >
+                      <option value="VN">🇻🇳 (+84)</option>
+                      <option value="US">🇺🇸 (+1)</option>
+                      <option value="UK">🇬🇧 (+44)</option>
+                    </select>
+                    <input
+                      type="tel"
+                      value={profileData.phone}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                      className={`flex-1 px-4 py-3 border rounded-r-lg focus:outline-none focus:ring-0 focus:border-emerald-500 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'}`}
+                      placeholder="Enter phone number"
+                    />
+                  </div>
+                </div>
 
-                <FormControl fullWidth>
-                  <InputLabel sx={{ '&.Mui-focused': { color: '#047857' } }}>Country</InputLabel>
-                  <Select
+                {/* Country */}
+                <div className="space-y-2">
+                  <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>Country</label>
+                  <select
                     value={profileData.country || 'VN'}
                     onChange={(e) => setProfileData(prev => ({ ...prev, country: e.target.value }))}
-                    label="Country"
-                    sx={{
-                      '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#10b981' },
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#10b981' },
-                    }}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-0 focus:border-emerald-500 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'}`}
                   >
-                    <MenuItem value="VN">🇻🇳 Vietnam</MenuItem>
-                    <MenuItem value="US">🇺🇸 United States</MenuItem>
-                    <MenuItem value="UK">🇬🇧 United Kingdom</MenuItem>
-                    <MenuItem value="JP">🇯🇵 Japan</MenuItem>
-                    <MenuItem value="KR">🇰🇷 South Korea</MenuItem>
-                  </Select>
-                </FormControl>
+                    <option value="VN">🇻🇳 Vietnam</option>
+                    <option value="US">🇺🇸 United States</option>
+                    <option value="UK">🇬🇧 United Kingdom</option>
+                    <option value="JP">🇯🇵 Japan</option>
+                    <option value="KR">🇰🇷 South Korea</option>
+                  </select>
+                </div>
 
-                <TextField
-                  fullWidth
-                  label="City"
-                  value={profileData.city}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, city: e.target.value }))}
-                  placeholder="City"
-                  sx={textFieldStyles}
-                />
+                {/* City */}
+                <div className="space-y-2">
+                  <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>City</label>
+                  <input
+                    type="text"
+                    value={profileData.city}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, city: e.target.value }))}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-0 focus:border-emerald-500 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'}`}
+                    placeholder="City"
+                  />
+                </div>
 
-                <TextField
-                  fullWidth
-                  label="Address"
-                  value={profileData.address}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, address: e.target.value }))}
-                  placeholder="Address"
-                  sx={textFieldStyles}
-                />
+                {/* Address */}
+                <div className="space-y-2">
+                  <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>Address</label>
+                  <input
+                    type="text"
+                    value={profileData.address}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, address: e.target.value }))}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-0 focus:border-emerald-500 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'}`}
+                    placeholder="Address"
+                  />
+                </div>
 
-                <TextField
-                  fullWidth
-                  label="Zip Code"
-                  value={profileData.zip_code}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, zip_code: e.target.value }))}
-                  placeholder="Zip/code"
-                  sx={textFieldStyles}
-                />
+                {/* Zip/code */}
+                <div className="space-y-2">
+                  <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>Zip/code</label>
+                  <input
+                    type="text"
+                    value={profileData.zip_code}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, zip_code: e.target.value }))}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-0 focus:border-emerald-500 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'}`}
+                    placeholder="Zip/code"
+                  />
+                </div>
 
-                {/* Role - Read-only */}
-                <TextField
-                  fullWidth
-                  label="Role"
-                  value={profileData.role === 'admin' ? 'Admin' : 'Moderator'}
-                  disabled
-                  helperText="Role cannot be changed from your profile. Contact admin for role changes."
-                  sx={textFieldStyles}
-                />
-              </Box>
-            </form>
-          </CardContent>
-        </Card>
-      </Box>
+                {/* Role - Disabled for everyone (read-only) */}
+                <div className="space-y-2">
+                  <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>Role</label>
+                  <input
+                    type="text"
+                    value={profileData.role === 'admin' ? 'Admin' : 'Moderator'}
+                    disabled
+                    className="w-full px-4 py-3 border rounded-lg bg-gray-100 border-gray-300 text-gray-600 cursor-not-allowed"
+                  />
+                  <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Role cannot be changed from your profile. Contact admin for role changes.
+                  </p>
+                </div>
+              </div>
+
+                {/* Save Changes Button */}
+                <div className="flex justify-end mt-8">
+                  <button 
+                    onClick={() => {
+                      // Update parent state with local changes
+                      Object.keys(profileData).forEach(key => {
+                        if ((profileData as any)[key] !== (userProfile as any)[key]) {
+                          onUserProfileChange(key, (profileData as any)[key]);
+                        }
+                      });
+                      onSaveUserProfile();
+                    }}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  >
+                    Save changes
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 -translate-y-16 translate-x-16 bg-gradient-to-br from-emerald-200/20 via-green-200/10 to-transparent"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 translate-y-12 -translate-x-12 bg-gradient-to-tr from-teal-200/20 via-emerald-200/10 to-transparent"></div>
+          </div>
+        </div>
+      </div>
       
       {/* Toast Notifications */}
       <Toast
@@ -338,7 +320,7 @@ const UserProfileComponent: React.FC<UserProfileComponentProps> = ({
         severity={snackbar.severity}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
       />
-    </Box>
+    </div>
   );
 };
 

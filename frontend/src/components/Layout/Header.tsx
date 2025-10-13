@@ -136,10 +136,10 @@ const Header: React.FC = () => {
         transition={{ duration: 0.8 }}
       >
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse"></div>
-        <div className="container mx-auto px-4 flex justify-center items-center space-x-8 text-sm relative z-10">
-          <div className="flex items-center space-x-2">
-            <Clock className={`h-4 w-4 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-300'}`} />
-            <span className="font-medium">
+        <div className="container mx-auto px-3 sm:px-4 flex justify-center items-center space-x-4 sm:space-x-6 lg:space-x-8 text-xs sm:text-sm relative z-10">
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <Clock className={`h-3 w-3 sm:h-4 sm:w-4 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-300'}`} />
+            <span className="font-medium text-xs sm:text-sm">
               {userTimezone ? 
                 currentTime.toLocaleTimeString('en-US', { 
                   timeZone: userTimezone,
@@ -152,25 +152,25 @@ const Header: React.FC = () => {
               }
             </span>
           </div>
-          <div className="flex items-center space-x-2">
-            <Users className={`h-4 w-4 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-300'}`} />
-            <span className="font-medium">{visitorCount.toLocaleString()} visitors</span>
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <Users className={`h-3 w-3 sm:h-4 sm:w-4 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-300'}`} />
+            <span className="font-medium text-xs sm:text-sm">{visitorCount.toLocaleString()} visitors</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <MapPin className={`h-4 w-4 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-300'}`} />
-            <span className="font-medium">
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <MapPin className={`h-3 w-3 sm:h-4 sm:w-4 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-300'}`} />
+            <span className="font-medium text-xs sm:text-sm">
               {geoLoading ? (
-                'Loading location...'
+                'Loading...'
               ) : geoError ? (
                 visitorInfo?.city && visitorInfo?.country 
                   ? `${visitorInfo.city}, ${visitorInfo.country}`
-                  : 'Worldwide Community'
+                  : 'Worldwide'
               ) : city && country ? (
                 `${city}, ${country}`
               ) : visitorInfo?.city && visitorInfo?.country ? (
                 `${visitorInfo.city}, ${visitorInfo.country}`
               ) : (
-                'Worldwide Community'
+                'Worldwide'
               )}
             </span>
           </div>
@@ -191,10 +191,10 @@ const Header: React.FC = () => {
         {...getAnimationConfig(animationConfig.headerSlide)}
         style={performanceUtils.willChange('transform')}
       >
-        <div className="container mx-auto px-2 lg:px-4">
-          <div className="flex justify-between items-center py-2 lg:py-3 xl:py-4">
-            {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2 lg:space-x-3 group">
+        <div className="container mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="flex justify-between items-center py-2 sm:py-3 lg:py-4">
+            {/* Logo - Perfect Mobile Sizing */}
+            <Link to="/" className="flex items-center space-x-2 sm:space-x-3 group">
               <motion.div
                 className="relative"
                 whileHover={getAnimationConfig(animationConfig.logoHover)}
@@ -205,18 +205,18 @@ const Header: React.FC = () => {
                 <img 
                   src="/logo.svg" 
                   alt="Green Groves Logo" 
-                  className="relative h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 lg:h-16 lg:w-16 xl:h-18 xl:w-18 2xl:h-20 2xl:w-20 object-contain"
+                  className="relative h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 xl:h-16 xl:w-16 object-contain"
                 />
               </motion.div>
               <div>
                 <motion.h1 
-                  className="text-lg lg:text-xl xl:text-2xl 2xl:text-3xl font-black bg-gradient-to-r from-emerald-700 to-green-600 bg-clip-text text-transparent"
+                  className="text-base sm:text-lg md:text-xl lg:text-2xl font-black bg-gradient-to-r from-emerald-700 to-green-600 bg-clip-text text-transparent"
                   whileHover={{ scale: 1.02 }}
                   transition={{ type: "spring", stiffness: 300 }}
                 >
                   Green Groves
                 </motion.h1>
-                <div className={`text-xs lg:text-xs xl:text-xs font-semibold tracking-wider ${
+                <div className={`text-xs sm:text-xs font-semibold tracking-wider ${
                   isDarkMode ? 'text-emerald-400' : 'text-emerald-600'
                 }`}>
                   GARDENING PARADISE
@@ -266,20 +266,22 @@ const Header: React.FC = () => {
               <DarkModeToggle />
             </div>
 
-            {/* Mobile Menu Button */}
+            {/* Mobile Menu Button - Perfect Touch Target */}
             <motion.button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className={`lg:hidden relative p-3 rounded-2xl transition-all duration-300 ${
+              className={`lg:hidden relative p-3 sm:p-4 rounded-2xl transition-all duration-300 min-h-[44px] min-w-[44px] touch-manipulation ${
                 isMenuOpen
                   ? isDarkMode 
                     ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' 
                     : 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30'
                   : isDarkMode 
-                    ? 'bg-emerald-900/30 text-emerald-300 hover:bg-emerald-800/40' 
-                    : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                    ? 'bg-emerald-900/30 text-emerald-300 hover:bg-emerald-800/40 active:bg-emerald-700/50' 
+                    : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 active:bg-emerald-300'
               }`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={isMenuOpen}
             >
               <div className="relative w-6 h-6">
                 <motion.div
@@ -345,9 +347,9 @@ const Header: React.FC = () => {
                   onClick={() => setIsMenuOpen(false)}
                 />
                 
-                {/* Menu Panel */}
+                {/* Menu Panel - Perfect Mobile Responsive */}
                 <motion.div
-                  className="lg:hidden fixed top-0 right-0 h-full w-80 max-w-[85vw] z-50"
+                  className="lg:hidden fixed top-0 right-0 h-full w-80 sm:w-96 max-w-[90vw] z-50"
                   initial={{ x: "100%" }}
                   animate={{ x: 0 }}
                   exit={{ x: "100%" }}
@@ -355,14 +357,14 @@ const Header: React.FC = () => {
                 >
                   <div className={`h-full ${
                     isDarkMode 
-                      ? 'bg-gray-900/95 backdrop-blur-2xl' 
-                      : 'bg-white/95 backdrop-blur-xl'
+                      ? 'bg-gray-900 backdrop-blur-2xl' 
+                      : 'bg-white backdrop-blur-xl'
                   } shadow-2xl border-l ${
                     isDarkMode ? 'border-emerald-500/20' : 'border-emerald-100'
                   }`}>
                     
-                    {/* Header */}
-                    <div className={`relative flex items-center justify-between p-6 border-b ${
+                    {/* Header - Perfect Mobile Spacing */}
+                    <div className={`relative flex items-center justify-between p-4 sm:p-6 border-b ${
                       isDarkMode ? 'border-emerald-500/20' : 'border-emerald-100'
                     }`}>
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent"></div>
@@ -381,13 +383,39 @@ const Header: React.FC = () => {
                           Menu
                         </h2>
                       </div>
-                      <div className="relative z-10">
+                      <div className="relative z-10 flex items-center space-x-2">
                         <DarkModeToggle />
+                        {/* Close Button */}
+                        <motion.button
+                          onClick={() => setIsMenuOpen(false)}
+                          className={`p-2 rounded-xl transition-all duration-300 ${
+                            isDarkMode
+                              ? 'bg-gray-800 text-emerald-300 hover:bg-emerald-600 hover:text-white'
+                              : 'bg-gray-100 text-emerald-700 hover:bg-emerald-600 hover:text-white'
+                          }`}
+                          whileHover={{ scale: 1.1, rotate: 90 }}
+                          whileTap={{ scale: 0.9 }}
+                          aria-label="Close menu"
+                        >
+                          <svg
+                            className="w-6 h-6"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </motion.button>
                       </div>
                     </div>
                     
-                    {/* Navigation Items */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                    {/* Navigation Items - Perfect Mobile Touch */}
+                    <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-2 sm:space-y-3">
                       {displayNavItems.map((item, index) => (
                         <motion.div
                           key={item.path}
@@ -398,12 +426,12 @@ const Header: React.FC = () => {
                           <Link
                             to={item.path}
                             onClick={() => setIsMenuOpen(false)}
-                            className={`group flex items-center space-x-4 px-4 py-3 rounded-2xl transition-all duration-300 ${
+                            className={`group flex items-center space-x-3 sm:space-x-4 px-4 py-3 sm:py-4 rounded-2xl transition-all duration-300 min-h-[48px] touch-manipulation ${
                               location.pathname === item.path
                                 ? 'text-white bg-gradient-to-r from-emerald-500 to-green-500 shadow-lg shadow-emerald-500/30'
                                 : isDarkMode
-                                  ? 'text-gray-200 bg-gray-800 hover:bg-gray-700 hover:shadow-md hover:text-white'
-                                  : 'text-gray-700 bg-gray-50 hover:bg-emerald-100 hover:shadow-md hover:text-emerald-800'
+                                  ? 'text-gray-200 bg-gray-800 hover:bg-gray-700 hover:shadow-md hover:text-white active:bg-gray-600'
+                                  : 'text-gray-700 bg-gray-50 hover:bg-emerald-100 hover:shadow-md hover:text-emerald-800 active:bg-emerald-200'
                             }`}
                           >
                             <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-all duration-300 ${
@@ -416,10 +444,10 @@ const Header: React.FC = () => {
                               {item.emoji}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <span className="font-semibold text-lg block truncate">
+                              <span className="font-semibold text-base sm:text-lg block truncate">
                                 {item.label}
                               </span>
-                              <span className={`text-xs ${
+                              <span className={`text-xs sm:text-sm ${
                                 location.pathname === item.path
                                   ? 'text-emerald-100'
                                   : isDarkMode ? 'text-emerald-400' : 'text-emerald-600'
@@ -453,8 +481,8 @@ const Header: React.FC = () => {
                       ))}
                     </div>
                     
-                    {/* Footer */}
-                    <div className={`p-6 border-t ${
+                    {/* Footer - Perfect Mobile Spacing */}
+                    <div className={`p-4 sm:p-6 border-t ${
                       isDarkMode ? 'border-gray-700/30' : 'border-emerald-100'
                     }`}>
                       <div className={`text-center text-sm ${

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BarChart3, Users, Package, FileText, Settings,
-  ChevronRight, Shield
+  ChevronRight, ChevronDown, Shield
 } from 'lucide-react';
 
 interface MobileAdminNavProps {
@@ -20,6 +20,13 @@ interface NavItem {
   color: string;
   description: string;
   adminOnly?: boolean;
+  children?: SubNavItem[];
+}
+
+interface SubNavItem {
+  id: string;
+  label: string;
+  adminOnly?: boolean;
 }
 
 const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
@@ -29,6 +36,7 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
   userRole
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<string[]>([]);
 
   const navItems: NavItem[] = [
     {
@@ -69,14 +77,41 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
       icon: Settings,
       emoji: '⚙️',
       color: 'from-purple-500 to-indigo-600',
-      description: 'Cài đặt trang web'
+      description: 'Cài đặt trang web',
+      children: [
+        { id: 'hero-section', label: 'Hero Section', adminOnly: true },
+        { id: 'staff-management', label: 'Staff Members', adminOnly: true },
+        { id: 'map-settings', label: 'Map Settings', adminOnly: true },
+        { id: 'contact-settings', label: 'Contact Settings', adminOnly: true },
+        { id: 'contact-messages', label: 'Contact Messages' },
+        { id: 'campaign-settings', label: 'Campaign Settings', adminOnly: true },
+        { id: 'security-settings', label: 'Security Settings', adminOnly: true }
+      ]
     }
   ];
 
   // Filter items based on user role
-  const filteredNavItems = navItems.filter(item => 
-    !item.adminOnly || userRole === 'admin'
-  );
+  const filteredNavItems = navItems
+    .filter(item => !item.adminOnly || userRole === 'admin')
+    .map(item => {
+      if (item.children) {
+        return {
+          ...item,
+          children: item.children.filter(child => 
+            !child.adminOnly || userRole === 'admin'
+          )
+        };
+      }
+      return item;
+    });
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => 
+      prev.includes(sectionId) 
+        ? prev.filter(id => id !== sectionId)
+        : [...prev, sectionId]
+    );
+  };
 
   return (
     <>
@@ -228,8 +263,12 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
                     >
                       <button
                         onClick={() => {
-                          onTabChange(item.id);
-                          setIsMenuOpen(false);
+                          if (item.children && item.children.length > 0) {
+                            toggleSection(item.id);
+                          } else {
+                            onTabChange(item.id);
+                            setIsMenuOpen(false);
+                          }
                         }}
                         className={`group w-full flex items-center space-x-4 px-4 py-3 rounded-2xl transition-all duration-300 text-left ${
                           activeTab === item.id
@@ -265,12 +304,55 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
                             activeTab === item.id ? 'text-white' : 
                             isDarkMode ? 'text-emerald-400' : 'text-emerald-500'
                           }`}
-                          whileHover={{ x: 3 }}
+                          animate={item.children && item.children.length > 0 && expandedSections.includes(item.id) 
+                            ? { rotate: 90 } 
+                            : { rotate: 0 }
+                          }
                           transition={{ type: "spring", stiffness: 400 }}
                         >
-                          <ChevronRight className="w-5 h-5" />
+                          {item.children && item.children.length > 0 ? (
+                            <ChevronDown className="w-5 h-5" />
+                          ) : (
+                            <ChevronRight className="w-5 h-5" />
+                          )}
                         </motion.div>
                       </button>
+
+                      {/* Sub Items */}
+                      <AnimatePresence>
+                        {item.children && item.children.length > 0 && expandedSections.includes(item.id) && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="ml-4 mt-2 space-y-1 border-l-2 border-emerald-500/30 pl-4">
+                              {item.children.map((child) => (
+                                <motion.button
+                                  key={child.id}
+                                  onClick={() => {
+                                    onTabChange(child.id);
+                                    setIsMenuOpen(false);
+                                  }}
+                                  className={`w-full text-left px-4 py-2 rounded-xl transition-all duration-300 ${
+                                    activeTab === child.id
+                                      ? 'text-white bg-gradient-to-r from-emerald-500 to-green-500 shadow-md'
+                                      : isDarkMode
+                                        ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                                        : 'text-gray-600 hover:bg-emerald-50 hover:text-emerald-800'
+                                  }`}
+                                  whileHover={{ x: 4 }}
+                                  whileTap={{ scale: 0.98 }}
+                                >
+                                  <span className="text-sm font-medium">{child.label}</span>
+                                </motion.button>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </motion.div>
                   ))}
                 </div>

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Save, X, User, Mail, Lock, Shield, UserPlus } from 'lucide-react';
+import { TextField, Select, MenuItem, FormControl, InputLabel, Box, Typography } from '@mui/material';
+import { useTheme } from '../../contexts/ThemeContext';
 import Card from '../UI/Card';
 import Toast from '../UI/Toast';
 import ImageUpload from '../ImageUpload';
@@ -19,6 +21,8 @@ const UserCreate: React.FC<UserCreateProps> = ({
   isDarkMode,
   currentUserRole = 'admin'
 }) => {
+  const { isDarkMode: themeDarkMode } = useTheme();
+  const actualDarkMode = isDarkMode || themeDarkMode;
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -47,6 +51,40 @@ const UserCreate: React.FC<UserCreateProps> = ({
 
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [showSecurityModal, setShowSecurityModal] = useState(false);
+
+  // Dark mode TextField styles - đồng bộ với UserEditForm
+  const textFieldStyles = {
+    '& .MuiOutlinedInput-root': {
+      color: actualDarkMode ? '#fff' : '#000',
+      backgroundColor: actualDarkMode ? 'rgba(55, 65, 81, 0.8)' : '#fff',
+      '& fieldset': {
+        borderColor: actualDarkMode ? 'rgba(255, 255, 255, 0.23)' : '#c4c4c4',
+      },
+      '&:hover fieldset': {
+        borderColor: actualDarkMode ? 'rgba(255, 255, 255, 0.4)' : '#10b981',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: '#10b981',
+        borderWidth: 2,
+      },
+    },
+    '& .MuiInputLabel-root': {
+      color: actualDarkMode ? 'rgba(255, 255, 255, 0.7)' : '#666',
+      '&.Mui-focused': {
+        color: '#10b981',
+      },
+    },
+    '& .MuiFormHelperText-root': {
+      color: actualDarkMode ? 'rgba(255, 255, 255, 0.6)' : '#666',
+    },
+    '& .MuiSelect-select': {
+      color: actualDarkMode ? '#fff' : '#000',
+      backgroundColor: 'transparent',
+    },
+    '& .MuiSelect-icon': {
+      color: actualDarkMode ? 'rgba(255, 255, 255, 0.7)' : '#666',
+    },
+  };
   const [pendingData, setPendingData] = useState<any>(null);
 
   const validateForm = () => {
@@ -116,13 +154,6 @@ const UserCreate: React.FC<UserCreateProps> = ({
     }
   };
 
-  const inputClass = `w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
-    isDarkMode 
-      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-  }`;
-
-  const labelClass = `block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`;
 
   return (
     <div className="space-y-6">
@@ -132,7 +163,7 @@ const UserCreate: React.FC<UserCreateProps> = ({
           <motion.button
             onClick={onCancel}
             className={`p-2 rounded-lg ${
-              isDarkMode 
+              actualDarkMode 
                 ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
                 : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
             } transition-colors`}
@@ -142,10 +173,10 @@ const UserCreate: React.FC<UserCreateProps> = ({
             <ArrowLeft className="w-5 h-5" />
           </motion.button>
           <div>
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+            <h2 className={`text-2xl font-bold ${actualDarkMode ? 'text-white' : 'text-gray-800'}`}>
               Create New User
             </h2>
-            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            <p className={`text-sm ${actualDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               Add a new user to the system
             </p>
           </div>
@@ -155,137 +186,151 @@ const UserCreate: React.FC<UserCreateProps> = ({
       {/* Form */}
       <Card sx={{ 
         p: 3,
-        background: isDarkMode ? 'rgba(30, 41, 59, 0.6)' : 'white',
+        background: actualDarkMode ? 'rgba(30, 41, 59, 0.6)' : 'white',
         backdropFilter: 'blur(10px)',
         border: '1px solid',
-        borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'
+        borderColor: actualDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'
       }}>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
-          <div>
-            <h3 className={`text-lg font-semibold mb-4 flex items-center space-x-2 ${
-              isDarkMode ? 'text-white' : 'text-gray-800'
-            }`}>
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" sx={{ 
+              mb: 3, 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 1,
+              color: actualDarkMode ? '#fff' : '#1f2937',
+              fontWeight: 600
+            }}>
               <User className="w-5 h-5" />
-              <span>Basic Information</span>
-            </h3>
+              Basic Information
+            </Typography>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className={labelClass}>Full Name *</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  className={`${inputClass} ${errors.name ? 'border-red-500' : ''}`}
-                  placeholder="Enter full name"
-                />
-                {errors.name && (
-                  <p className="mt-1 text-sm text-red-500">{errors.name}</p>
-                )}
-              </div>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+              <TextField
+                fullWidth
+                label="Full Name"
+                required
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                placeholder="Enter full name"
+                error={!!errors.name}
+                helperText={errors.name}
+                sx={textFieldStyles}
+              />
 
-              <div>
-                <label className={labelClass}>Email Address *</label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  className={`${inputClass} ${errors.email ? 'border-red-500' : ''}`}
-                  placeholder="Enter email address"
-                />
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-500">{errors.email}</p>
-                )}
-              </div>
+              <TextField
+                fullWidth
+                label="Email Address"
+                type="email"
+                required
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                placeholder="Enter email address"
+                error={!!errors.email}
+                helperText={errors.email}
+                sx={textFieldStyles}
+              />
 
-              <div>
-                <label className={labelClass}>Phone Number *</label>
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className={`${inputClass} ${errors.phone ? 'border-red-500' : ''}`}
-                  placeholder="Enter phone number"
-                />
-                {errors.phone && (
-                  <p className="mt-1 text-sm text-red-500">{errors.phone}</p>
-                )}
-              </div>
+              <TextField
+                fullWidth
+                label="Phone Number"
+                type="tel"
+                required
+                value={formData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+                placeholder="Enter phone number"
+                error={!!errors.phone}
+                helperText={errors.phone}
+                sx={textFieldStyles}
+              />
 
               {currentUserRole === 'admin' && (
-                <div>
-                  <label className={labelClass}>Role</label>
-                  <select
+                <FormControl fullWidth sx={textFieldStyles}>
+                  <InputLabel>Role</InputLabel>
+                  <Select
                     value={formData.role}
                     onChange={(e) => handleInputChange('role', e.target.value)}
-                    className={inputClass}
+                    label="Role"
                   >
-                    <option value="moderator">Moderator</option>
-                    <option value="admin">Admin (Requires Security Password)</option>
-                  </select>
+                    <MenuItem value="moderator">Moderator</MenuItem>
+                    <MenuItem value="admin">Admin (Requires Security Password)</MenuItem>
+                  </Select>
                   {formData.role === 'admin' && (
-                    <p className="mt-2 text-xs text-yellow-600">
+                    <Typography variant="caption" sx={{ mt: 1, color: '#ca8a04', display: 'block' }}>
                       ⚠️ Creating admin requires security password verification
-                    </p>
+                    </Typography>
                   )}
-                </div>
+                </FormControl>
               )}
-            </div>
-          </div>
+            </Box>
+          </Box>
 
           {/* Security */}
-          <div>
-            <h3 className={`text-lg font-semibold mb-4 flex items-center space-x-2 ${
-              isDarkMode ? 'text-white' : 'text-gray-800'
-            }`}>
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" sx={{ 
+              mb: 3, 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 1,
+              color: actualDarkMode ? '#fff' : '#1f2937',
+              fontWeight: 600
+            }}>
               <Lock className="w-5 h-5" />
-              <span>Security</span>
-            </h3>
+              Security
+            </Typography>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className={labelClass}>Password *</label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => handleInputChange('password', e.target.value)}
-                  className={`${inputClass} ${errors.password ? 'border-red-500' : ''}`}
-                  placeholder="Enter password"
-                />
-                {errors.password && (
-                  <p className="mt-1 text-sm text-red-500">{errors.password}</p>
-                )}
-              </div>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+              <TextField
+                fullWidth
+                label="Password"
+                type="password"
+                required
+                value={formData.password}
+                onChange={(e) => handleInputChange('password', e.target.value)}
+                placeholder="Enter password"
+                error={!!errors.password}
+                helperText={errors.password || 'Minimum 6 characters'}
+                sx={textFieldStyles}
+              />
 
-              <div>
-                <label className={labelClass}>Confirm Password *</label>
-                <input
-                  type="password"
-                  value={formData.confirmPassword}
-                  onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                  className={`${inputClass} ${errors.confirmPassword ? 'border-red-500' : ''}`}
-                  placeholder="Confirm password"
-                />
-                {errors.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-500">{errors.confirmPassword}</p>
-                )}
-              </div>
-            </div>
-          </div>
+              <TextField
+                fullWidth
+                label="Confirm Password"
+                type="password"
+                required
+                value={formData.confirmPassword}
+                onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                placeholder="Confirm password"
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword}
+                sx={textFieldStyles}
+              />
+            </Box>
+          </Box>
 
           {/* Profile */}
-          <div>
-            <h3 className={`text-lg font-semibold mb-4 flex items-center space-x-2 ${
-              isDarkMode ? 'text-white' : 'text-gray-800'
-            }`}>
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" sx={{ 
+              mb: 3, 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 1,
+              color: actualDarkMode ? '#fff' : '#1f2937',
+              fontWeight: 600
+            }}>
               <UserPlus className="w-5 h-5" />
-              <span>Profile</span>
-            </h3>
+              Profile
+            </Typography>
             
-            <div className="space-y-6">
-              <div>
-                <label className={labelClass}>Avatar</label>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <Box>
+                <Typography variant="body2" sx={{ 
+                  mb: 1, 
+                  color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' 
+                }}>
+                  Avatar
+                </Typography>
                 <ImageUpload
                   value={formData.avatar}
                   onChange={(url) => handleInputChange('avatar', url)}
@@ -294,31 +339,32 @@ const UserCreate: React.FC<UserCreateProps> = ({
                   modelType="user"
                   maxSize={3}
                 />
-              </div>
+              </Box>
 
-              <div>
-                <label className={labelClass}>Bio</label>
-                <textarea
-                  value={formData.bio}
-                  onChange={(e) => handleInputChange('bio', e.target.value)}
-                  className={`${inputClass} h-24 resize-none`}
-                  placeholder="Tell us about this user..."
-                />
-              </div>
+              <TextField
+                fullWidth
+                label="Bio"
+                multiline
+                rows={3}
+                value={formData.bio}
+                onChange={(e) => handleInputChange('bio', e.target.value)}
+                placeholder="Tell us about this user..."
+                sx={textFieldStyles}
+              />
 
-              <div>
-                <label className={labelClass}>Status</label>
-                <select
+              <FormControl fullWidth sx={textFieldStyles}>
+                <InputLabel>Status</InputLabel>
+                <Select
                   value={formData.status}
                   onChange={(e) => handleInputChange('status', e.target.value)}
-                  className={inputClass}
+                  label="Status"
                 >
-                  <option value="active">Active</option>
-                  <option value="banned">Banned</option>
-                </select>
-              </div>
-            </div>
-          </div>
+                  <MenuItem value="active">Active</MenuItem>
+                  <MenuItem value="banned">Banned</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+          </Box>
 
           {/* Actions */}
           <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
@@ -326,7 +372,7 @@ const UserCreate: React.FC<UserCreateProps> = ({
               type="button"
               onClick={onCancel}
               className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-                isDarkMode 
+                actualDarkMode 
                   ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}

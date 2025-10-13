@@ -208,11 +208,6 @@ const AdminMapSettings: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Map Settings"
-        subtitle="Manage Google Maps embed displayed on About Us page"
-        icon={<Map className="h-10 w-10" />}
-      />
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">

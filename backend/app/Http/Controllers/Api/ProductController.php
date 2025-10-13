@@ -58,7 +58,8 @@ class ProductController extends Controller
                 });
         }
 
-        // Sort
+        // Sort - Featured items first, then by sortBy
+        $query->orderBy('is_featured', 'desc');
         $sortBy = $request->get('sortBy', 'created_at');
         $sortOrder = $request->get('sortOrder', 'desc');
         $query->orderBy($sortBy, $sortOrder);

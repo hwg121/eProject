@@ -111,7 +111,7 @@ const Accessories: React.FC = () => {
       rel="noopener noreferrer"
       className="block h-full"
     >
-      <Card className="h-full group hover:shadow-xl transition-all duration-300 p-6">
+      <Card className="h-full group hover:shadow-xl transition-all duration-300 p-6 relative">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center space-x-2">
             <div className="text-emerald-600">
@@ -119,9 +119,17 @@ const Accessories: React.FC = () => {
             </div>
             <span className="text-sm text-emerald-600 font-medium">{accessory.subcategory || 'Accessory'}</span>
           </div>
-          <div className="flex items-center space-x-1">
-            <Star className="h-4 w-4 text-yellow-500 fill-current" />
-            <span className="text-sm font-semibold">4.5</span>
+          <div className="flex items-center space-x-2">
+            {accessory.is_featured && (
+              <div className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-lg">
+                <Star className="h-3 w-3 fill-white" />
+                Featured
+              </div>
+            )}
+            <div className="flex items-center space-x-1">
+              <Star className="h-4 w-4 text-yellow-500 fill-current" />
+              <span className="text-sm font-semibold">4.5</span>
+            </div>
           </div>
         </div>
         <h3 className="text-lg font-semibold text-emerald-800 mb-2">{accessory.name}</h3>

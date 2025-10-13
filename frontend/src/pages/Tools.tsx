@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Wrench, Star, ArrowRight } from 'lucide-react';
 import Card from '../components/UI/Card';
 import PageHeader from '../components/UI/PageHeader';
 import { publicService } from '../services/api.ts';
 import { generateSlug } from '../utils/slug';
+import { useResponsiveDesign } from '../utils/responsiveDesign';
 
 interface Product {
   id: string;
@@ -62,13 +64,14 @@ interface Product {
 }
 
 const Tools: React.FC = () => {
+  const { isMobile } = useResponsiveDesign();
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
   const [tools, setTools] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
+  const itemsPerPage = isMobile ? 6 : 9;
 
   useEffect(() => {
     const loadTools = async () => {
@@ -113,23 +116,106 @@ const Tools: React.FC = () => {
   const currentTools = filteredTools.slice(startIndex, endIndex);
 
   return (
-    <div className="space-y-8">
-      <PageHeader
-        title="Gardening Tools"
-        subtitle="Discover the essential tools that make gardening easier and more enjoyable"
-        icon={<Wrench className="h-10 w-10" />}
-      />
+    <div className="space-y-6 sm:space-y-8">
+      {/* Beautiful Hero Section */}
+      <motion.section 
+        className="relative bg-gradient-to-br from-emerald-500 via-green-600 to-teal-600 dark:from-emerald-600 dark:via-green-700 dark:to-teal-700 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 lg:p-16 text-white shadow-2xl overflow-hidden backdrop-blur-sm"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden opacity-30">
+          <motion.div 
+            className="absolute top-0 right-0 w-64 sm:w-96 h-64 sm:h-96 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-3xl"
+            animate={{ 
+              scale: [1, 1.2, 1],
+              rotate: [0, 90, 0],
+              x: [0, 50, 0],
+              y: [0, -50, 0]
+            }}
+            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div 
+            className="absolute bottom-0 left-0 w-48 sm:w-80 h-48 sm:h-80 bg-gradient-to-tr from-white/20 to-transparent rounded-full blur-3xl"
+            animate={{ 
+              scale: [1, 1.3, 1],
+              rotate: [0, -90, 0],
+              x: [0, -50, 0],
+              y: [0, 50, 0]
+            }}
+            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </div>
 
-      {/* Search Bar */}
-      <Card>
-        <div className="flex flex-col md:flex-row gap-4">
+        {/* Floating Particles */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(isMobile ? 10 : 15)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white/30 rounded-full"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [0, -30, 0],
+                opacity: [0, 1, 0],
+              }}
+              transition={{
+                duration: 3 + Math.random() * 2,
+                repeat: Infinity,
+                delay: Math.random() * 2,
+              }}
+            />
+          ))}
+        </div>
+        
+        <div className="relative z-10 max-w-5xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, type: "spring" }}
+            className="mb-4 sm:mb-6 inline-block"
+          >
+            <div className="bg-white/20 dark:bg-white/30 backdrop-blur-md rounded-full px-3 sm:px-4 md:px-6 py-2 md:py-3 inline-flex items-center space-x-2 shadow-lg border border-white/30">
+              <Wrench className="h-3 sm:h-4 md:h-5 w-3 sm:w-4 md:w-5 animate-pulse" />
+              <span className="text-xs sm:text-xs md:text-sm font-semibold tracking-wide">Gardening Tools</span>
+            </div>
+          </motion.div>
+
+          <motion.h1 
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold mb-3 sm:mb-4 md:mb-6 leading-tight px-2 sm:px-4"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <span className="inline-block bg-clip-text text-transparent bg-gradient-to-r from-white via-emerald-50 to-white">
+              Essential Gardening Tools
+            </span>
+          </motion.h1>
+          
+          <motion.p 
+            className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-white/95 leading-relaxed max-w-4xl mx-auto font-light px-2 sm:px-4"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
+            Discover the essential tools that make gardening easier, more efficient, and more enjoyable. From basic hand tools to advanced equipment.
+          </motion.p>
+        </div>
+      </motion.section>
+
+      {/* Search Bar - Perfect Mobile */}
+      <Card className="p-4 sm:p-6">
+        <div className="flex flex-col md:flex-row gap-3 sm:gap-4">
           <div className="flex-1">
             <input
               type="text"
               placeholder="Search tools..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-emerald-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 min-h-[44px] touch-manipulation"
             />
           </div>
         </div>
@@ -153,21 +239,21 @@ const Tools: React.FC = () => {
         </div>
       ) : (
         <>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-emerald-800">
+          <div className="flex items-center justify-between mb-3 sm:mb-4 px-2 sm:px-0">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-emerald-800">
               Available Tools ({filteredTools.length})
             </h2>
           </div>
           
           {filteredTools.length === 0 ? (
-            <div className="text-center py-12">
-              <Wrench className="h-16 w-16 text-emerald-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-emerald-800 mb-2">No tools found</h3>
-              <p className="text-emerald-600">Try adjusting your search criteria</p>
+            <div className="text-center py-8 sm:py-12 px-4">
+              <Wrench className="h-12 w-12 sm:h-16 sm:w-16 text-emerald-300 mx-auto mb-3 sm:mb-4" />
+              <h3 className="text-lg sm:text-xl font-semibold text-emerald-800 mb-2">No tools found</h3>
+              <p className="text-sm sm:text-base text-emerald-600">Try adjusting your search criteria</p>
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
                 {currentTools.map((tool) => (
                 <a 
                   key={tool.id} 
@@ -176,33 +262,41 @@ const Tools: React.FC = () => {
                   rel="noopener noreferrer"
                   className="block h-full"
                 >
-                  <Card className="h-full group cursor-pointer hover:shadow-xl transition-all duration-300 p-6">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center space-x-2">
+                  <Card className="h-full group cursor-pointer hover:shadow-xl transition-all duration-300 p-4 sm:p-5 md:p-6 relative">
+                    <div className="flex items-start justify-between mb-2 sm:mb-3 flex-wrap gap-2">
+                      <div className="flex items-center space-x-1.5 sm:space-x-2">
                         <div className="text-emerald-600">
-                          <Wrench className="h-5 w-5" />
+                          <Wrench className="h-4 w-4 sm:h-5 sm:w-5" />
                         </div>
-                        <span className="text-sm text-emerald-600 font-medium">{tool.subcategory || 'Tool'}</span>
+                        <span className="text-xs sm:text-sm text-emerald-600 font-medium">{tool.subcategory || 'Tool'}</span>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                        <span className="text-sm font-semibold">{tool.rating || '4.5'}</span>
+                      <div className="flex items-center space-x-1.5 sm:space-x-2 flex-wrap gap-1.5">
+                        {tool.is_featured && (
+                          <div className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-lg">
+                            <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 fill-white" />
+                            <span className="hidden sm:inline">Featured</span>
+                          </div>
+                        )}
+                        <div className="flex items-center space-x-0.5 sm:space-x-1">
+                          <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-500 fill-current" />
+                          <span className="text-xs sm:text-sm font-semibold">{tool.rating || '4.5'}</span>
+                        </div>
                       </div>
                     </div>
-                    <h3 className="text-lg font-semibold text-emerald-800 mb-2">{tool.name}</h3>
-                    <p className="text-emerald-600 text-sm mb-4 leading-relaxed">{tool.description}</p>
-                    <div className="flex items-center justify-between mt-auto">
-                      <div className="flex items-center space-x-4 text-sm text-emerald-600">
-                        <span>{tool.price ? `$${tool.price}` : 'Free'}</span>
+                    <h3 className="text-base sm:text-lg font-semibold text-emerald-800 mb-1.5 sm:mb-2 line-clamp-2">{tool.name}</h3>
+                    <p className="text-emerald-600 text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed line-clamp-3">{tool.description}</p>
+                    <div className="flex items-center justify-between mt-auto flex-wrap gap-2">
+                      <div className="flex items-center space-x-2 sm:space-x-4 text-xs sm:text-sm text-emerald-600 flex-wrap gap-1.5">
+                        <span className="font-semibold">{tool.price ? `$${tool.price}` : 'Free'}</span>
                         {tool.brand && (
-                          <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs">
+                          <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs">
                             {tool.brand}
                           </span>
                         )}
                       </div>
-                      <button className="flex items-center space-x-1 text-emerald-600 hover:text-emerald-800 transition-colors">
-                        <ArrowRight className="h-4 w-4" />
-                        <span className="text-sm">View Details</span>
+                      <button className="flex items-center space-x-1 text-emerald-600 hover:text-emerald-800 transition-colors min-h-[44px] touch-manipulation">
+                        <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                        <span className="text-xs sm:text-sm font-medium">View</span>
                       </button>
                     </div>
                   </Card>
@@ -210,25 +304,25 @@ const Tools: React.FC = () => {
               ))}
             </div>
 
-            {/* Pagination */}
+            {/* Pagination - Perfect Mobile */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center space-x-2 mt-8">
+              <div className="flex justify-center items-center gap-2 mt-6 sm:mt-8 px-2 flex-wrap">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 rounded-lg bg-emerald-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-emerald-700 transition-colors"
+                  className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-emerald-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-emerald-700 transition-colors min-h-[44px] min-w-[80px] sm:min-w-[100px] text-sm sm:text-base font-medium touch-manipulation"
                 >
-                  Previous
+                  Prev
                 </button>
                 
-                <div className="flex space-x-2">
+                <div className="flex gap-1.5 sm:gap-2 flex-wrap justify-center">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`px-4 py-2 rounded-lg transition-colors ${
+                      className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-colors min-h-[44px] min-w-[44px] text-sm sm:text-base font-medium touch-manipulation ${
                         currentPage === page
-                          ? 'bg-emerald-600 text-white'
+                          ? 'bg-emerald-600 text-white shadow-md'
                           : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                       }`}
                     >
@@ -240,7 +334,7 @@ const Tools: React.FC = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-2 rounded-lg bg-emerald-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-emerald-700 transition-colors"
+                  className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-emerald-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-emerald-700 transition-colors min-h-[44px] min-w-[80px] sm:min-w-[100px] text-sm sm:text-base font-medium touch-manipulation"
                 >
                   Next
                 </button>

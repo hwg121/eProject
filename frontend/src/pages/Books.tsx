@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { BookOpen, ArrowRight, Star, ExternalLink } from 'lucide-react';
 import Card from '../components/UI/Card';
 import PageHeader from '../components/UI/PageHeader';
 import { publicService } from '../services/api.ts';
+import { useResponsiveDesign } from '../utils/responsiveDesign';
 
 interface Product {
   id: string;
@@ -60,12 +62,13 @@ interface Product {
 }
 
 const Books: React.FC = () => {
+  const { isMobile } = useResponsiveDesign();
   const [books, setBooks] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
+  const itemsPerPage = isMobile ? 6 : 9;
 
   useEffect(() => {
     const loadBooks = async () => {
@@ -105,11 +108,94 @@ const Books: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Related Books"
-        subtitle="Expand your gardening knowledge with our carefully curated book recommendations"
-        icon={<BookOpen className="h-10 w-10" />}
-      />
+      {/* Beautiful Hero Section */}
+      <motion.section 
+        className="relative bg-gradient-to-br from-emerald-500 via-green-600 to-teal-600 dark:from-emerald-600 dark:via-green-700 dark:to-teal-700 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 lg:p-16 text-white shadow-2xl overflow-hidden backdrop-blur-sm"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden opacity-30">
+          <motion.div 
+            className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-3xl"
+            animate={{ 
+              scale: [1, 1.2, 1],
+              rotate: [0, 90, 0],
+              x: [0, 50, 0],
+              y: [0, -50, 0]
+            }}
+            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div 
+            className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-white/20 to-transparent rounded-full blur-3xl"
+            animate={{ 
+              scale: [1, 1.3, 1],
+              rotate: [0, -90, 0],
+              x: [0, -50, 0],
+              y: [0, 50, 0]
+            }}
+            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </div>
+
+        {/* Floating Particles */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(15)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-white/30 rounded-full"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [0, -30, 0],
+                opacity: [0, 1, 0],
+              }}
+              transition={{
+                duration: 3 + Math.random() * 2,
+                repeat: Infinity,
+                delay: Math.random() * 2,
+              }}
+            />
+          ))}
+        </div>
+        
+        <div className="relative z-10 max-w-5xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, type: "spring" }}
+            className="mb-6 inline-block"
+          >
+            <div className="bg-white/20 dark:bg-white/30 backdrop-blur-md rounded-full px-4 md:px-6 py-2 md:py-3 inline-flex items-center space-x-2 shadow-lg border border-white/30">
+              <BookOpen className="h-4 md:h-5 w-4 md:w-5 animate-pulse" />
+              <span className="text-xs md:text-sm font-semibold tracking-wide">Related Books</span>
+            </div>
+          </motion.div>
+
+          <motion.h1 
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold mb-4 sm:mb-6 leading-tight px-2 sm:px-4"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <span className="inline-block bg-clip-text text-transparent bg-gradient-to-r from-white via-emerald-50 to-white">
+              Expand Your Gardening Knowledge
+            </span>
+          </motion.h1>
+          
+          <motion.p 
+            className="text-sm sm:text-base md:text-lg lg:text-xl text-white/95 leading-relaxed max-w-4xl mx-auto font-light px-2 sm:px-4"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
+            Discover our carefully curated collection of gardening books. From beginner guides to advanced techniques, find the perfect book to enhance your gardening skills.
+          </motion.p>
+        </div>
+      </motion.section>
 
       {/* Search Bar */}
       <Card>
@@ -167,7 +253,7 @@ const Books: React.FC = () => {
                   rel="noopener noreferrer"
                   className="block h-full"
                 >
-                  <Card className="h-full group cursor-pointer hover:shadow-xl transition-all duration-300 p-6">
+                  <Card className="h-full group cursor-pointer hover:shadow-xl transition-all duration-300 p-6 relative">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2">
                         <div className="text-emerald-600">
@@ -175,9 +261,17 @@ const Books: React.FC = () => {
                         </div>
                         <span className="text-sm text-emerald-600 font-medium">{book.subcategory || 'General'}</span>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                        <span className="text-sm font-semibold">{book.rating || '4.5'}</span>
+                      <div className="flex items-center space-x-2">
+                        {book.is_featured && (
+                          <div className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-lg">
+                            <Star className="h-3 w-3 fill-white" />
+                            Featured
+                          </div>
+                        )}
+                        <div className="flex items-center space-x-1">
+                          <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                          <span className="text-sm font-semibold">{book.rating || '4.5'}</span>
+                        </div>
                       </div>
                     </div>
                     <h3 className="text-lg font-semibold text-emerald-800 mb-2">{book.name}</h3>

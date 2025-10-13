@@ -7,6 +7,7 @@ import { NavigationProvider } from './contexts/NavigationContext';
 import Layout from './components/Layout/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoadingSpinner from './components/common/LoadingSpinner';
+import './styles/responsive-perfect.css';
 
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home'));

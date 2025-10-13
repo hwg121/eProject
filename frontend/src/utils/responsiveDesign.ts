@@ -1,13 +1,14 @@
-// Comprehensive Responsive Design System
+// Comprehensive Responsive Design System - PERFECT MOBILE FIRST
 export const responsiveDesign = {
-  // Breakpoints
+  // Breakpoints - Mobile First Approach
   breakpoints: {
-    xs: '320px',   // Small phones
-    sm: '640px',   // Large phones
-    md: '768px',   // Tablets
+    xs: '320px',   // Small phones (iPhone SE, etc.)
+    sm: '640px',   // Large phones (iPhone 12, etc.)
+    md: '768px',   // Tablets (iPad, etc.)
     lg: '1024px',  // Small laptops
     xl: '1280px',  // Large laptops
-    '2xl': '1536px' // Desktops
+    '2xl': '1536px', // Desktops
+    '3xl': '1920px'  // Large desktops
   },
 
   // Typography Scale
@@ -163,7 +164,7 @@ export const responsiveDesign = {
   },
 
   // Responsive Classes Generator
-  generateResponsiveClass: (property: string, values: Record<string, string>) => {
+  generateResponsiveClass: (_property: string, values: Record<string, string>) => {
     return Object.entries(values)
       .map(([breakpoint, value]) => {
         if (breakpoint === 'xs') return value;
@@ -173,7 +174,7 @@ export const responsiveDesign = {
   },
 
   // Get responsive class for current breakpoint
-  getResponsiveClass: (property: string, values: Record<string, string>, currentBreakpoint: string) => {
+  getResponsiveClass: (_property: string, values: Record<string, string>, currentBreakpoint: string) => {
     const sortedBreakpoints = ['xs', 'sm', 'md', 'lg', 'xl', '2xl'];
     const currentIndex = sortedBreakpoints.indexOf(currentBreakpoint);
     
@@ -189,9 +190,10 @@ export const responsiveDesign = {
   }
 };
 
-// Hook for responsive design
+// Enhanced Hook for responsive design with perfect mobile detection
 export const useResponsiveDesign = () => {
   const [breakpoint, setBreakpoint] = React.useState('md');
+  const [isTouchDevice, setIsTouchDevice] = React.useState(false);
 
   React.useEffect(() => {
     const updateBreakpoint = () => {
@@ -201,19 +203,40 @@ export const useResponsiveDesign = () => {
       else if (width < 1024) setBreakpoint('md');
       else if (width < 1280) setBreakpoint('lg');
       else if (width < 1536) setBreakpoint('xl');
-      else setBreakpoint('2xl');
+      else if (width < 1920) setBreakpoint('2xl');
+      else setBreakpoint('3xl');
+    };
+
+    // Detect touch device
+    const detectTouchDevice = () => {
+      setIsTouchDevice(
+        'ontouchstart' in window || 
+        navigator.maxTouchPoints > 0 || 
+        window.matchMedia('(pointer: coarse)').matches
+      );
     };
 
     updateBreakpoint();
+    detectTouchDevice();
+    
     window.addEventListener('resize', updateBreakpoint);
-    return () => window.removeEventListener('resize', updateBreakpoint);
+    window.addEventListener('orientationchange', updateBreakpoint);
+    
+    return () => {
+      window.removeEventListener('resize', updateBreakpoint);
+      window.removeEventListener('orientationchange', updateBreakpoint);
+    };
   }, []);
 
   return {
     breakpoint,
     isMobile: breakpoint === 'xs' || breakpoint === 'sm',
     isTablet: breakpoint === 'md',
-    isDesktop: breakpoint === 'lg' || breakpoint === 'xl' || breakpoint === '2xl',
+    isDesktop: breakpoint === 'lg' || breakpoint === 'xl' || breakpoint === '2xl' || breakpoint === '3xl',
+    isTouchDevice,
+    isSmallMobile: breakpoint === 'xs',
+    isLargeMobile: breakpoint === 'sm',
+    isLargeDesktop: breakpoint === '2xl' || breakpoint === '3xl',
     responsiveDesign
   };
 };

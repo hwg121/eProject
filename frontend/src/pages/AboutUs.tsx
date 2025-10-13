@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Users, Mail, Phone, MapPin, Send, AlertCircle, CheckCircle, MessageSquare, User as UserIcon, Sparkles, Heart, Target } from 'lucide-react';
+import { Users, Mail, Phone, MapPin, Send, AlertCircle, CheckCircle, MessageSquare, User as UserIcon, Sparkles, Heart, Target, Star } from 'lucide-react';
 import Card from '../components/UI/Card';
-import PageHeader from '../components/UI/PageHeader';
+// import PageHeader from '../components/UI/PageHeader';
 import { heroSectionService, staffMemberService, mapSettingService, contactService } from '../services/api.ts';
 import { contactSettingService, ContactSetting } from '../services/contactSettingService';
+import { useResponsiveDesign } from '../utils/responsiveDesign';
 
 interface HeroSection {
   title: string;
@@ -26,12 +27,13 @@ interface MapSetting {
 }
 
 const AboutUs: React.FC = () => {
+  const { isMobile } = useResponsiveDesign();
   const [heroSection, setHeroSection] = useState<HeroSection | null>(null);
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
   const [mapSetting, setMapSetting] = useState<MapSetting | null>(null);
   const [contactSettings, setContactSettings] = useState<ContactSetting | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // const [error, setError] = useState<string | null>(null);
   
   // Contact form state
   const [formData, setFormData] = useState({
@@ -47,8 +49,8 @@ const AboutUs: React.FC = () => {
 
   // Parallax scroll effect
   const { scrollY } = useScroll();
-  const y1 = useTransform(scrollY, [0, 300], [0, 50]);
-  const y2 = useTransform(scrollY, [0, 300], [0, -50]);
+  // const y1 = useTransform(scrollY, [0, 300], [0, 50]);
+  // const y2 = useTransform(scrollY, [0, 300], [0, -50]);
   const opacity = useTransform(scrollY, [0, 300], [1, 0.5]);
 
   useEffect(() => {
@@ -194,7 +196,7 @@ const AboutUs: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <motion.div 
           className="text-center"
           initial={{ opacity: 0, scale: 0.8 }}
@@ -226,7 +228,7 @@ const AboutUs: React.FC = () => {
           className="relative -mt-8"
           style={{ opacity }}
         >
-          <div className="relative bg-gradient-to-br from-emerald-500 via-green-600 to-teal-600 dark:from-emerald-600 dark:via-green-700 dark:to-teal-700 rounded-3xl p-8 md:p-12 lg:p-20 text-white shadow-2xl overflow-hidden backdrop-blur-sm">
+          <div className="relative bg-gradient-to-br from-emerald-500 via-green-600 to-teal-600 dark:from-emerald-600 dark:via-green-700 dark:to-teal-700 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 lg:p-16 xl:p-20 text-white shadow-2xl overflow-hidden backdrop-blur-sm">
             {/* Animated Background Patterns */}
             <div className="absolute inset-0 overflow-hidden opacity-30">
               <motion.div 
@@ -296,7 +298,7 @@ const AboutUs: React.FC = () => {
               </motion.div>
 
               <motion.h1 
-                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-6 md:mb-8 leading-tight px-4"
+                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-extrabold mb-4 sm:mb-6 md:mb-8 leading-tight px-2 sm:px-4"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
@@ -307,7 +309,7 @@ const AboutUs: React.FC = () => {
               </motion.h1>
               
               <motion.p 
-                className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-white/95 leading-relaxed max-w-4xl mx-auto font-light px-4"
+                className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-white/95 leading-relaxed max-w-4xl mx-auto font-light px-2 sm:px-4"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
@@ -316,23 +318,23 @@ const AboutUs: React.FC = () => {
               </motion.p>
 
               <motion.div
-                className="mt-8 md:mt-12 flex flex-col sm:flex-row justify-center gap-4 px-4"
+                className="mt-6 sm:mt-8 md:mt-12 flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 px-2 sm:px-4"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
               >
-                <div className="bg-white/10 dark:bg-white/20 backdrop-blur-md rounded-xl px-6 md:px-8 py-4 flex items-center space-x-3 border border-white/20 shadow-lg hover:bg-white/20 transition-all">
-                  <Heart className="h-5 md:h-6 w-5 md:w-6" />
+                <div className="bg-white/10 dark:bg-white/20 backdrop-blur-md rounded-lg sm:rounded-xl px-4 sm:px-6 md:px-8 py-3 sm:py-4 flex items-center space-x-2 sm:space-x-3 border border-white/20 shadow-lg hover:bg-white/20 transition-all">
+                  <Heart className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
                   <div className="text-left">
-                    <p className="text-xl md:text-2xl font-bold">500+</p>
-                    <p className="text-xs md:text-sm text-white/80">Happy Clients</p>
+                    <p className="text-lg sm:text-xl md:text-2xl font-bold">500+</p>
+                    <p className="text-xs sm:text-sm text-white/80">Happy Clients</p>
                   </div>
                 </div>
-                <div className="bg-white/10 dark:bg-white/20 backdrop-blur-md rounded-xl px-6 md:px-8 py-4 flex items-center space-x-3 border border-white/20 shadow-lg hover:bg-white/20 transition-all">
-                  <Target className="h-5 md:h-6 w-5 md:w-6" />
+                <div className="bg-white/10 dark:bg-white/20 backdrop-blur-md rounded-lg sm:rounded-xl px-4 sm:px-6 md:px-8 py-3 sm:py-4 flex items-center space-x-2 sm:space-x-3 border border-white/20 shadow-lg hover:bg-white/20 transition-all">
+                  <Target className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
                   <div className="text-left">
-                    <p className="text-xl md:text-2xl font-bold">100%</p>
-                    <p className="text-xs md:text-sm text-white/80">Satisfaction</p>
+                    <p className="text-lg sm:text-xl md:text-2xl font-bold">100%</p>
+                    <p className="text-xs sm:text-sm text-white/80">Satisfaction</p>
                   </div>
                 </div>
               </motion.div>
@@ -344,36 +346,35 @@ const AboutUs: React.FC = () => {
       {/* Staff Cards Section */}
       {staffMembers.length > 0 && (
         <section className="relative">
-          {/* Section Background */}
-          <div className="absolute inset-0 bg-gradient-to-b from-emerald-50/50 via-green-50/30 to-transparent dark:from-emerald-900/20 dark:via-green-900/10 dark:to-transparent rounded-3xl -z-10"></div>
+          {/* Section Background - Removed green background */}
           
-          <div className="text-center mb-12 md:mb-16 px-4">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16 px-3 sm:px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center space-x-2 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 px-4 md:px-5 py-2 rounded-full mb-4 md:mb-6 shadow-md backdrop-blur-sm border border-emerald-200/50 dark:border-emerald-700/50">
-                <Users className="h-4 md:h-5 w-4 md:w-5" />
-                <span className="font-semibold text-xs md:text-sm">Our Amazing Team</span>
+              <div className="inline-flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 sm:px-4 md:px-5 py-2 rounded-full mb-3 sm:mb-4 md:mb-6 shadow-md backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
+                <Users className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
+                <span className="font-semibold text-xs sm:text-sm">Our Amazing Team</span>
               </div>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 dark:from-emerald-400 dark:via-green-400 dark:to-teal-400 mb-4 md:mb-6">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-gray-800 dark:text-gray-200 mb-3 sm:mb-4 md:mb-6">
                 Meet Our Team
               </h2>
-              <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-emerald-600/90 dark:text-emerald-300/90 max-w-3xl mx-auto font-light">
+              <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto font-light">
                 Passionate experts dedicated to helping you grow and succeed in every step of your journey
               </p>
             </motion.div>
           </div>
           
-          {/* Dynamic grid layout based on number of staff */}
-          <div className={`grid gap-6 md:gap-8 px-4 ${
-            staffMembers.length === 1 ? 'grid-cols-1 max-w-md mx-auto' :
-            staffMembers.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-3xl mx-auto' :
+          {/* Dynamic grid layout based on number of staff - Perfect Mobile Responsive */}
+          <div className={`grid gap-4 sm:gap-6 md:gap-8 px-3 sm:px-4 ${
+            staffMembers.length === 1 ? 'grid-cols-1 max-w-sm sm:max-w-md mx-auto' :
+            staffMembers.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-2xl sm:max-w-3xl mx-auto' :
             staffMembers.length === 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
-            staffMembers.length === 4 ? 'grid-cols-1 sm:grid-cols-2 max-w-4xl mx-auto' :
-            'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'
+            staffMembers.length === 4 ? 'grid-cols-1 sm:grid-cols-2 max-w-3xl sm:max-w-4xl mx-auto' :
+            'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
           }`}>
             {staffMembers.map((member, index) => (
               <motion.div
@@ -386,57 +387,90 @@ const AboutUs: React.FC = () => {
               >
                 <div className="group relative h-full">
                   {/* Card Background Glow */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/20 to-green-500/20 dark:from-emerald-400/30 dark:to-green-500/30 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-400/15 to-purple-500/15 dark:from-blue-500/20 dark:to-purple-600/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500 scale-105"></div>
                   
-                  <Card className="relative h-full text-center transition-all duration-500 p-6 md:p-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-emerald-100 dark:border-emerald-700/50 group-hover:border-emerald-300 dark:group-hover:border-emerald-500 group-hover:shadow-2xl overflow-hidden">
-                    {/* Decorative Corner Elements */}
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-emerald-200/50 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    <div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-tr from-green-200/50 to-transparent rounded-tr-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <Card className="relative h-full text-center transition-all duration-500 p-4 sm:p-6 md:p-8 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border-2 border-gray-100 dark:border-gray-700/50 group-hover:border-blue-300 dark:group-hover:border-blue-500 group-hover:shadow-3xl group-hover:scale-105 overflow-hidden">
+                    {/* Animated Decorative Corner Elements */}
+                    <motion.div 
+                      className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-200/60 to-purple-200/60 dark:from-blue-400/40 dark:to-purple-400/40 rounded-bl-full opacity-0 group-hover:opacity-100"
+                      animate={{ rotate: [0, 5, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    ></motion.div>
+                    <motion.div 
+                      className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-tr from-pink-200/60 to-orange-200/60 dark:from-pink-400/40 dark:to-orange-400/40 rounded-tr-full opacity-0 group-hover:opacity-100"
+                      animate={{ rotate: [0, -5, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                    ></motion.div>
                     
                     <div className="relative z-10">
-                      <div className="mb-4 md:mb-6">
+                      <div className="mb-3 sm:mb-4 md:mb-6">
                         <motion.div 
                           className="relative inline-block"
-                          whileHover={{ scale: 1.05, rotate: 3 }}
-                          transition={{ type: "spring", stiffness: 300 }}
+                          whileHover={{ scale: 1.08, rotate: 5 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 10 }}
                         >
-                          {/* Avatar Glow Ring */}
-                          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-emerald-400 to-green-600 dark:from-emerald-500 dark:to-green-500 opacity-0 group-hover:opacity-30 blur-md transition-opacity duration-500 scale-110"></div>
+                          {/* Avatar Glow Effect */}
+                          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400/25 to-purple-500/25 dark:from-blue-500/30 dark:to-purple-600/30 opacity-0 group-hover:opacity-100 blur-lg transition-all duration-500 scale-110"></div>
                           
                       <img 
                         src={member.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&size=200&background=10b981&color=fff`}
                         alt={member.name}
-                            className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-full mx-auto object-cover border-4 border-white dark:border-gray-700 shadow-xl ring-4 ring-emerald-200 dark:ring-emerald-700/50 group-hover:ring-emerald-400 dark:group-hover:ring-emerald-500 transition-all duration-500"
+                            className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 xl:w-36 xl:h-36 rounded-full mx-auto object-cover border-2 sm:border-4 border-white dark:border-gray-700 shadow-2xl ring-2 sm:ring-4 ring-gray-200 dark:ring-gray-700/50 group-hover:ring-blue-300 dark:group-hover:ring-blue-500 group-hover:shadow-3xl transition-all duration-500 group-hover:scale-105"
                           />
                           
-                          {/* Sparkle Effect */}
+                          {/* Animated Floating Elements */}
                           <motion.div
-                            className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full p-1.5 sm:p-2 shadow-lg opacity-0 group-hover:opacity-100"
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                            className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full p-1.5 sm:p-2 shadow-lg opacity-0 group-hover:opacity-100"
+                            animate={{ 
+                              rotate: [0, 360],
+                              scale: [1, 1.1, 1],
+                              y: [0, -5, 0]
+                            }}
+                            transition={{ 
+                              duration: 4, 
+                              repeat: Infinity, 
+                              ease: "easeInOut" 
+                            }}
                           >
                             <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                          </motion.div>
+                          
+                          {/* Additional Floating Stars */}
+                          <motion.div
+                            className="absolute -top-1 -left-1 sm:-top-2 sm:-left-2 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full p-1 sm:p-1.5 shadow-md opacity-0 group-hover:opacity-100"
+                            animate={{ 
+                              rotate: [0, -360],
+                              scale: [0.8, 1.2, 0.8],
+                              x: [0, 3, 0]
+                            }}
+                            transition={{ 
+                              duration: 3, 
+                              repeat: Infinity, 
+                              ease: "easeInOut",
+                              delay: 0.5
+                            }}
+                          >
+                            <Star className="h-2 w-2 sm:h-3 sm:w-3 text-white" />
                           </motion.div>
                         </motion.div>
                       </div>
                       
                       <motion.h3 
-                        className="text-lg sm:text-xl md:text-2xl font-bold text-emerald-800 dark:text-emerald-200 mb-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors"
+                        className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors"
                         whileHover={{ scale: 1.05 }}
                       >
                         {member.name}
                       </motion.h3>
                       
-                      <div className="inline-block mb-3 md:mb-4 px-3 md:px-4 py-1 md:py-1.5 bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-900/50 dark:to-green-900/50 rounded-full">
-                        <p className="text-emerald-700 dark:text-emerald-300 font-semibold text-xs md:text-sm">{member.role}</p>
+                      <div className="inline-block mb-2 sm:mb-3 md:mb-4 px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 bg-gradient-to-r from-gray-100 to-gray-100 dark:from-gray-800/50 dark:to-gray-800/50 rounded-full">
+                        <p className="text-gray-700 dark:text-gray-300 font-semibold text-xs sm:text-sm">{member.role}</p>
                       </div>
                       
                       <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm leading-relaxed line-clamp-3 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
                         {member.short_bio}
                       </p>
 
-                      {/* Hover Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-emerald-500/10 dark:from-emerald-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+                      {/* Subtle Hover Overlay - Removed problematic overlay */}
                     </div>
                   </Card>
                   </div>
@@ -448,9 +482,7 @@ const AboutUs: React.FC = () => {
 
       {/* Contact & Map Section - Combined */}
       <section className="relative py-8 md:py-12">
-        {/* Background Decoration */}
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-green-50/50 to-teal-50 dark:from-emerald-900/20 dark:via-green-900/10 dark:to-teal-900/20 rounded-3xl -z-10"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.1),transparent)] dark:bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.2),transparent)] rounded-3xl -z-10"></div>
+        {/* Background Decoration - Removed unnecessary backgrounds */}
         
         <div className="text-center mb-12 md:mb-16 px-4">
           <motion.div
@@ -459,14 +491,14 @@ const AboutUs: React.FC = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-900/50 dark:to-green-900/50 text-emerald-700 dark:text-emerald-300 px-4 md:px-5 py-2 rounded-full mb-4 md:mb-6 shadow-md backdrop-blur-sm border border-emerald-200/50 dark:border-emerald-700/50">
+            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-gray-100 to-gray-100 dark:from-gray-800/50 dark:to-gray-800/50 text-gray-700 dark:text-gray-300 px-4 md:px-5 py-2 rounded-full mb-4 md:mb-6 shadow-md backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
               <MessageSquare className="h-4 md:h-5 w-4 md:w-5" />
               <span className="font-semibold text-xs md:text-sm">Let's Connect</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 dark:from-emerald-400 dark:via-green-400 dark:to-teal-400 mb-4 md:mb-6">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-800 dark:text-gray-200 mb-4 md:mb-6">
               Get In Touch
             </h2>
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-emerald-600/90 dark:text-emerald-300/90 max-w-3xl mx-auto font-light">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto font-light">
               Have a question? Visit us or send us a message
             </p>
           </motion.div>
@@ -806,8 +838,7 @@ const AboutUs: React.FC = () => {
 
       {/* Contact Information Cards */}
       <section className="relative py-8 md:py-12">
-        {/* Background Decoration */}
-        <div className="absolute inset-0 bg-gradient-to-t from-emerald-50/50 to-transparent dark:from-emerald-900/20 dark:to-transparent rounded-3xl -z-10"></div>
+        {/* Background Decoration - Removed green background */}
         
         <div className="text-center mb-12 md:mb-16 px-4">
           <motion.div
@@ -903,22 +934,22 @@ const AboutUs: React.FC = () => {
           >
             <div className="group relative h-full">
               {/* Card Glow */}
-              <div className="absolute inset-0 bg-gradient-to-br from-teal-400/30 to-emerald-500/30 dark:from-teal-400/40 dark:to-emerald-500/40 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-400/30 to-gray-500/30 dark:from-gray-400/40 dark:to-gray-500/40 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               
-              <Card className="relative h-full text-center p-6 md:p-8 lg:p-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-emerald-100 dark:border-emerald-700/50 group-hover:border-teal-300 dark:group-hover:border-teal-500 transition-all duration-500 group-hover:shadow-2xl">
+              <Card className="relative h-full text-center p-6 md:p-8 lg:p-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-gray-100 dark:border-gray-700/50 group-hover:border-gray-300 dark:group-hover:border-gray-500 transition-all duration-500 group-hover:shadow-2xl">
                 <motion.div 
-                  className="bg-gradient-to-br from-teal-500 to-emerald-600 dark:from-teal-600 dark:to-emerald-700 w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-lg group-hover:shadow-xl"
+                  className="bg-gradient-to-br from-gray-500 to-gray-600 dark:from-gray-600 dark:to-gray-700 w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-lg group-hover:shadow-xl"
                   whileHover={{ scale: [1, 1.2, 1.2, 1.2, 1], rotate: [0, 0, 5, -5, 0] }}
                   transition={{ duration: 0.6 }}
                 >
                   <MapPin className="h-8 w-8 md:h-10 md:w-10 text-white" />
                 </motion.div>
-                <h3 className="text-xl md:text-2xl font-bold text-emerald-800 dark:text-emerald-200 mb-3 md:mb-4 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">Address</h3>
-                <p className="text-base md:text-lg text-emerald-600 dark:text-emerald-300 font-semibold mb-3 line-clamp-2">
+                <h3 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-200 mb-3 md:mb-4 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">Address</h3>
+                <p className="text-base md:text-lg text-gray-600 dark:text-gray-300 font-semibold mb-3 line-clamp-2">
               {contactSettings?.address || mapSetting?.address || 'Ho Chi Minh City, Vietnam'}
             </p>
-                <div className="inline-block px-3 md:px-4 py-1.5 md:py-2 bg-teal-100 dark:bg-teal-900/50 rounded-full">
-                  <p className="text-xs md:text-sm text-teal-700 dark:text-teal-300 font-medium">Visit us anytime!</p>
+                <div className="inline-block px-3 md:px-4 py-1.5 md:py-2 bg-gray-100 dark:bg-gray-800/50 rounded-full">
+                  <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-medium">Visit us anytime!</p>
                 </div>
           </Card>
             </div>
