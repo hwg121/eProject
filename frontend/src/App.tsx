@@ -27,7 +27,6 @@ const TechniqueDetail = lazy(() => import('./pages/TechniqueDetail'));
 
 // Admin pages
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
-const AdminAboutUs = lazy(() => import('./pages/AdminAboutUs'));
 // TODO: Create these admin pages when needed
 // const AdminTools = lazy(() => import('./pages/admin/AdminTools'));
 // const AdminEssentials = lazy(() => import('./pages/admin/AdminEssentials'));
@@ -52,11 +51,6 @@ function App() {
               <Route path="/admin" element={
                 <ProtectedRoute requireAdmin={true}>
                   <AdminDashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/about-us" element={
-                <ProtectedRoute requireAdmin={true}>
-                  <AdminAboutUs />
                 </ProtectedRoute>
               } />
               {/* TODO: Uncomment these routes when admin pages are created */}

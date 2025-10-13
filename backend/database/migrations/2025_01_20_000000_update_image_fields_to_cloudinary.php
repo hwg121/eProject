@@ -26,11 +26,6 @@ return new class extends Migration
             $table->string('cover')->nullable()->comment('Cloudinary URL for cover image')->change();
         });
 
-        // Update about_us table
-        Schema::table('about_us', function (Blueprint $table) {
-            $table->string('image')->nullable()->comment('Cloudinary URL for about us image')->change();
-        });
-
         // Update existing data to use Cloudinary URLs if they exist
         $this->migrateExistingImages();
     }
@@ -50,10 +45,6 @@ return new class extends Migration
         Schema::table('articles', function (Blueprint $table) {
             $table->string('featured_image')->nullable()->comment(null)->change();
             $table->string('cover')->nullable()->comment(null)->change();
-        });
-
-        Schema::table('about_us', function (Blueprint $table) {
-            $table->string('image')->nullable()->comment(null)->change();
         });
     }
 
@@ -88,11 +79,5 @@ return new class extends Migration
             ->where('cover', 'not like', 'https://%')
             ->where('cover', 'not like', 'http://%')
             ->update(['cover' => null]);
-
-        // Update about_us table
-        DB::table('about_us')->whereNotNull('image')
-            ->where('image', 'not like', 'https://%')
-            ->where('image', 'not like', 'http://%')
-            ->update(['image' => null]);
     }
 };

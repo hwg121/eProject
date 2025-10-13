@@ -227,8 +227,7 @@ const AdminDashboard: React.FC = () => {
     videos: [],
     tools: [],
     pots: [],
-    accessories: [],
-    'about-us': []
+    accessories: []
   });
 
   // Click outside handler for avatar dropdown
@@ -295,8 +294,7 @@ const AdminDashboard: React.FC = () => {
         videos: [],
         tools: [],
         pots: [],
-        accessories: [],
-        'about-us': []
+        accessories: []
       });
     } catch (error) {
       console.error('Error loading categories:', error);
@@ -428,7 +426,6 @@ const AdminDashboard: React.FC = () => {
       const totalPots = Array.isArray(potsData) ? potsData.length : 0;
       const totalAccessories = Array.isArray(accessoriesData) ? accessoriesData.length : 0;
       const totalSuggestions = Array.isArray(suggestionsData) ? suggestionsData.length : 0;
-      const totalAboutUs = 0; // No about-us data yet
       const totalContactMessages = Array.isArray(contactMessagesData) ? contactMessagesData.length : 0;
       const totalUsers = Array.isArray(usersData) ? usersData.length : 0;
 

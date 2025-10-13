@@ -6,10 +6,8 @@ use App\Http\Controllers\Api\{
     TestController,
     SimpleController,
     ContactController,
-    SettingController,
     VisitorController,
     GeolocationController,
-    AboutUsController,
     ArticleController,
     VideoController,
     ProductController,
@@ -42,9 +40,6 @@ Route::middleware(['cors'])->group(function () {
     // Public GET routes
     Route::get('/articles', [ArticleController::class, 'index']);
     Route::get('/videos', [VideoController::class, 'index']);
-    Route::get('/about-us', [AboutUsController::class, 'index']);
-    Route::get('/about-us/active', [AboutUsController::class, 'active']);
-    Route::get('/about-us/{id}', [AboutUsController::class, 'show']);
     
     // About Us - New structure (Public)
     Route::get('/hero-sections/active', [HeroSectionController::class, 'getActive']);
@@ -94,9 +89,6 @@ Route::middleware(['cors'])->group(function () {
         Route::put('/contact-messages/{id}', [ContactController::class, 'update']);
         Route::delete('/contact-messages/{id}', [ContactController::class, 'destroy']);
     });
-
-    // Settings
-    Route::get('/settings', [SettingController::class, 'index']);
 
     // Visitor Counter
     Route::post('/visitor-counter', [VisitorController::class, 'increment']);
@@ -169,11 +161,6 @@ Route::middleware(['cors'])->group(function () {
         Route::put('/admin/videos/{id}', [VideoController::class, 'update']);
         Route::post('/admin/videos/{id}', [VideoController::class, 'update']); // For _method=PUT
         Route::delete('/admin/videos/{id}', [VideoController::class, 'destroy']);
-
-        // About Us
-        Route::post('/about-us', [AboutUsController::class, 'store']);
-        Route::put('/about-us/{id}', [AboutUsController::class, 'update']);
-        Route::delete('/about-us/{id}', [AboutUsController::class, 'destroy']);
         
         // About Us - New structure (Admin)
         // Hero Section
@@ -213,10 +200,6 @@ Route::middleware(['cors'])->group(function () {
         Route::get('/admin/stats/overview', [CampaignSettingController::class, 'getStatsOverview']);
 
         // Product Management (admin routes) - REMOVED DUPLICATE (already defined at lines 69-80)
-        
-        // Admin Settings
-        Route::get('/admin/settings', [SettingController::class, 'index']);
-        Route::put('/admin/settings', [SettingController::class, 'update']);
         
         // Activity Logs
         Route::get('/admin/activity-logs', [App\Http\Controllers\Api\ActivityLogController::class, 'index']);

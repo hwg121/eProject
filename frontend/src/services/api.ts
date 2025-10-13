@@ -498,69 +498,6 @@ class ApiClient {
     }
   }
 
-  // About Us methods
-  async getAboutUs() {
-    try {
-      return await this.request<unknown[]>('/about-us');
-    } catch (error) {
-      console.error('Error fetching about us:', error);
-      return Promise.resolve([]);
-    }
-  }
-
-  async getActiveAboutUs() {
-    try {
-      return await this.request<unknown>('/about-us/active');
-    } catch (error) {
-      console.error('Error fetching active about us:', error);
-      return Promise.resolve(null);
-    }
-  }
-
-  async getAboutUsById(id: string) {
-    try {
-      return await this.request<unknown>(`/about-us/${id}`);
-    } catch (error) {
-      console.error('Error fetching about us by id:', error);
-      return Promise.resolve(null);
-    }
-  }
-
-  async createAboutUs(data: unknown) {
-    try {
-      return await this.request<unknown>('/about-us', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
-    } catch (error) {
-      console.error('Error creating about us:', error);
-      throw error;
-    }
-  }
-
-  async updateAboutUs(id: string, data: unknown) {
-    try {
-      return await this.request<unknown>(`/about-us/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      });
-    } catch (error) {
-      console.error('Error updating about us:', error);
-      throw error;
-    }
-  }
-
-  async deleteAboutUs(id: string) {
-    try {
-      return await this.request<unknown>(`/about-us/${id}`, {
-        method: 'DELETE',
-      });
-    } catch (error) {
-      console.error('Error deleting about us:', error);
-      throw error;
-    }
-  }
-
   // Contact methods
   async sendContactMessage(data: unknown) {
     try {
@@ -1238,8 +1175,7 @@ class ApiClient {
       'essentials': '/essentials',
       'pots': '/pots',
       'accessories': '/accessories',
-      'suggestions': '/suggestions',
-      'about-us': '/about-us'
+      'suggestions': '/suggestions'
     };
 
     const endpoint = endpoints[type];
@@ -1262,8 +1198,7 @@ class ApiClient {
       'essentials': '/essentials',
       'pots': '/pots',
       'accessories': '/accessories',
-      'suggestions': '/suggestions',
-      'about-us': '/about-us'
+      'suggestions': '/suggestions'
     };
 
     const endpoint = endpoints[type];
@@ -1287,8 +1222,7 @@ class ApiClient {
       'essentials': '/essentials',
       'pots': '/pots',
       'accessories': '/accessories',
-      'suggestions': '/suggestions',
-      'about-us': '/about-us'
+      'suggestions': '/suggestions'
     };
 
     const endpoint = endpoints[type];
@@ -1355,21 +1289,10 @@ export const publicService = {
   getPots: () => apiClient.getPublicPots(),
   getAccessories: () => apiClient.getPublicAccessories(),
   getSuggestions: () => apiClient.getPublicSuggestions(),
-  getAboutUs: () => apiClient.getAboutUs(),
-  getActiveAboutUs: () => apiClient.getActiveAboutUs(),
   trackPageView: (page: string) => apiClient.trackPageView(page),
   deleteItem: (id: string, type: string) => apiClient.deleteItem(id, type),
   createItem: (data: unknown, type: string) => apiClient.createItem(data, type),
   updateItem: (id: string, data: unknown, type: string) => apiClient.updateItem(id, data, type),
-};
-
-export const aboutUsService = {
-  getAll: () => apiClient.getAboutUs(),
-  getActive: () => apiClient.getActiveAboutUs(),
-  getById: (id: string) => apiClient.getAboutUsById(id),
-  create: (data: unknown) => apiClient.createAboutUs(data),
-  update: (id: string, data: unknown) => apiClient.updateAboutUs(id, data),
-  delete: (id: string) => apiClient.deleteAboutUs(id),
 };
 
 export const contactService = {
