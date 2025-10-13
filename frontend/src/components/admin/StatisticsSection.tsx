@@ -57,7 +57,7 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({ stats, isDarkMode
     },
     { 
       label: 'Avg Rating', 
-      value: stats.avgRating, 
+      value: campaignStats?.rating?.current_value ?? stats.avgRating, 
       icon: Star, 
       bgGradient: 'linear-gradient(135deg, #ffa726 0%, #fb8c00 100%)',
       color: '#ffa726',
