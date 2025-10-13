@@ -224,7 +224,6 @@ class CampaignSettingController extends Controller
                     if (Schema::hasTable('articles')) {
                         $articles = Article::where('status', 'published')
                             ->whereNotNull('rating')
-                            ->where('rating', '>', 0)
                             ->pluck('rating');
                         $allContent = $allContent->merge($articles);
                     }
@@ -233,22 +232,19 @@ class CampaignSettingController extends Controller
                     if (Schema::hasTable('videos')) {
                         $videos = Video::where('status', 'published')
                             ->whereNotNull('rating')
-                            ->where('rating', '>', 0)
                             ->pluck('rating');
                         $allContent = $allContent->merge($videos);
                     }
                     
-                    // Get products with ratings (only published: status='published' AND is_published=1)
+                    // Get products with ratings (only published)
                     if (Schema::hasTable('products')) {
                         $products = Product::where('status', 'published')
-                            ->where('is_published', 1)
                             ->whereNotNull('rating')
-                            ->where('rating', '>', 0)
                             ->pluck('rating');
                         $allContent = $allContent->merge($products);
                     }
                     
-                    // Calculate average
+                    // Calculate average (including 0 ratings)
                     if ($allContent->count() > 0) {
                         return (float) $allContent->avg();
                     }

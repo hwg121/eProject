@@ -47,7 +47,7 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({ stats, isDarkMode
     },
     { 
       label: 'Content Items', 
-      value: stats.totalArticles + stats.totalVideos + stats.totalBooks + stats.totalSuggestions + (stats.totalTools || 0) + (stats.totalPots || 0) + (stats.totalAccessories || 0), 
+      value: campaignStats?.content?.current_value ?? (stats.totalArticles + stats.totalVideos + stats.totalBooks + stats.totalSuggestions + (stats.totalTools || 0) + (stats.totalPots || 0) + (stats.totalAccessories || 0)), 
       icon: FileText, 
       bgGradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
       color: '#f093fb',
