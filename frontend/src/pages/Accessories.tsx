@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Sparkles, Palette, Gem, Star, Heart, Gift, Lightbulb, Shield, Clock, ExternalLink, DollarSign } from 'lucide-react';
 import Card from '../components/UI/Card';
 import PageHeader from '../components/UI/PageHeader';
 import { publicService } from '../services/api.ts';
+import { useResponsiveDesign } from '../utils/responsiveDesign';
 
 interface Product {
   id: string;
@@ -60,12 +62,13 @@ interface Product {
 }
 
 const Accessories: React.FC = () => {
+  const { isMobile } = useResponsiveDesign();
   const [accessories, setAccessories] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
+  const itemsPerPage = isMobile ? 6 : 9;
 
   useEffect(() => {
     const loadAccessories = async () => {

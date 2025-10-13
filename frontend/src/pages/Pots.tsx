@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Package, Droplets, Sun, Wind, Star, Heart, Gift, Lightbulb, Shield, Clock, DollarSign, Thermometer, Eye, CheckCircle, AlertTriangle, Info, Ruler, Weight, Palette, ExternalLink } from 'lucide-react';
 import Card from '../components/UI/Card';
 import PageHeader from '../components/UI/PageHeader';
 import { publicService } from '../services/api.ts';
 import { generateSlug } from '../utils/slug';
+import { useResponsiveDesign } from '../utils/responsiveDesign';
 
 interface Product {
   id: string;
@@ -62,12 +64,13 @@ interface Product {
 }
 
 const Pots: React.FC = () => {
+  const { isMobile } = useResponsiveDesign();
   const [pots, setPots] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
+  const itemsPerPage = isMobile ? 6 : 9;
 
   useEffect(() => {
     const loadPots = async () => {
@@ -400,14 +403,14 @@ const Pots: React.FC = () => {
 
       {/* Search Bar */}
       <Card>
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <div className="flex-1">
             <input
               type="text"
               placeholder="Search pots by name, description, or material..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm sm:text-base min-h-[44px] touch-manipulation"
             />
           </div>
         </div>
@@ -445,27 +448,27 @@ const Pots: React.FC = () => {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                 {currentPots.map(pot => renderPotCard(pot))}
               </div>
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex justify-center items-center space-x-2 mt-8">
+                <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-2 mt-6 sm:mt-8">
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className="px-4 py-2 rounded-lg bg-emerald-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-emerald-700 transition-colors"
+                    className="px-3 sm:px-4 py-2 rounded-lg bg-emerald-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-emerald-700 transition-colors text-sm sm:text-base min-h-[44px] touch-manipulation"
                   >
                     Previous
                   </button>
                   
-                  <div className="flex space-x-2">
+                  <div className="flex flex-wrap justify-center gap-1 sm:gap-2">
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                       <button
                         key={page}
                         onClick={() => setCurrentPage(page)}
-                        className={`px-4 py-2 rounded-lg transition-colors ${
+                        className={`px-2 sm:px-3 py-2 rounded-lg transition-colors text-sm sm:text-base min-h-[44px] min-w-[44px] touch-manipulation ${
                           currentPage === page
                             ? 'bg-emerald-600 text-white'
                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -479,7 +482,7 @@ const Pots: React.FC = () => {
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className="px-4 py-2 rounded-lg bg-emerald-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-emerald-700 transition-colors"
+                    className="px-3 sm:px-4 py-2 rounded-lg bg-emerald-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-emerald-700 transition-colors text-sm sm:text-base min-h-[44px] touch-manipulation"
                   >
                     Next
                   </button>
