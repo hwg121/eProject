@@ -225,7 +225,7 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
             
             {/* Menu Panel */}
             <motion.div
-              className="lg:hidden fixed top-0 left-0 h-full w-80 max-w-[85vw] z-50"
+              className="lg:hidden fixed top-0 left-0 h-screen w-80 max-w-[85vw] z-50"
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
@@ -273,7 +273,7 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
                 </div>
                 
                 {/* Navigation Items - Improved scroll */}
-                <div className="flex-1 overflow-y-auto p-4 pb-8 space-y-2 max-h-[calc(100vh-200px)] scrollbar-thin scrollbar-thumb-emerald-500 scrollbar-track-transparent">
+                <div className="flex-1 overflow-y-auto p-4 pb-8 space-y-2 min-h-0 scroll-smooth scrollbar-thin scrollbar-thumb-emerald-500 scrollbar-track-transparent">
                   {filteredNavItems.map((item, index) => (
                     <motion.div
                       key={item.id}

@@ -368,7 +368,9 @@ const Header: React.FC = () => {
                     opacity: 1
                   }}>
                     {/* Solid overlay to ensure complete separation */}
-                    <div className="absolute inset-0 bg-white dark:bg-gray-900 z-10"></div>
+                    <div className={`absolute inset-0 z-10 ${
+                      isDarkMode ? 'bg-gray-900' : 'bg-white'
+                    }`}></div>
                     
                     {/* Header - Perfect Mobile Spacing */}
                     <div className={`relative z-20 flex items-center justify-between p-4 sm:p-6 border-b ${
