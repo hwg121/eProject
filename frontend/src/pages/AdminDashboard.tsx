@@ -357,9 +357,9 @@ const AdminDashboard: React.FC = () => {
       // Load all content data using admin endpoints
       console.log('AdminDashboard - Starting to load data...');
       const [articlesData, videosData, allProductsData, contactMessagesData, usersData, publicActivitiesData, securityActivitiesData] = await Promise.all([
-          loadDataWithFallback(() => articlesService.getAll()),
-          loadDataWithFallback(() => videosService.getAll()),
-          loadDataWithFallback(() => productService.getAll()),
+          loadDataWithFallback(() => articlesService.getAll({ status: 'all' })), // Explicitly request all articles including archived
+          loadDataWithFallback(() => videosService.getAll({ status: 'all' })), // Explicitly request all videos including archived
+          loadDataWithFallback(() => productService.getAll({ status: 'all' })), // Explicitly request all products including archived
           loadDataWithFallback(() => contactService.getAll()),
           loadDataWithFallback(() => userService.getAll()),
           loadDataWithFallback(() => activityLogService.getPublicActivities(20)),
@@ -880,6 +880,12 @@ const AdminDashboard: React.FC = () => {
 
   const handleSave = async (formData: Partial<ContentItem>) => {
     try {
+      console.log('AdminDashboard.handleSave - Input:', {
+        currentContentType,
+        editingItem: !!editingItem,
+        formData
+      });
+      
       // Generate slug if not provided
       if (!formData.slug && formData.title) {
         formData.slug = generateSlug(formData.title);
@@ -889,6 +895,8 @@ const AdminDashboard: React.FC = () => {
       let serviceType = currentContentType;
       if (currentContentType === 'article') serviceType = 'articles';
       if (currentContentType === 'video') serviceType = 'videos';
+      
+      console.log('AdminDashboard.handleSave - Normalized serviceType:', serviceType);
       
       // Save logic based on currentContentType
       if (editingItem) {
@@ -921,12 +929,18 @@ const AdminDashboard: React.FC = () => {
         }
       } else {
         // Create new item
+        console.log('AdminDashboard.handleSave - Creating new item with serviceType:', serviceType);
+        
         switch (serviceType) {
           case 'articles':
-            await articlesService.create(formData);
+            console.log('AdminDashboard.handleSave - Calling articlesService.create with:', formData);
+            const articleResult = await articlesService.create(formData);
+            console.log('AdminDashboard.handleSave - articlesService.create result:', articleResult);
             break;
           case 'videos':
-            await videosService.create(formData);
+            console.log('AdminDashboard.handleSave - Calling videosService.create with:', formData);
+            const videoResult = await videosService.create(formData);
+            console.log('AdminDashboard.handleSave - videosService.create result:', videoResult);
             break;
           case 'books':
             await booksService.create(formData);

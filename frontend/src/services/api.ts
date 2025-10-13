@@ -1224,7 +1224,7 @@ export const authService = {
 };
 
 export const articlesService = {
-  getAll: () => apiClient.getArticles(),
+  getAll: (params?: Record<string, unknown>) => apiClient.getArticles(params),
   getById: (id: string) => apiClient.getArticle(id),
   create: (data: unknown) => apiClient.createArticle(data),
   update: (id: string, data: unknown) => apiClient.updateArticle(id, data),
@@ -1233,7 +1233,7 @@ export const articlesService = {
 };
 
 export const videosService = {
-  getAll: () => apiClient.getVideos(),
+  getAll: (params?: Record<string, unknown>) => apiClient.getVideos(params),
   getById: (id: string) => apiClient.getVideo(id),
   create: (data: unknown) => apiClient.createVideo(data),
   update: (id: string, data: Record<string, unknown>) => apiClient.updateVideo(id, data),

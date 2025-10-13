@@ -176,6 +176,14 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
         is_featured: Boolean(formData.featured || formData.is_featured)
       };
       
+      console.log('ContentForm - Submitting data:', {
+        type,
+        processedData,
+        hasContent: !!processedData.content,
+        hasBody: !!processedData.body,
+        category: processedData.category
+      });
+      
       onSave(processedData);
       showToast(`${item ? 'Updated' : 'Created'} successfully!`, 'success');
     } catch (error) {
