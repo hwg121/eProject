@@ -426,37 +426,45 @@ const AdminDashboard: React.FC = () => {
         setUsers(usersData as User[]);
       }
 
-      // Calculate stats from real API data
-      const totalArticles = Array.isArray(articlesData) ? articlesData.length : 0;
-      const totalVideos = Array.isArray(videosData) ? videosData.length : 0;
-      const totalBooks = Array.isArray(booksData) ? booksData.length : 0;
-      const totalTools = Array.isArray(toolsData) ? toolsData.length : 0;
-      const totalPots = Array.isArray(potsData) ? potsData.length : 0;
-      const totalAccessories = Array.isArray(accessoriesData) ? accessoriesData.length : 0;
-      const totalSuggestions = Array.isArray(suggestionsData) ? suggestionsData.length : 0;
+      // Calculate stats from real API data - only count published content
+      const totalArticles = Array.isArray(articlesData) ? articlesData.filter((item: any) => item.status === 'published').length : 0;
+      const totalVideos = Array.isArray(videosData) ? videosData.filter((item: any) => item.status === 'published').length : 0;
+      const totalBooks = Array.isArray(booksData) ? booksData.filter((item: any) => item.status === 'published').length : 0;
+      const totalTools = Array.isArray(toolsData) ? toolsData.filter((item: any) => item.status === 'published').length : 0;
+      const totalPots = Array.isArray(potsData) ? potsData.filter((item: any) => item.status === 'published').length : 0;
+      const totalAccessories = Array.isArray(accessoriesData) ? accessoriesData.filter((item: any) => item.status === 'published').length : 0;
+      const totalSuggestions = Array.isArray(suggestionsData) ? suggestionsData.filter((item: any) => item.status === 'published').length : 0;
       const totalContactMessages = Array.isArray(contactMessagesData) ? contactMessagesData.length : 0;
       const totalUsers = Array.isArray(usersData) ? usersData.length : 0;
 
-      // Calculate total views from all content
+      // Calculate total views from published content only
+      const publishedArticles = Array.isArray(articlesData) ? articlesData.filter((item: any) => item.status === 'published') : [];
+      const publishedVideos = Array.isArray(videosData) ? videosData.filter((item: any) => item.status === 'published') : [];
+      const publishedBooks = Array.isArray(booksData) ? booksData.filter((item: any) => item.status === 'published') : [];
+      const publishedTools = Array.isArray(toolsData) ? toolsData.filter((item: any) => item.status === 'published') : [];
+      const publishedPots = Array.isArray(potsData) ? potsData.filter((item: any) => item.status === 'published') : [];
+      const publishedAccessories = Array.isArray(accessoriesData) ? accessoriesData.filter((item: any) => item.status === 'published') : [];
+      const publishedSuggestions = Array.isArray(suggestionsData) ? suggestionsData.filter((item: any) => item.status === 'published') : [];
+      
       const totalViews = [
-        ...(Array.isArray(articlesData) ? articlesData : []),
-        ...(Array.isArray(videosData) ? videosData : []),
-        ...(Array.isArray(booksData) ? booksData : []),
-        ...(Array.isArray(toolsData) ? toolsData : []),
-        ...(Array.isArray(potsData) ? potsData : []),
-        ...(Array.isArray(accessoriesData) ? accessoriesData : []),
-        ...(Array.isArray(suggestionsData) ? suggestionsData : [])
+        ...publishedArticles,
+        ...publishedVideos,
+        ...publishedBooks,
+        ...publishedTools,
+        ...publishedPots,
+        ...publishedAccessories,
+        ...publishedSuggestions
       ].reduce((sum, item) => sum + (item.views || 0), 0);
 
-      // Calculate average rating from ALL content (articles, videos, and products)
+      // Calculate average rating from published content only
       const ratedContent = [
-        ...(Array.isArray(articlesData) ? articlesData : []),
-        ...(Array.isArray(videosData) ? videosData : []),
-        ...(Array.isArray(booksData) ? booksData : []),
-        ...(Array.isArray(suggestionsData) ? suggestionsData : []),
-        ...(Array.isArray(accessoriesData) ? accessoriesData : []),
-        ...(Array.isArray(toolsData) ? toolsData : []),
-        ...(Array.isArray(potsData) ? potsData : [])
+        ...publishedArticles,
+        ...publishedVideos,
+        ...publishedBooks,
+        ...publishedSuggestions,
+        ...publishedAccessories,
+        ...publishedTools,
+        ...publishedPots
       ].filter(item => {
         const rating = parseFloat(item.rating);
         return !isNaN(rating) && rating > 0;
