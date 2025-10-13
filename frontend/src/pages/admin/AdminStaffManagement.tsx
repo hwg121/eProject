@@ -281,7 +281,7 @@ const AdminStaffManagement: React.FC = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
 
       {/* Snackbar for errors */}
       <Snackbar 
@@ -295,10 +295,18 @@ const AdminStaffManagement: React.FC = () => {
         </Alert>
       </Snackbar>
 
-      {/* Header with Action Button */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, mt: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant="h5" fontWeight="bold" sx={{ color: '#047857' }}>
+      {/* Header with Action Button - Responsive */}
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', sm: 'row' },
+        justifyContent: 'space-between', 
+        alignItems: { xs: 'stretch', sm: 'center' }, 
+        gap: { xs: 2, sm: 0 },
+        mb: 4, 
+        mt: 3 
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+          <Typography variant="h5" fontWeight="bold" sx={{ color: '#047857', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
             Staff Members
           </Typography>
           <Chip 
@@ -309,7 +317,7 @@ const AdminStaffManagement: React.FC = () => {
         </Box>
         <Button
           variant="contained"
-          startIcon={<Plus className="h-5 w-5" />}
+          startIcon={<Plus className="h-4 w-4 sm:h-5 sm:w-5" />}
           onClick={handleCreate}
           disabled={staffMembers.length >= 5}
           sx={{
@@ -322,35 +330,75 @@ const AdminStaffManagement: React.FC = () => {
             },
             textTransform: 'none',
             fontWeight: 600,
-            px: 3,
-            py: 1.5,
+            px: { xs: 2, sm: 3 },
+            py: { xs: 1.5, sm: 1.5 },
+            minHeight: '44px',
+            width: { xs: '100%', sm: 'auto' },
+            fontSize: { xs: '0.875rem', sm: '1rem' }
           }}
         >
           Add Staff Member
         </Button>
       </Box>
 
-      {/* MUI Table for Staff Members */}
+      {/* MUI Table for Staff Members - Responsive */}
       <TableContainer 
         component={Paper} 
         elevation={3} 
         sx={{ 
           borderRadius: 2, 
-          overflow: 'hidden',
+          overflow: 'auto',
           background: isDarkMode ? 'rgba(30, 41, 59, 0.6)' : 'white',
-          backdropFilter: 'blur(10px)'
+          backdropFilter: 'blur(10px)',
+          maxHeight: { xs: '70vh', sm: '80vh' }
         }}
       >
-        <Table>
+        <Table stickyHeader>
           <TableHead>
             <TableRow sx={{ bgcolor: isDarkMode ? 'rgba(51, 65, 85, 0.8)' : '#f3f4f6' }}>
-              <TableCell sx={{ fontWeight: 700, fontSize: '0.875rem', color: isDarkMode ? '#e2e8f0' : '#334155' }}>Order</TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: '0.875rem', color: isDarkMode ? '#e2e8f0' : '#334155' }}>Avatar</TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: '0.875rem', color: isDarkMode ? '#e2e8f0' : '#334155' }}>Name</TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: '0.875rem', color: isDarkMode ? '#e2e8f0' : '#334155' }}>Role</TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: '0.875rem', color: isDarkMode ? '#e2e8f0' : '#334155' }}>Bio</TableCell>
-              <TableCell sx={{ fontWeight: 700, fontSize: '0.875rem', color: isDarkMode ? '#e2e8f0' : '#334155' }}>Status</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 700, fontSize: '0.875rem', color: isDarkMode ? '#e2e8f0' : '#334155' }}>Actions</TableCell>
+              <TableCell sx={{ 
+                fontWeight: 700, 
+                fontSize: { xs: '0.75rem', sm: '0.875rem' }, 
+                color: isDarkMode ? '#e2e8f0' : '#334155',
+                minWidth: { xs: '60px', sm: '80px' }
+              }}>Order</TableCell>
+              <TableCell sx={{ 
+                fontWeight: 700, 
+                fontSize: { xs: '0.75rem', sm: '0.875rem' }, 
+                color: isDarkMode ? '#e2e8f0' : '#334155',
+                minWidth: { xs: '60px', sm: '80px' }
+              }}>Avatar</TableCell>
+              <TableCell sx={{ 
+                fontWeight: 700, 
+                fontSize: { xs: '0.75rem', sm: '0.875rem' }, 
+                color: isDarkMode ? '#e2e8f0' : '#334155',
+                minWidth: { xs: '100px', sm: '120px' }
+              }}>Name</TableCell>
+              <TableCell sx={{ 
+                fontWeight: 700, 
+                fontSize: { xs: '0.75rem', sm: '0.875rem' }, 
+                color: isDarkMode ? '#e2e8f0' : '#334155',
+                minWidth: { xs: '80px', sm: '100px' }
+              }}>Role</TableCell>
+              <TableCell sx={{ 
+                fontWeight: 700, 
+                fontSize: { xs: '0.75rem', sm: '0.875rem' }, 
+                color: isDarkMode ? '#e2e8f0' : '#334155',
+                minWidth: { xs: '120px', sm: '150px' },
+                display: { xs: 'none', md: 'table-cell' }
+              }}>Bio</TableCell>
+              <TableCell sx={{ 
+                fontWeight: 700, 
+                fontSize: { xs: '0.75rem', sm: '0.875rem' }, 
+                color: isDarkMode ? '#e2e8f0' : '#334155',
+                minWidth: { xs: '60px', sm: '80px' }
+              }}>Status</TableCell>
+              <TableCell align="center" sx={{ 
+                fontWeight: 700, 
+                fontSize: { xs: '0.75rem', sm: '0.875rem' }, 
+                color: isDarkMode ? '#e2e8f0' : '#334155',
+                minWidth: { xs: '80px', sm: '100px' }
+              }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -371,7 +419,8 @@ const AdminStaffManagement: React.FC = () => {
                     sx={{ 
                       bgcolor: '#d1fae5',
                       color: '#047857',
-                      fontWeight: 600
+                      fontWeight: 600,
+                      fontSize: { xs: '0.7rem', sm: '0.75rem' }
                     }}
                   />
                 </TableCell>
@@ -380,23 +429,37 @@ const AdminStaffManagement: React.FC = () => {
                     src={item.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(item.name)}
                     alt={item.name}
                     sx={{ 
-                      width: 56, 
-                      height: 56,
+                      width: { xs: 40, sm: 56 }, 
+                      height: { xs: 40, sm: 56 },
                       border: '3px solid #d1fae5'
                     }}
                   />
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body1" fontWeight={600} sx={{ color: isDarkMode ? '#fff' : '#047857' }}>
+                  <Typography 
+                    variant="body1" 
+                    fontWeight={600} 
+                    sx={{ 
+                      color: isDarkMode ? '#fff' : '#047857',
+                      fontSize: { xs: '0.875rem', sm: '1rem' }
+                    }}
+                  >
                     {item.name}
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body2" sx={{ color: isDarkMode ? '#94a3b8' : '#059669', fontWeight: 500 }}>
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      color: isDarkMode ? '#94a3b8' : '#059669', 
+                      fontWeight: 500,
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                    }}
+                  >
                     {item.role}
                   </Typography>
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
                   <Typography 
                     variant="body2" 
                     sx={{ 
@@ -417,7 +480,12 @@ const AdminStaffManagement: React.FC = () => {
                   />
                 </TableCell>
                 <TableCell align="center">
-                  <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    gap: { xs: 0.25, sm: 0.5 }, 
+                    justifyContent: 'center',
+                    flexWrap: 'wrap'
+                  }}>
                     <Tooltip title="Move Up">
                       <span>
                         <IconButton
@@ -426,10 +494,12 @@ const AdminStaffManagement: React.FC = () => {
                           size="small"
                           sx={{ 
                             color: '#10b981',
-                            '&:hover': { bgcolor: '#d1fae5' }
+                            '&:hover': { bgcolor: '#d1fae5' },
+                            minWidth: '32px',
+                            minHeight: '32px'
                           }}
                         >
-                          <ArrowUp className="h-4 w-4" />
+                          <ArrowUp className="h-3 w-3 sm:h-4 sm:w-4" />
                         </IconButton>
                       </span>
                     </Tooltip>
@@ -441,10 +511,12 @@ const AdminStaffManagement: React.FC = () => {
                           size="small"
                           sx={{ 
                             color: '#10b981',
-                            '&:hover': { bgcolor: '#d1fae5' }
+                            '&:hover': { bgcolor: '#d1fae5' },
+                            minWidth: '32px',
+                            minHeight: '32px'
                           }}
                         >
-                          <ArrowDown className="h-4 w-4" />
+                          <ArrowDown className="h-3 w-3 sm:h-4 sm:w-4" />
                         </IconButton>
                       </span>
                     </Tooltip>
@@ -454,10 +526,12 @@ const AdminStaffManagement: React.FC = () => {
                         size="small"
                         sx={{ 
                           color: '#3b82f6',
-                          '&:hover': { bgcolor: '#dbeafe' }
+                          '&:hover': { bgcolor: '#dbeafe' },
+                          minWidth: '32px',
+                          minHeight: '32px'
                         }}
                       >
-                        <Edit className="h-4 w-4" />
+                        <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="Delete">
@@ -466,10 +540,12 @@ const AdminStaffManagement: React.FC = () => {
                         size="small"
                         sx={{ 
                           color: '#ef4444',
-                          '&:hover': { bgcolor: '#fee2e2' }
+                          '&:hover': { bgcolor: '#fee2e2' },
+                          minWidth: '32px',
+                          minHeight: '32px'
                         }}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                       </IconButton>
                     </Tooltip>
                   </Box>
@@ -489,11 +565,12 @@ const AdminStaffManagement: React.FC = () => {
         PaperProps={{
           sx: {
             borderRadius: 3,
-            maxHeight: '90vh',
+            maxHeight: { xs: '95vh', sm: '90vh' },
             background: isDarkMode ? 'rgba(30, 41, 59, 0.95)' : 'white',
             backdropFilter: 'blur(10px)',
             border: '1px solid',
-            borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'
+            borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
+            m: { xs: 1, sm: 2 }
           }
         }}
       >
@@ -501,12 +578,13 @@ const AdminStaffManagement: React.FC = () => {
           bgcolor: isDarkMode ? 'rgba(51, 65, 85, 0.8)' : '#f0fdf4', 
           color: isDarkMode ? '#fff' : '#047857',
           fontWeight: 700,
-          fontSize: '1.5rem',
+          fontSize: { xs: '1.25rem', sm: '1.5rem' },
           borderBottom: '2px solid',
           borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : '#d1fae5',
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center'
+          alignItems: 'center',
+          p: { xs: 2, sm: 3 }
         }}>
           <span>{isEditing ? 'Edit Staff Member' : 'Add Staff Member'}</span>
           <IconButton
@@ -514,16 +592,18 @@ const AdminStaffManagement: React.FC = () => {
             size="small"
             sx={{ 
               color: '#6b7280',
-              '&:hover': { bgcolor: '#d1fae5' }
+              '&:hover': { bgcolor: '#d1fae5' },
+              minWidth: '32px',
+              minHeight: '32px'
             }}
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4 sm:h-5 sm:w-5" />
           </IconButton>
         </DialogTitle>
         
         <form onSubmit={handleSubmit}>
-          <DialogContent sx={{ pt: 3 }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <DialogContent sx={{ pt: { xs: 2, sm: 3 }, px: { xs: 2, sm: 3 } }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3 } }}>
               {/* Avatar Upload */}
               <Box>
                 <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2, color: isDarkMode ? '#fff' : '#047857' }}>
@@ -667,11 +747,13 @@ const AdminStaffManagement: React.FC = () => {
           </DialogContent>
 
           <DialogActions sx={{ 
-            px: 3, 
-            py: 2, 
+            px: { xs: 2, sm: 3 }, 
+            py: { xs: 2, sm: 2 }, 
             bgcolor: isDarkMode ? 'rgba(51, 65, 85, 0.8)' : '#f9fafb', 
             borderTop: '1px solid',
-            borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : '#e5e7eb'
+            borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : '#e5e7eb',
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: { xs: 1, sm: 0 }
           }}>
             <Button
               onClick={() => setShowForm(false)}
@@ -679,6 +761,8 @@ const AdminStaffManagement: React.FC = () => {
                 color: isDarkMode ? '#94a3b8' : '#6b7280',
                 textTransform: 'none',
                 fontWeight: 600,
+                minHeight: '44px',
+                width: { xs: '100%', sm: 'auto' },
                 '&:hover': {
                   bgcolor: isDarkMode ? 'rgba(255,255,255,0.1)' : '#f3f4f6'
                 }
@@ -690,13 +774,15 @@ const AdminStaffManagement: React.FC = () => {
               type="submit"
               variant="contained"
               disabled={saving}
-              startIcon={saving ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <Save className="h-5 w-5" />}
+              startIcon={saving ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <Save className="h-4 w-4 sm:h-5 sm:w-5" />}
               sx={{
                 bgcolor: '#10b981',
                 '&:hover': { bgcolor: '#059669' },
                 textTransform: 'none',
                 fontWeight: 600,
-                px: 3
+                px: { xs: 2, sm: 3 },
+                minHeight: '44px',
+                width: { xs: '100%', sm: 'auto' }
               }}
             >
               {saving ? 'Saving...' : (isEditing ? 'Update' : 'Create')}

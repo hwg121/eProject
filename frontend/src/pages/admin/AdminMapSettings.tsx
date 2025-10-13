@@ -207,92 +207,94 @@ const AdminMapSettings: React.FC = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 md:space-y-8">
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-3 sm:px-4 py-2 sm:py-3 rounded text-sm sm:text-base">
           {error}
         </div>
       )}
 
-      {/* Action Buttons */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-emerald-800">Map Settings</h2>
+      {/* Action Buttons - Responsive */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-emerald-800">Map Settings</h2>
         <button
           onClick={handleCreate}
-          className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center space-x-2"
+          className="bg-emerald-600 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg hover:bg-emerald-700 transition-colors flex items-center space-x-2 min-h-[44px] touch-manipulation w-full sm:w-auto"
         >
-          <Plus className="h-5 w-5" />
-          <span>Add Map</span>
+          <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+          <span className="text-sm sm:text-base">Add Map</span>
         </button>
       </div>
 
-      {/* Map Settings List */}
-      <div className="grid grid-cols-1 gap-6">
+      {/* Map Settings List - Responsive */}
+      <div className="grid grid-cols-1 gap-4 sm:gap-6">
         {mapSettings.map((item) => (
           <Card 
             key={item.id} 
             sx={{
-              p: 3,
+              p: { xs: 2, sm: 3 },
               background: isDarkMode ? 'rgba(30, 41, 59, 0.6)' : 'white',
               backdropFilter: 'blur(10px)',
               border: '1px solid',
               borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'
             }}
           >
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <div className="flex items-center space-x-3 mb-3">
-                  <MapPin className={`h-6 w-6 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`} />
-                  <h3 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-emerald-800'}`}>
-                    {item.location_name || 'Map Setting'}
-                  </h3>
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    <MapPin className={`h-5 w-5 sm:h-6 sm:w-6 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`} />
+                    <h3 className={`text-lg sm:text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-emerald-800'} truncate`}>
+                      {item.location_name || 'Map Setting'}
+                    </h3>
+                  </div>
                   {item.is_active && (
                     <StatusBadge status="active" size="medium" />
                   )}
                 </div>
                 {item.address && (
-                  <p className={`mb-3 ${isDarkMode ? 'text-gray-300' : 'text-emerald-600'}`}>{item.address}</p>
+                  <p className={`mb-3 text-xs sm:text-sm ${isDarkMode ? 'text-gray-300' : 'text-emerald-600'} line-clamp-2`}>{item.address}</p>
                 )}
-                <div className={`p-3 rounded-lg ${isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
-                  <p className={`text-sm font-mono break-all ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                <div className={`p-2 sm:p-3 rounded-lg ${isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
+                  <p className={`text-xs sm:text-sm font-mono break-all ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     {item.embed_url.substring(0, 100)}...
                   </p>
                 </div>
               </div>
-              <div className="flex space-x-2 ml-4">
+              <div className="flex space-x-2 w-full sm:w-auto">
                 <button
                   onClick={() => handlePreview(item.embed_url)}
-                  className={`p-2 rounded-lg transition-colors ${
+                  className={`p-2 sm:p-2.5 rounded-lg transition-colors min-h-[44px] min-w-[44px] touch-manipulation ${
                     isDarkMode 
                       ? 'text-blue-400 hover:bg-blue-900/30' 
                       : 'text-blue-600 hover:bg-blue-100'
                   }`}
                   title="Preview"
                 >
-                  <Eye className="h-5 w-5" />
+                  <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
                 <button
                   onClick={() => handleEdit(item)}
-                  className={`p-2 rounded-lg transition-colors ${
+                  className={`p-2 sm:p-2.5 rounded-lg transition-colors min-h-[44px] min-w-[44px] touch-manipulation ${
                     isDarkMode 
                       ? 'text-emerald-400 hover:bg-emerald-900/30' 
                       : 'text-emerald-600 hover:bg-emerald-100'
                   }`}
                   title="Edit"
                 >
-                  <Edit className="h-5 w-5" />
+                  <Edit className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
                 <button
                   onClick={() => handleDelete(item.id!)}
-                  className={`p-2 rounded-lg transition-colors ${
+                  className={`p-2 sm:p-2.5 rounded-lg transition-colors min-h-[44px] min-w-[44px] touch-manipulation ${
                     isDarkMode 
                       ? 'text-red-400 hover:bg-red-900/30' 
                       : 'text-red-600 hover:bg-red-100'
                   }`}
                   title="Delete"
                 >
-                  <Trash2 className="h-5 w-5" />
+                  <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
               </div>
             </div>
@@ -300,10 +302,10 @@ const AdminMapSettings: React.FC = () => {
         ))}
       </div>
 
-      {/* Form Modal */}
+      {/* Form Modal - Responsive */}
       {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className={`rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto`}
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
+          <div className={`rounded-lg max-w-3xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto`}
             style={{
               background: isDarkMode ? 'rgba(30, 41, 59, 0.95)' : 'white',
               backdropFilter: 'blur(10px)',
@@ -311,16 +313,16 @@ const AdminMapSettings: React.FC = () => {
               borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'
             }}
           >
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-emerald-800'}`}>
+            <div className="p-4 sm:p-6">
+              <div className="flex justify-between items-center mb-4 sm:mb-6">
+                <h3 className={`text-lg sm:text-xl md:text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-emerald-800'}`}>
                   {isEditing ? 'Edit Map Setting' : 'Add Map Setting'}
                 </h3>
                 <button
                   onClick={() => setShowForm(false)}
-                  className={`p-2 ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
+                  className={`p-2 min-h-[44px] min-w-[44px] touch-manipulation ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
                 >
-                  <X className="h-6 w-6" />
+                  <X className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
               </div>
 
@@ -395,22 +397,22 @@ const AdminMapSettings: React.FC = () => {
                   label="Set as active (will deactivate other maps)"
                 />
 
-                {/* Form Actions */}
-                <div className="flex justify-end space-x-4 pt-4">
+                {/* Form Actions - Responsive */}
+                <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-4">
                   <button
                     type="button"
                     onClick={() => setShowForm(false)}
-                    className="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                    className="px-4 sm:px-6 py-2.5 sm:py-2 text-gray-600 hover:text-gray-800 transition-colors min-h-[44px] touch-manipulation"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={saving}
-                    className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-emerald-600 text-white px-4 sm:px-6 py-2.5 sm:py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] touch-manipulation"
                   >
-                    <Save className="h-5 w-5" />
-                    <span>{saving ? 'Saving...' : (isEditing ? 'Update' : 'Create')}</span>
+                    <Save className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <span className="text-sm sm:text-base">{saving ? 'Saving...' : (isEditing ? 'Update' : 'Create')}</span>
                   </button>
                 </div>
               </form>
@@ -419,22 +421,22 @@ const AdminMapSettings: React.FC = () => {
         </div>
       )}
 
-      {/* Preview Modal */}
+      {/* Preview Modal - Responsive */}
       {showPreview && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-4xl w-full">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold text-emerald-800">Map Preview</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
+            <div className="p-4 sm:p-6">
+              <div className="flex justify-between items-center mb-4 sm:mb-6">
+                <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-emerald-800">Map Preview</h3>
                 <button
                   onClick={() => setShowPreview(false)}
-                  className="p-2 text-gray-500 hover:text-gray-700"
+                  className="p-2 min-h-[44px] min-w-[44px] touch-manipulation text-gray-500 hover:text-gray-700"
                 >
-                  <X className="h-6 w-6" />
+                  <X className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
               </div>
               <div 
-                className="w-full h-96 rounded-lg overflow-hidden"
+                className="w-full h-64 sm:h-80 md:h-96 rounded-lg overflow-hidden"
                 dangerouslySetInnerHTML={{ __html: previewUrl }}
               />
             </div>

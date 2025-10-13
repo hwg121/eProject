@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Save, X, Monitor } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
 import { Card, TextField, Checkbox, FormControlLabel } from '@mui/material';
 import { useTheme } from '../../contexts/ThemeContext';
-import PageHeader from '../../components/UI/PageHeader';
+// import PageHeader from '../../components/UI/PageHeader';
 import Toast from '../../components/UI/Toast';
 import StatusBadge from '../../components/UI/StatusBadge';
 import { heroSectionService } from '../../services/api';
@@ -173,76 +173,76 @@ const AdminHeroSection: React.FC = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 md:space-y-8">
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-3 sm:px-4 py-2 sm:py-3 rounded text-sm sm:text-base">
           {error}
         </div>
       )}
 
-      {/* Action Buttons */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-emerald-800">Hero Sections</h2>
+      {/* Action Buttons - Responsive */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-emerald-800">Hero Sections</h2>
         <button
           onClick={handleCreate}
-          className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center space-x-2"
+          className="bg-emerald-600 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg hover:bg-emerald-700 transition-colors flex items-center space-x-2 min-h-[44px] touch-manipulation w-full sm:w-auto"
         >
-          <Plus className="h-5 w-5" />
-          <span>Create New</span>
+          <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+          <span className="text-sm sm:text-base">Create New</span>
         </button>
       </div>
 
-      {/* Hero Sections List */}
-      <div className="grid grid-cols-1 gap-6">
+      {/* Hero Sections List - Responsive */}
+      <div className="grid grid-cols-1 gap-4 sm:gap-6">
         {heroSections.map((item) => (
           <Card 
             key={item.id} 
             sx={{
-              p: 3,
+              p: { xs: 2, sm: 3 },
               background: isDarkMode ? 'rgba(30, 41, 59, 0.6)' : 'white',
               backdropFilter: 'blur(10px)',
               border: '1px solid',
               borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'
             }}
           >
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <div className="flex items-center space-x-3 mb-3">
-                  <h3 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-emerald-800'}`}>{item.title}</h3>
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
+                  <h3 className={`text-lg sm:text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-emerald-800'} truncate`}>{item.title}</h3>
                   {item.is_active && (
                     <StatusBadge status="active" size="medium" />
                   )}
                 </div>
-                <p className={`mb-2 leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-emerald-600'}`}>{item.description}</p>
+                <p className={`mb-2 leading-relaxed text-sm sm:text-base ${isDarkMode ? 'text-gray-300' : 'text-emerald-600'} line-clamp-2`}>{item.description}</p>
                 {item.created_at && (
-                  <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <p className={`text-xs sm:text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     Created: {new Date(item.created_at).toLocaleDateString()}
                   </p>
                 )}
               </div>
-              <div className="flex space-x-2 ml-4">
+              <div className="flex space-x-2 w-full sm:w-auto">
                 <button
                   onClick={() => handleEdit(item)}
-                  className={`p-2 rounded-lg transition-colors ${
+                  className={`p-2 sm:p-2.5 rounded-lg transition-colors min-h-[44px] min-w-[44px] touch-manipulation ${
                     isDarkMode 
                       ? 'text-emerald-400 hover:bg-emerald-900/30' 
                       : 'text-emerald-600 hover:bg-emerald-100'
                   }`}
                   title="Edit"
                 >
-                  <Edit className="h-5 w-5" />
+                  <Edit className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
                 <button
                   onClick={() => handleDelete(item.id!)}
-                  className={`p-2 rounded-lg transition-colors ${
+                  className={`p-2 sm:p-2.5 rounded-lg transition-colors min-h-[44px] min-w-[44px] touch-manipulation ${
                     isDarkMode 
                       ? 'text-red-400 hover:bg-red-900/30' 
                       : 'text-red-600 hover:bg-red-100'
                   }`}
                   title="Delete"
                 >
-                  <Trash2 className="h-5 w-5" />
+                  <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
               </div>
             </div>
@@ -250,10 +250,10 @@ const AdminHeroSection: React.FC = () => {
         ))}
       </div>
 
-      {/* Form Modal */}
+      {/* Form Modal - Responsive */}
       {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className={`rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto ${
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
+          <div className={`rounded-lg max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto ${
             isDarkMode ? 'bg-gray-800' : 'bg-white'
           }`} style={{
             background: isDarkMode ? 'rgba(30, 41, 59, 0.95)' : 'white',
@@ -261,16 +261,16 @@ const AdminHeroSection: React.FC = () => {
             border: '1px solid',
             borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'
           }}>
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-emerald-800'}`}>
+            <div className="p-4 sm:p-6">
+              <div className="flex justify-between items-center mb-4 sm:mb-6">
+                <h3 className={`text-lg sm:text-xl md:text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-emerald-800'}`}>
                   {isEditing ? 'Edit Hero Section' : 'Create Hero Section'}
                 </h3>
                 <button
                   onClick={() => setShowForm(false)}
-                  className={`p-2 ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
+                  className={`p-2 min-h-[44px] min-w-[44px] touch-manipulation ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
                 >
-                  <X className="h-6 w-6" />
+                  <X className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
               </div>
 
@@ -328,12 +328,12 @@ const AdminHeroSection: React.FC = () => {
                   }
                 />
 
-                {/* Form Actions */}
-                <div className="flex justify-end space-x-4 pt-4">
+                {/* Form Actions - Responsive */}
+                <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-4">
                   <button
                     type="button"
                     onClick={() => setShowForm(false)}
-                    className={`px-6 py-2 transition-colors ${
+                    className={`px-4 sm:px-6 py-2.5 sm:py-2 transition-colors min-h-[44px] touch-manipulation ${
                       isDarkMode 
                         ? 'text-gray-400 hover:text-gray-200' 
                         : 'text-gray-600 hover:text-gray-800'
@@ -344,10 +344,10 @@ const AdminHeroSection: React.FC = () => {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-emerald-600 text-white px-4 sm:px-6 py-2.5 sm:py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] touch-manipulation"
                   >
-                    <Save className="h-5 w-5" />
-                    <span>{saving ? 'Saving...' : (isEditing ? 'Update' : 'Create')}</span>
+                    <Save className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <span className="text-sm sm:text-base">{saving ? 'Saving...' : (isEditing ? 'Update' : 'Create')}</span>
                   </button>
                 </div>
               </form>

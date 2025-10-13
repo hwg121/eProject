@@ -651,7 +651,17 @@ select {
     background: white !important;
   }
   
-  .text-responsive-* {
+  .text-responsive-xs,
+  .text-responsive-sm,
+  .text-responsive-base,
+  .text-responsive-lg,
+  .text-responsive-xl,
+  .text-responsive-2xl,
+  .text-responsive-3xl,
+  .text-responsive-4xl,
+  .text-responsive-5xl,
+  .text-responsive-6xl,
+  .text-responsive-7xl {
     font-size: 12pt !important;
     line-height: 1.4 !important;
   }
