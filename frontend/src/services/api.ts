@@ -306,17 +306,6 @@ class ApiClient {
     });
   }
 
-  // Site Settings
-  async getSiteSettings() {
-    return this.request<unknown>('/admin/settings');
-  }
-
-  async updateSiteSettings(data: unknown) {
-    return this.request<unknown>('/admin/settings', {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
-  }
 
   // File Upload
   async uploadFile(file: File, type: 'image' | 'video' = 'image') {
@@ -1265,10 +1254,6 @@ export const videosService = {
   getPublic: () => apiClient.getPublicVideos(),
 };
 
-export const settingsService = {
-  get: () => apiClient.getSiteSettings(),
-  update: (data: unknown) => apiClient.updateSiteSettings(data),
-};
 
 export const dashboardService = {
   getStats: () => apiClient.getDashboardStats(),
