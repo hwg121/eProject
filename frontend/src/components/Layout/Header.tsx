@@ -340,7 +340,12 @@ const Header: React.FC = () => {
               <>
                 {/* Backdrop - Maximum separation */}
                 <motion.div
-                  className="fixed inset-0 bg-black/80 backdrop-blur-xl z-40 lg:hidden"
+                  className="fixed inset-0 z-40 lg:hidden"
+                  style={{
+                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)'
+                  }}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -361,11 +366,17 @@ const Header: React.FC = () => {
                       : 'bg-white'
                   } shadow-2xl border-l ${
                     isDarkMode ? 'border-emerald-500/20' : 'border-emerald-100'
-                  }`}>
+                  }`} style={{
+                    backgroundColor: isDarkMode ? '#111827' : '#ffffff',
+                    opacity: 1
+                  }}>
                     {/* Solid overlay to ensure complete separation */}
                     <div className={`absolute inset-0 ${
                       isDarkMode ? 'bg-gray-900' : 'bg-white'
-                    }`}></div>
+                    }`} style={{
+                      backgroundColor: isDarkMode ? '#111827' : '#ffffff',
+                      opacity: 1
+                    }}></div>
                     
                     {/* Header - Perfect Mobile Spacing */}
                     <div className={`relative z-10 flex items-center justify-between p-4 sm:p-6 border-b ${
