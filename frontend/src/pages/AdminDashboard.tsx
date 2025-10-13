@@ -707,8 +707,16 @@ const AdminDashboard: React.FC = () => {
     if (!confirm('Are you sure you want to delete this item?')) return;
 
     try {
+      // Map category to service type
+      let serviceType = type.toLowerCase();
+      if (type === 'Technique') {
+        serviceType = 'articles';
+      } else if (type === 'Video') {
+        serviceType = 'videos';
+      }
+
       // Delete logic based on type
-      switch (type) {
+      switch (serviceType) {
         case 'articles':
           await articlesService.delete(id);
           break;
