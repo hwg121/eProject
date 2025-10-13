@@ -1,6 +1,6 @@
 /* Statistics Section - Perfect Alignment & Responsiveness */
 
-/* Container cho statistics section */
+/* Container for statistics section */
 .stats-container {
   display: flex;
   justify-content: center;
@@ -46,7 +46,7 @@
   }
 }
 
-/* Extra large screens: 4 columns với gap lớn hơn */
+/* Extra large screens: 4 columns with larger gap */
 @media (min-width: 1536px) {
   .stats-grid {
     gap: 4rem;
@@ -65,7 +65,7 @@
   max-width: 280px;
 }
 
-/* Modern Icon Design với Glassmorphism */
+/* Modern Icon Design with Glassmorphism */
 .stat-icon {
   display: flex;
   align-items: center;
@@ -79,13 +79,13 @@
   -webkit-backdrop-filter: blur(10px);
 }
 
-/* Duotone effect cho icons */
+/* Duotone effect for icons */
 .stat-icon svg {
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
   transition: all 0.3s ease;
 }
 
-/* Hover effects với modern animations */
+/* Hover effects with modern animations */
 .stat-card:hover .stat-icon {
   transform: scale(1.05) rotateY(5deg);
   box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15), 
@@ -127,7 +127,7 @@
   }
 }
 
-/* Hover effect cho icon */
+/* Hover effect for icon */
 .stat-icon:hover {
   transform: scale(1.05);
   box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.35);
@@ -192,7 +192,7 @@
   }
 }
 
-/* Perfect centering cho toàn bộ section */
+/* Perfect centering for entire section */
 .stats-section {
   display: flex;
   justify-content: center;

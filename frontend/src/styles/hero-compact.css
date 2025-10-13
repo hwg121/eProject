@@ -2,9 +2,9 @@
 
 /* Compact hero section container */
 .hero-compact {
-  padding: 2rem 1rem; /* Giảm padding từ responsive-section */
-  min-height: auto; /* Bỏ min-height cố định */
-  max-height: 80vh; /* Giới hạn chiều cao tối đa */
+  padding: 2rem 1rem; /* Reduced padding from responsive-section */
+  min-height: auto; /* Remove fixed min-height */
+  max-height: 80vh; /* Limit maximum height */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -45,21 +45,21 @@
 
 /* Compact spacing between elements */
 .hero-compact .hero-icon {
-  margin-bottom: 1.5rem; /* Giảm từ mb-8 (2rem) */
+  margin-bottom: 1.5rem; /* Reduced from mb-8 (2rem) */
 }
 
 .hero-compact .hero-title {
-  margin-bottom: 1.5rem; /* Giảm từ mb-8 (2rem) */
+  margin-bottom: 1.5rem; /* Reduced from mb-8 (2rem) */
   line-height: 1.1; /* Tighter line height */
 }
 
 .hero-compact .hero-description {
-  margin-bottom: 2rem; /* Giảm từ mb-12 (3rem) */
+  margin-bottom: 2rem; /* Reduced from mb-12 (3rem) */
   line-height: 1.4; /* Tighter line height */
 }
 
 .hero-compact .hero-buttons {
-  margin-top: 0; /* Đảm bảo không có margin thừa */
+  margin-top: 0; /* Ensure no extra margin */
 }
 
 /* Responsive typography cho compact hero */
@@ -184,19 +184,19 @@
 
 /* Compact background elements */
 .hero-compact .hero-bg-element {
-  display: none; /* Ẩn background elements để tiết kiệm không gian */
+  display: none; /* Hide background elements to save space */
 }
 
 @media (min-width: 1024px) {
   .hero-compact .hero-bg-element {
     display: block;
-    opacity: 0.5; /* Giảm opacity */
+    opacity: 0.5; /* Reduce opacity */
   }
 }
 
 /* Compact main container spacing */
 .main-container-compact {
-  gap: 1rem; /* Giảm space-y-20 xuống space-y-4 */
+  gap: 1rem; /* Reduce space-y-20 to space-y-4 */
 }
 
 @media (min-width: 640px) {
@@ -213,14 +213,14 @@
 
 /* Ensure hero fits in viewport with navbar */
 .viewport-optimized {
-  min-height: calc(100vh - 80px); /* Trừ chiều cao navbar */
+  min-height: calc(100vh - 80px); /* Subtract navbar height */
   max-height: calc(100vh - 80px);
   overflow: hidden;
 }
 
 @media (max-width: 639px) {
   .viewport-optimized {
-    min-height: calc(100vh - 60px); /* Navbar nhỏ hơn trên mobile */
+    min-height: calc(100vh - 60px); /* Smaller navbar on mobile */
     max-height: calc(100vh - 60px);
   }
 }

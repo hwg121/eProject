@@ -40,7 +40,7 @@ class ContactController extends Controller
         return response()->json([
             'id' => $contactMessage->id,
             'created_at' => $contactMessage->created_at,
-            'message' => 'Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất có thể.'
+            'message' => 'Thank you for contacting us! We will respond as soon as possible.'
         ], 201);
     }
 

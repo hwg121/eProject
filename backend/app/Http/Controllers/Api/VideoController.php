@@ -296,10 +296,10 @@ class VideoController extends Controller
                 } elseif (is_string($featuredImage)) {
                     $validated['featured_image'] = $featuredImage;
                 } else {
-                    $validated['featured_image'] = $video->featured_image; // giữ nguyên ảnh cũ
+                    $validated['featured_image'] = $video->featured_image; // keep old image
                 }
             } else {
-                $validated['featured_image'] = $video->featured_image; // giữ nguyên ảnh cũ nếu không gửi
+                $validated['featured_image'] = $video->featured_image; // keep old image if not sent
             }
 
             // Auto-generate embed URL from video_url if it's a YouTube URL

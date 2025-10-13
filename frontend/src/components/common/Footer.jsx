@@ -22,8 +22,8 @@ const Footer = () => {
               <span className="text-2xl font-bold">Green Groves</span>
             </div>
             <p className="text-gray-300 mb-4 max-w-md">
-              Cung cấp thông tin, hướng dẫn và tài nguyên toàn diện về làm vườn quy mô nhỏ. 
-              Từ kỹ thuật cơ bản đến dụng cụ chuyên nghiệp.
+              Providing comprehensive information, guides, and resources for small-scale gardening. 
+              From basic techniques to professional tools.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-white transition-colors">
@@ -46,23 +46,23 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Liên Kết Nhanh</h3>
+            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
-              <li><a href="/" className="text-gray-300 hover:text-white transition-colors">Trang Chủ</a></li>
-              <li><a href="/articles" className="text-gray-300 hover:text-white transition-colors">Kỹ Thuật Làm Vườn</a></li>
-              <li><a href="/tools" className="text-gray-300 hover:text-white transition-colors">Dụng Cụ</a></li>
-              <li><a href="/essentials" className="text-gray-300 hover:text-white transition-colors">Vật Liệu</a></li>
-              <li><a href="/videos" className="text-gray-300 hover:text-white transition-colors">Video Hướng Dẫn</a></li>
+              <li><a href="/" className="text-gray-300 hover:text-white transition-colors">Home</a></li>
+              <li><a href="/articles" className="text-gray-300 hover:text-white transition-colors">Gardening Techniques</a></li>
+              <li><a href="/tools" className="text-gray-300 hover:text-white transition-colors">Tools</a></li>
+              <li><a href="/essentials" className="text-gray-300 hover:text-white transition-colors">Materials</a></li>
+              <li><a href="/videos" className="text-gray-300 hover:text-white transition-colors">Video Guides</a></li>
             </ul>
           </div>
 
           {/* Contact Info */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Liên Hệ</h3>
+            <h3 className="text-lg font-semibold mb-4">Contact</h3>
             <div className="space-y-2 text-gray-300">
               <p>📧 info@greengroves.com</p>
               <p>📞 +84 123 456 789</p>
-              <p>📍 123 Đường ABC, Quận XYZ, TP.HCM</p>
+              <p>📍 123 ABC Street, XYZ District, HCMC</p>
             </div>
           </div>
         </div>
@@ -71,11 +71,11 @@ const Footer = () => {
         <div className="border-t border-gray-800 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © 2024 Green Groves. Tất cả quyền được bảo lưu.
+              © 2024 Green Groves. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Chính Sách Bảo Mật</a>
-              <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Điều Khoản Sử Dụng</a>
+              <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Privacy Policy</a>
+              <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Terms of Service</a>
               <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Sitemap</a>
             </div>
           </div>

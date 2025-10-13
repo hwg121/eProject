@@ -472,7 +472,7 @@ class ProductController extends Controller
                 'data' => $product
             ]);
         } catch (\Throwable $e) {
-            // Debug tạm thời, không giữ lại khi đưa lên production
+            // Temporary debug, do not keep in production
             return response()->json([
                 'success' => false,
                 'error_type' => get_class($e),

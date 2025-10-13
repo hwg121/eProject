@@ -475,16 +475,16 @@ const Header: React.FC = () => {
                                   ? 'text-emerald-100'
                                   : isDarkMode ? 'text-emerald-400' : 'text-emerald-600'
                               }`}>
-                                {item.path === '/' ? 'Trang chủ' : 
-                                 item.path === '/essentials' ? 'Công cụ cần thiết' :
-                                 item.path === '/techniques' ? 'Kỹ thuật làm vườn' :
-                                 item.path === '/videos' ? 'Video hướng dẫn' :
-                                 item.path === '/tools' ? 'Công cụ làm vườn' :
-                                 item.path === '/pots' ? 'Chậu cây' :
-                                 item.path === '/accessories' ? 'Phụ kiện' :
-                                 item.path === '/books' ? 'Sách hướng dẫn' :
-                                 item.path === '/suggestions' ? 'Gợi ý' :
-                                 item.path === '/about-us' ? 'Giới thiệu' : 'Trang khác'}
+                                {item.path === '/' ? 'Home Page' : 
+                                 item.path === '/essentials' ? 'Essential Tools' :
+                                 item.path === '/techniques' ? 'Gardening Techniques' :
+                                 item.path === '/videos' ? 'Video Guides' :
+                                 item.path === '/tools' ? 'Gardening Tools' :
+                                 item.path === '/pots' ? 'Plant Pots' :
+                                 item.path === '/accessories' ? 'Accessories' :
+                                 item.path === '/books' ? 'Guide Books' :
+                                 item.path === '/suggestions' ? 'Suggestions' :
+                                 item.path === '/about-us' ? 'About Us' : 'Other Page'}
                               </span>
                             </div>
                             <motion.div

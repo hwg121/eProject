@@ -29,10 +29,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           >
             <Loader2 className="h-12 w-12 text-emerald-500 animate-spin mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-emerald-700 mb-2">
-              Đang kiểm tra quyền truy cập...
+              Checking access permissions...
             </h2>
             <p className="text-emerald-600">
-              Vui lòng chờ trong giây lát
+              Please wait a moment
             </p>
           </motion.div>
         </Card>
@@ -65,23 +65,23 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
               <Shield className="h-10 w-10 text-red-500" />
             </div>
             <h2 className="text-2xl font-bold text-red-700 mb-4">
-              Truy cập bị từ chối
+              Access Denied
             </h2>
             <p className="text-red-600 mb-6">
-              Bạn không có quyền truy cập vào trang này. Chỉ quản trị viên và điều hành viên mới có thể truy cập.
+              You do not have permission to access this page. Only administrators and moderators can access.
             </p>
             <div className="space-y-3">
               <button
                 onClick={() => window.history.back()}
                 className="w-full bg-emerald-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-emerald-600 transition-colors"
               >
-                Quay lại
+                Go Back
               </button>
               <button
                 onClick={() => window.location.href = '/'}
                 className="w-full bg-gray-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-600 transition-colors"
               >
-                Về trang chủ
+                Go to Home
               </button>
             </div>
           </motion.div>

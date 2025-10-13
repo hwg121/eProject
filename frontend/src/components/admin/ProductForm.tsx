@@ -318,7 +318,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             label="Subcategory"
             value={formData.subcategory || ''}
             onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
-            placeholder="e.g., Công cụ đào đất, Sách nghệ thuật..."
+            placeholder="e.g., Digging tools, Art books..."
             sx={textFieldStyles}
           />
         </div>

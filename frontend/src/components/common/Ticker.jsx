@@ -61,7 +61,7 @@ const Ticker = () => {
         </div>
         <div className="flex items-center space-x-2">
           <span className="text-sm font-medium">🌱</span>
-          <span className="text-sm">Green Groves - Làm vườn thông minh</span>
+          <span className="text-sm">Green Groves - Smart Gardening</span>
         </div>
       </div>
     </div>

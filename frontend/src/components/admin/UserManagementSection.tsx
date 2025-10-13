@@ -39,7 +39,7 @@ const UserManagementSection: React.FC<UserManagementSectionProps> = memo(({
 }) => {
   const { isDarkMode } = useTheme();
   
-  // Local state for profile form - hoàn toàn độc lập
+  // Local state for profile form - completely independent
   const [profileData, setProfileData] = useState(() => ({
     id: userProfile?.id || '',
     name: userProfile?.name || 'Admin User',

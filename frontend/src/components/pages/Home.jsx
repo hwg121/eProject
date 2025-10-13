@@ -9,25 +9,25 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Chào Mừng Đến Với
+              Welcome to
               <span className="block text-green-300">Green Groves</span>
             </h1>
             <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-              Khám phá thế giới làm vườn quy mô nhỏ với hướng dẫn chi tiết, 
-              dụng cụ chuyên nghiệp và mẹo hay từ các chuyên gia.
+              Discover the world of small-scale gardening with detailed guides, 
+              professional tools, and expert tips.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 to="/articles"
                 className="bg-white text-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
               >
-                Bắt Đầu Học Làm Vườn
+                Start Learning Gardening
               </Link>
               <Link
                 to="/tools"
                 className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-green-600 transition-colors"
               >
-                Xem Dụng Cụ
+                View Tools
               </Link>
             </div>
           </div>
@@ -39,10 +39,10 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Tại Sao Chọn Green Groves?
+              Why Choose Green Groves?
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Chúng tôi cung cấp mọi thứ bạn cần để bắt đầu hành trình làm vườn của mình
+              We provide everything you need to start your gardening journey
             </p>
           </div>
 
@@ -53,10 +53,10 @@ const Home = () => {
                 <span className="text-2xl">📚</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Hướng Dẫn Chi Tiết
+                Detailed Guides
               </h3>
               <p className="text-gray-600">
-                Từ cơ bản đến nâng cao, chúng tôi có đầy đủ hướng dẫn cho mọi loại cây trồng
+                From basic to advanced, we have complete guides for all types of plants
               </p>
             </div>
 
@@ -66,10 +66,10 @@ const Home = () => {
                 <span className="text-2xl">🔧</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Dụng Cụ Chuyên Nghiệp
+                Professional Tools
               </h3>
               <p className="text-gray-600">
-                Danh sách dụng cụ cần thiết với video hướng dẫn sử dụng chi tiết
+                Essential tool lists with detailed video usage instructions
               </p>
             </div>
 
@@ -79,10 +79,10 @@ const Home = () => {
                 <span className="text-2xl">🌱</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Vật Liệu Chất Lượng
+                Quality Materials
               </h3>
               <p className="text-gray-600">
-                Gợi ý đất, phân bón, hạt giống và các vật liệu cần thiết khác
+                Recommendations for soil, fertilizer, seeds, and other essential materials
               </p>
             </div>
           </div>
@@ -94,10 +94,10 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Khám Phá Nội Dung
+              Explore Content
             </h2>
             <p className="text-lg text-gray-600">
-              Chọn chủ đề bạn quan tâm để bắt đầu học hủng
+              Choose a topic you're interested in to start learning
             </p>
           </div>
 
@@ -111,10 +111,10 @@ const Home = () => {
                   <span className="text-2xl">📖</span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Kỹ Thuật Làm Vườn
+                  Gardening Techniques
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  Học các kỹ thuật cơ bản và nâng cao
+                  Learn basic and advanced techniques
                 </p>
               </div>
             </Link>
@@ -128,10 +128,10 @@ const Home = () => {
                   <span className="text-2xl">🔨</span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Dụng Cụ Làm Vườn
+                  Gardening Tools
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  Khám phá các dụng cụ cần thiết
+                  Discover essential tools
                 </p>
               </div>
             </Link>
@@ -145,10 +145,10 @@ const Home = () => {
                   <span className="text-2xl">🌿</span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Vật Liệu Cần Thiết
+                  Essential Materials
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  Đất, phân bón, hạt giống và hơn thế nữa
+                  Soil, fertilizer, seeds and more
                 </p>
               </div>
             </Link>
@@ -162,10 +162,10 @@ const Home = () => {
                   <span className="text-2xl">🎥</span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Video Hướng Dẫn
+                  Video Guides
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  Học qua video minh họa trực quan
+                  Learn through visual video tutorials
                 </p>
               </div>
             </Link>
@@ -177,23 +177,23 @@ const Home = () => {
       <section className="py-16 bg-green-600 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold mb-4">
-            Sẵn Sàng Bắt Đầu Hành Trình Làm Vườn?
+            Ready to Start Your Gardening Journey?
           </h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Tham gia cộng đồng Green Groves và khám phá thế giới làm vườn tuyệt vời
+            Join the Green Groves community and discover the wonderful world of gardening
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/articles"
               className="bg-white text-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
             >
-              Xem Bài Viết Mới Nhất
+              View Latest Articles
             </Link>
             <Link
               to="/contact"
               className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-green-600 transition-colors"
             >
-              Liên Hệ Với Chúng Tôi
+              Contact Us
             </Link>
           </div>
         </div>
@@ -203,4 +203,3 @@ const Home = () => {
 };
 
 export default Home;
-

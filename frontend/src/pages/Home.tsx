@@ -327,7 +327,7 @@ const Home: React.FC = () => {
                   {stat.number}
                 </motion.div>
                 
-                {/* Label với kích thước responsive */}
+                {/* Label with responsive size */}
                 <div className="stat-label">
                   {stat.label}
                 </div>
@@ -564,7 +564,7 @@ const Home: React.FC = () => {
             whileTap={{ scale: 0.95 }}
           >
             <Link
-              to="/about"
+              to="/about-us"
               className="group relative bg-white text-emerald-600 px-6 sm:px-8 md:px-12 lg:px-16 py-3 sm:py-4 lg:py-6 rounded-full font-black text-base sm:text-lg md:text-xl lg:text-2xl shadow-3xl hover:shadow-4xl transition-all duration-500 inline-flex items-center space-x-2 sm:space-x-3 lg:space-x-4 overflow-hidden min-h-[44px] touch-manipulation"
             >
               <span className="relative z-10">Learn More About Us</span>

@@ -52,7 +52,7 @@ const UserCreate: React.FC<UserCreateProps> = ({
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [showSecurityModal, setShowSecurityModal] = useState(false);
 
-  // Dark mode TextField styles - đồng bộ với UserEditForm
+  // Dark mode TextField styles - synced with UserEditForm
   const textFieldStyles = {
     '& .MuiOutlinedInput-root': {
       color: actualDarkMode ? '#fff' : '#000',

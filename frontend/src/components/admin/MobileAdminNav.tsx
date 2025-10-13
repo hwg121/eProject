@@ -45,7 +45,7 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
       icon: BarChart3,
       emoji: '📊',
       color: 'from-emerald-500 to-green-600',
-      description: 'Dashboard tổng quan'
+      description: 'Dashboard Overview'
     },
     {
       id: 'content',
@@ -53,7 +53,7 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
       icon: FileText,
       emoji: '📝',
       color: 'from-emerald-500 to-green-600',
-      description: 'Quản lý nội dung',
+      description: 'Content Management',
       children: [
         { id: 'articles', label: 'Articles' },
         { id: 'videos', label: 'Videos' },
@@ -66,7 +66,7 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
       icon: Package,
       emoji: '📦',
       color: 'from-emerald-500 to-green-600',
-      description: 'Quản lý sản phẩm',
+      description: 'Product Management',
       children: [
         { id: 'tools', label: 'Tools' },
         { id: 'pots', label: 'Pots' },
@@ -80,7 +80,7 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
       icon: Users,
       emoji: '👥',
       color: 'from-emerald-500 to-green-600',
-      description: 'Quản lý người dùng',
+      description: 'User Management',
       children: [
         { id: 'user-list', label: 'User List' },
         { id: 'user-create', label: 'Create User' },
@@ -93,7 +93,7 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
       icon: Settings,
       emoji: '⚙️',
       color: 'from-purple-500 to-indigo-600',
-      description: 'Cài đặt trang web',
+      description: 'Site Settings',
       children: [
         { id: 'hero-section', label: 'Hero Section', adminOnly: true },
         { id: 'staff-management', label: 'Staff Members', adminOnly: true },

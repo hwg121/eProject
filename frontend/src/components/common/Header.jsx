@@ -30,37 +30,37 @@ const Header = () => {
               to="/" 
               className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >
-              Trang Chủ
+              Home
             </Link>
             <Link 
               to="/articles" 
               className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >
-              Kỹ Thuật
+              Techniques
             </Link>
             <Link 
               to="/tools" 
               className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >
-              Dụng Cụ
+              Tools
             </Link>
             <Link 
               to="/essentials" 
               className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >
-              Vật Liệu
+              Materials
             </Link>
             <Link 
               to="/videos" 
               className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >
-              Video
+              Videos
             </Link>
             <Link 
               to="/contact" 
               className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >
-              Liên Hệ
+              Contact
             </Link>
           </nav>
 
@@ -69,7 +69,7 @@ const Header = () => {
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-700">
-                  Xin chào, {user?.name}
+                  Welcome, {user?.name}
                 </span>
                 <Link
                   to="/admin"
@@ -81,7 +81,7 @@ const Header = () => {
                   onClick={handleLogout}
                   className="text-gray-700 hover:text-red-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >
-                  Đăng Xuất
+                  Logout
                 </button>
               </div>
             ) : (
@@ -116,42 +116,42 @@ const Header = () => {
                 className="text-gray-700 hover:text-green-600 block px-3 py-2 rounded-md text-base font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Trang Chủ
+                Home
               </Link>
               <Link
                 to="/articles"
                 className="text-gray-700 hover:text-green-600 block px-3 py-2 rounded-md text-base font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Kỹ Thuật
+                Techniques
               </Link>
               <Link
                 to="/tools"
                 className="text-gray-700 hover:text-green-600 block px-3 py-2 rounded-md text-base font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Dụng Cụ
+                Tools
               </Link>
               <Link
                 to="/essentials"
                 className="text-gray-700 hover:text-green-600 block px-3 py-2 rounded-md text-base font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Vật Liệu
+                Materials
               </Link>
               <Link
                 to="/videos"
                 className="text-gray-700 hover:text-green-600 block px-3 py-2 rounded-md text-base font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Video
+                Videos
               </Link>
               <Link
                 to="/contact"
                 className="text-gray-700 hover:text-green-600 block px-3 py-2 rounded-md text-base font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Liên Hệ
+                Contact
               </Link>
               {isAuthenticated ? (
                 <>
@@ -169,7 +169,7 @@ const Header = () => {
                     }}
                     className="text-gray-700 hover:text-red-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
                   >
-                    Đăng Xuất
+                    Logout
                   </button>
                 </>
               ) : (

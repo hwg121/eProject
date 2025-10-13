@@ -27,17 +27,17 @@ const Login: React.FC = () => {
     
     // Validation
     if (!email.trim() || !password.trim()) {
-      setError('Vui lòng nhập cả email và mật khẩu');
+      setError('Please enter both email and password');
       return;
     }
     
     if (!validateEmail(email)) {
-      setError('Email không đúng định dạng');
+      setError('Invalid email format');
       return;
     }
     
     if (password.length < 6) {
-      setError('Mật khẩu phải có ít nhất 6 ký tự');
+      setError('Password must be at least 6 characters');
       return;
     }
     
@@ -49,11 +49,11 @@ const Login: React.FC = () => {
         console.log('Login successful, navigating to admin...'); // Debug log
         navigate('/admin');
       } else {
-        setError(result.error || 'Thông tin đăng nhập không đúng. Vui lòng sử dụng: admin@greengroves.com / password123');
+        setError(result.error || 'Invalid credentials. Please use: admin@greengroves.com / password123');
       }
     } catch (error) {
       console.error('Login error:', error);
-      setError('Đăng nhập thất bại. Vui lòng thử lại.');
+      setError('Login failed. Please try again.');
     }
   };
 
@@ -143,15 +143,15 @@ const Login: React.FC = () => {
           >
             <h3 className={`font-semibold mb-2 ${
               isDarkMode ? 'text-emerald-200' : 'text-emerald-800'
-            }`}>Thông tin đăng nhập demo:</h3>
+            }`}>Demo Login Credentials:</h3>
             <p className="text-sm">
               <strong>Email:</strong> admin@greengroves.com<br />
-              <strong>Mật khẩu:</strong> admin123
+              <strong>Password:</strong> admin123
             </p>
             <p className={`text-xs mt-2 ${
               isDarkMode ? 'text-emerald-400' : 'text-emerald-600'
             }`}>
-              Các trường đã được điền sẵn để test
+              Fields are pre-filled for testing
             </p>
           </motion.div>
 
@@ -176,7 +176,7 @@ const Login: React.FC = () => {
               <label className={`block font-semibold mb-2 ${
                 isDarkMode ? 'text-emerald-300' : 'text-emerald-700'
               }`}>
-                Địa chỉ Email
+                Email Address
               </label>
               <div className="relative">
                 <Mail className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${
@@ -191,7 +191,7 @@ const Login: React.FC = () => {
                       ? 'bg-gray-800 border-emerald-700/30 text-emerald-100' 
                       : 'bg-white border-emerald-200 text-gray-900'
                   }`}
-                  placeholder="Nhập email của bạn"
+                  placeholder="Enter your email"
                   required
                 />
               </div>
@@ -201,7 +201,7 @@ const Login: React.FC = () => {
               <label className={`block font-semibold mb-2 ${
                 isDarkMode ? 'text-emerald-300' : 'text-emerald-700'
               }`}>
-                Mật khẩu
+                Password
               </label>
               <div className="relative">
                 <Lock className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${
@@ -216,7 +216,7 @@ const Login: React.FC = () => {
                       ? 'bg-gray-800 border-emerald-700/30 text-emerald-100' 
                       : 'bg-white border-emerald-200 text-gray-900'
                   }`}
-                  placeholder="Nhập mật khẩu của bạn"
+                  placeholder="Enter your password"
                   required
                 />
                 <button
@@ -243,21 +243,21 @@ const Login: React.FC = () => {
               {isLoading ? (
                 <div className="flex items-center justify-center space-x-2">
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Đang đăng nhập...</span>
+                  <span>Logging in...</span>
                 </div>
               ) : (
-                'Đăng nhập'
+                'Login'
               )}
             </motion.button>
           </form>
 
           <div className="mt-6 text-center">
             <p className={isDarkMode ? 'text-emerald-300' : 'text-emerald-600'}>
-              Cần hỗ trợ?{' '}
+              Need help?{' '}
               <a href="#" className={`font-semibold transition-colors ${
                 isDarkMode ? 'hover:text-emerald-200' : 'hover:text-emerald-800'
               }`}>
-                Liên hệ quản trị viên
+                Contact Administrator
               </a>
             </p>
           </div>
