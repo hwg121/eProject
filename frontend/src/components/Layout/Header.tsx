@@ -340,7 +340,7 @@ const Header: React.FC = () => {
               <>
                 {/* Backdrop - Maximum separation */}
                 <motion.div
-                  className="fixed inset-0 bg-black/70 backdrop-blur-lg z-40 lg:hidden"
+                  className="fixed inset-0 bg-black/80 backdrop-blur-xl z-40 lg:hidden"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -361,19 +361,14 @@ const Header: React.FC = () => {
                       : 'bg-white'
                   } shadow-2xl border-l ${
                     isDarkMode ? 'border-emerald-500/20' : 'border-emerald-100'
-                  }`} style={{ 
-                    background: isDarkMode 
-                      ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' 
-                      : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                    opacity: 1
-                  }}>
+                  }`}>
                     {/* Solid overlay to ensure complete separation */}
-                    <div className={`absolute inset-0 z-10 ${
+                    <div className={`absolute inset-0 ${
                       isDarkMode ? 'bg-gray-900' : 'bg-white'
                     }`}></div>
                     
                     {/* Header - Perfect Mobile Spacing */}
-                    <div className={`relative z-20 flex items-center justify-between p-4 sm:p-6 border-b ${
+                    <div className={`relative z-10 flex items-center justify-between p-4 sm:p-6 border-b ${
                       isDarkMode ? 'border-emerald-500/20' : 'border-emerald-100'
                     }`}>
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent"></div>
@@ -424,7 +419,7 @@ const Header: React.FC = () => {
                     </div>
                     
                     {/* Navigation Items - Perfect Mobile Touch */}
-                    <div className="relative z-20 flex-1 overflow-y-auto p-4 sm:p-6 space-y-2 sm:space-y-3">
+                    <div className="relative z-10 flex-1 overflow-y-auto p-4 sm:p-6 space-y-2 sm:space-y-3">
                       {displayNavItems.map((item, index) => (
                         <motion.div
                           key={item.path}
