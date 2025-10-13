@@ -53,7 +53,10 @@ class ApiClient {
                                endpoint.includes('/admin/') || 
                                endpoint.includes('/auth/logout') ||
                                endpoint.includes('/auth/me') ||
-                               endpoint.includes('/auth/refresh');
+                               endpoint.includes('/auth/refresh') ||
+                               endpoint.includes('/products') ||
+                               endpoint.includes('/articles') ||
+                               endpoint.includes('/videos');
     
     if (isProtectedEndpoint) {
       // Removed user_logged_out check - rely on token validation instead
@@ -82,8 +85,24 @@ class ApiClient {
       body: processedBody,
     };
 
+    // Debug logging
+    console.log('API Request:', {
+      url,
+      method: config.method || 'GET',
+      isProtected: isProtectedEndpoint,
+      hasToken: !!this.token,
+      headers: config.headers
+    });
+
     try {
       const response = await fetch(url, config);
+      
+      console.log('API Response:', {
+        url,
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
       
       // Handle different response status codes
       if (!response.ok) {
@@ -272,7 +291,7 @@ class ApiClient {
   }
 
   async createVideo(data: unknown) {
-    return this.request<unknown>('/admin/videos', {
+    return this.request<unknown>('/videos', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -284,14 +303,14 @@ class ApiClient {
       _method: 'PUT'
     };
     
-    return this.request<unknown>(`/admin/videos/${id}`, {
+    return this.request<unknown>(`/videos/${id}`, {
       method: 'POST',
       body: JSON.stringify(formData),
     });
   }
 
   async deleteVideo(id: string) {
-    return this.request<unknown>(`/admin/videos/${id}`, {
+    return this.request<unknown>(`/videos/${id}`, {
       method: 'DELETE',
     });
   }
@@ -671,11 +690,11 @@ class ApiClient {
         per_page: number;
         total: number;
       };
-    }>(`/products?${queryParams}`);
+    }>(`/admin/products?${queryParams}`); // Use admin route for authenticated access
   }
 
   async getProduct(id: string) {
-    return this.request<unknown>(`/products/${id}`);
+    return this.request<unknown>(`/admin/products/${id}`); // Use admin route for authenticated access
   }
 
   async createProduct(data: FormData) {

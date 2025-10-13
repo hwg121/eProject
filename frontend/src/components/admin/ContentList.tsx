@@ -59,6 +59,7 @@ interface ContentListProps {
   isDarkMode: boolean;
   onBulkDelete?: (ids: string[], types: string[]) => void;
   onBulkStatusChange?: (ids: string[], status: string) => void;
+  showConfirmDialog?: (title: string, message: string, onConfirm: () => void, type?: 'warning' | 'success' | 'info' | 'error') => void;
 }
 
 const ContentList: React.FC<ContentListProps> = ({
@@ -72,7 +73,8 @@ const ContentList: React.FC<ContentListProps> = ({
   onView,
   isDarkMode,
   onBulkDelete,
-  onBulkStatusChange
+  onBulkStatusChange,
+  showConfirmDialog
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -157,25 +159,53 @@ const ContentList: React.FC<ContentListProps> = ({
 
   const handleBulkDelete = () => {
     if (selectedIds.length === 0) return;
-    if (!window.confirm(`Delete ${selectedIds.length} selected items?`)) return;
     
     const selectedItems = contentData.filter(item => selectedIds.includes(item.id));
     const types = selectedItems.map(item => item.category);
     
-    if (onBulkDelete) {
-      onBulkDelete(selectedIds, types);
-      setSelectedIds([]);
+    const performDelete = () => {
+      if (onBulkDelete) {
+        onBulkDelete(selectedIds, types);
+        setSelectedIds([]);
+      }
+    };
+
+    if (showConfirmDialog) {
+      showConfirmDialog(
+        'Delete Items',
+        `Are you sure you want to delete ${selectedIds.length} selected item${selectedIds.length > 1 ? 's' : ''}? This action cannot be undone.`,
+        performDelete,
+        'error'
+      );
+    } else {
+      if (window.confirm(`Delete ${selectedIds.length} selected items?`)) {
+        performDelete();
+      }
     }
   };
 
   const handleBulkStatusChange = () => {
     if (selectedIds.length === 0 || !bulkStatus) return;
-    if (!window.confirm(`Change status of ${selectedIds.length} items to ${bulkStatus}?`)) return;
     
-    if (onBulkStatusChange) {
-      onBulkStatusChange(selectedIds, bulkStatus);
-      setSelectedIds([]);
-      setBulkStatus('');
+    const performStatusChange = () => {
+      if (onBulkStatusChange) {
+        onBulkStatusChange(selectedIds, bulkStatus);
+        setSelectedIds([]);
+        setBulkStatus('');
+      }
+    };
+
+    if (showConfirmDialog) {
+      showConfirmDialog(
+        'Change Status',
+        `Are you sure you want to change the status of ${selectedIds.length} item${selectedIds.length > 1 ? 's' : ''} to "${bulkStatus}"?`,
+        performStatusChange,
+        'warning'
+      );
+    } else {
+      if (window.confirm(`Change status of ${selectedIds.length} items to ${bulkStatus}?`)) {
+        performStatusChange();
+      }
     }
   };
 

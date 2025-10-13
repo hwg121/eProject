@@ -115,9 +115,26 @@ const AdminStaffManagement: React.FC = () => {
         console.error('Invalid response format:', response);
         setStaffMembers([]);
       }
-    } catch (err) {
-      setError('Failed to load staff members');
-      console.error('Error loading staff members:', err);
+    } catch (err: any) {
+      console.error('AdminStaffManagement - Load error:', err);
+      
+      // Handle different types of errors
+      let errorMessage = 'Failed to load staff members. Please try again.';
+      
+      if (err?.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err?.message) {
+        errorMessage = err.message;
+      } else if (err?.response?.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (err?.response?.status === 401) {
+        errorMessage = 'Unauthorized. Please login again.';
+      } else if (err?.response?.status === 403) {
+        errorMessage = 'Access denied. You do not have permission.';
+      }
+      
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -155,10 +172,30 @@ const AdminStaffManagement: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this staff member?')) {
       try {
         await staffMemberService.delete(id);
+        showToast('Staff member deleted successfully!', 'success');
         loadStaffMembers();
-      } catch (err) {
-        setError('Failed to delete staff member');
-        console.error('Error deleting staff member:', err);
+      } catch (err: any) {
+        console.error('AdminStaffManagement - Delete error:', err);
+        
+        // Handle different types of errors
+        let errorMessage = 'Failed to delete staff member. Please try again.';
+        
+        if (err?.response?.data?.message) {
+          errorMessage = err.response.data.message;
+        } else if (err?.message) {
+          errorMessage = err.message;
+        } else if (err?.response?.status === 500) {
+          errorMessage = 'Server error. Please try again later.';
+        } else if (err?.response?.status === 401) {
+          errorMessage = 'Unauthorized. Please login again.';
+        } else if (err?.response?.status === 403) {
+          errorMessage = 'Access denied. You do not have permission.';
+        } else if (err?.response?.status === 404) {
+          errorMessage = 'Staff member not found.';
+        }
+        
+        setError(errorMessage);
+        showToast(errorMessage, 'error');
       }
     }
   };
@@ -218,10 +255,30 @@ const AdminStaffManagement: React.FC = () => {
       
       setShowForm(false);
       loadStaffMembers();
-    } catch (err) {
-      setError('Failed to save staff member');
-      showToast('Failed to save staff member', 'error');
-      console.error('Error saving staff member:', err);
+    } catch (err: any) {
+      console.error('AdminStaffManagement - Save error:', err);
+      
+      // Handle different types of errors
+      let errorMessage = 'Failed to save staff member. Please try again.';
+      
+      if (err?.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err?.message) {
+        errorMessage = err.message;
+      } else if (err?.response?.status === 422) {
+        errorMessage = 'Validation failed. Please check your input.';
+      } else if (err?.response?.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (err?.response?.status === 401) {
+        errorMessage = 'Unauthorized. Please login again.';
+      } else if (err?.response?.status === 403) {
+        errorMessage = 'Access denied. You do not have permission.';
+      } else if (err?.response?.status === 409) {
+        errorMessage = 'Staff member with this name already exists.';
+      }
+      
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setSaving(false);
     }

@@ -251,9 +251,29 @@ const ProductForm: React.FC<ProductFormProps> = ({
     try {
       onSave(processedData);
       showToast(item ? 'Product updated successfully!' : 'Product created successfully!', 'success');
-    } catch (error) {
-      console.error('Save error:', error);
-      showToast('Failed to save product', 'error');
+    } catch (error: any) {
+      console.error('ProductForm - Save error:', error);
+      
+      // Handle different types of errors
+      let errorMessage = 'Failed to save product. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.response?.status === 422) {
+        errorMessage = 'Validation failed. Please check your input.';
+      } else if (error?.response?.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (error?.response?.status === 401) {
+        errorMessage = 'Unauthorized. Please login again.';
+      } else if (error?.response?.status === 403) {
+        errorMessage = 'Access denied. You do not have permission.';
+      } else if (error?.response?.status === 409) {
+        errorMessage = 'Product with this name already exists.';
+      }
+      
+      showToast(errorMessage, 'error');
     }
   };
 

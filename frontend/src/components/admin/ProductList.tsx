@@ -90,6 +90,7 @@ interface ProductListProps {
   isDarkMode: boolean;
   onBulkDelete?: (ids: string[]) => void;
   onBulkStatusChange?: (ids: string[], status: string) => void;
+  showConfirmDialog?: (title: string, message: string, onConfirm: () => void, type?: 'warning' | 'success' | 'info' | 'error') => void;
 }
 
 const ProductList: React.FC<ProductListProps> = ({
@@ -106,7 +107,8 @@ const ProductList: React.FC<ProductListProps> = ({
   categories,
   isDarkMode,
   onBulkDelete,
-  onBulkStatusChange
+  onBulkStatusChange,
+  showConfirmDialog
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -209,22 +211,50 @@ const ProductList: React.FC<ProductListProps> = ({
 
   const handleBulkDelete = () => {
     if (selectedIds.length === 0) return;
-    if (!window.confirm(`Delete ${selectedIds.length} selected products?`)) return;
     
-    if (onBulkDelete) {
-      onBulkDelete(selectedIds);
-      setSelectedIds([]);
+    const performDelete = () => {
+      if (onBulkDelete) {
+        onBulkDelete(selectedIds);
+        setSelectedIds([]);
+      }
+    };
+
+    if (showConfirmDialog) {
+      showConfirmDialog(
+        'Delete Products',
+        `Are you sure you want to delete ${selectedIds.length} selected product${selectedIds.length > 1 ? 's' : ''}? This action cannot be undone.`,
+        performDelete,
+        'error'
+      );
+    } else {
+      if (window.confirm(`Delete ${selectedIds.length} selected products?`)) {
+        performDelete();
+      }
     }
   };
 
   const handleBulkStatusChange = () => {
     if (selectedIds.length === 0 || !bulkStatus) return;
-    if (!window.confirm(`Change status of ${selectedIds.length} products to ${bulkStatus}?`)) return;
     
-    if (onBulkStatusChange) {
-      onBulkStatusChange(selectedIds, bulkStatus);
-      setSelectedIds([]);
-      setBulkStatus('');
+    const performStatusChange = () => {
+      if (onBulkStatusChange) {
+        onBulkStatusChange(selectedIds, bulkStatus);
+        setSelectedIds([]);
+        setBulkStatus('');
+      }
+    };
+
+    if (showConfirmDialog) {
+      showConfirmDialog(
+        'Change Status',
+        `Are you sure you want to change the status of ${selectedIds.length} product${selectedIds.length > 1 ? 's' : ''} to "${bulkStatus}"?`,
+        performStatusChange,
+        'warning'
+      );
+    } else {
+      if (window.confirm(`Change status of ${selectedIds.length} products to ${bulkStatus}?`)) {
+        performStatusChange();
+      }
     }
   };
 

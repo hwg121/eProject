@@ -8,6 +8,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import DarkModeToggle from '../components/UI/DarkModeToggle';
 import Card from '../components/UI/Card';
 import AdminSidebar from '../components/admin/AdminSidebar';
+import Toast from '../components/UI/Toast';
+import ConfirmDialog from '../components/UI/ConfirmDialog';
 import DashboardCharts from '../components/admin/DashboardCharts';
 import {
   Avatar,
@@ -117,6 +119,11 @@ const AdminDashboard: React.FC = () => {
   const [videos, setVideos] = useState<ContentItem[]>([]);
   const [editingItem, setEditingItem] = useState<ContentItem | null>(null);
   const [currentContentType, setCurrentContentType] = useState('');
+  
+  // Debug currentContentType changes
+  React.useEffect(() => {
+    console.log('currentContentType changed to:', currentContentType);
+  }, [currentContentType]);
 
   // Product state
   const [products, setProducts] = useState<any[]>([]);
@@ -133,19 +140,52 @@ const AdminDashboard: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [avatarDropdownOpen, setAvatarDropdownOpen] = useState(false);
 
-  // Snackbar state
-  const [snackbar, setSnackbar] = useState({
+  // Toast state (using Toast component)
+  const [toast, setToast] = useState({
     open: false,
     message: '',
     severity: 'success' as 'success' | 'error' | 'warning' | 'info'
   });
 
   const showToast = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'success') => {
-    setSnackbar({ open: true, message, severity });
+    setToast({ open: true, message, severity });
   };
 
-  const handleCloseSnackbar = () => {
-    setSnackbar({ ...snackbar, open: false });
+  const handleCloseToast = () => {
+    setToast({ ...toast, open: false });
+  };
+
+  // Confirm Dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    type?: 'warning' | 'success' | 'info' | 'error';
+    onConfirm: () => void;
+  }>({
+    open: false,
+    title: '',
+    message: '',
+    type: 'warning',
+    onConfirm: () => {}
+  });
+
+  const showConfirmDialog = (
+    title: string, 
+    message: string, 
+    onConfirm: () => void,
+    type: 'warning' | 'success' | 'info' | 'error' = 'warning'
+  ) => {
+    setConfirmDialog({ open: true, title, message, type, onConfirm });
+  };
+
+  const handleConfirmDialogClose = () => {
+    setConfirmDialog({ ...confirmDialog, open: false });
+  };
+
+  const handleConfirmDialogConfirm = () => {
+    confirmDialog.onConfirm();
+    handleConfirmDialogClose();
   };
 
   // Navigation handler for Quick Actions
@@ -154,10 +194,10 @@ const AdminDashboard: React.FC = () => {
     if (section === 'content') {
       if (action === 'create-article') {
         setActiveTab('content-create');
-        setCurrentContentType('article');
+        setCurrentContentType('Technique'); // Use 'Technique' to match ContentCreate
       } else if (action === 'create-video') {
         setActiveTab('content-create');
-        setCurrentContentType('video');
+        setCurrentContentType('Video'); // Use 'Video' to match ContentCreate
       } else if (action === 'create-product') {
         setActiveTab('product-create');
       }
@@ -373,6 +413,13 @@ const AdminDashboard: React.FC = () => {
         contacts: contactMessagesData?.length || 0,
         users: usersData?.length || 0
       });
+      
+      // Debug authentication
+      console.log('AdminDashboard - Auth debug:', {
+        isAuthenticated,
+        user: user ? { id: user.id, role: user.role, name: user.name } : null,
+        token: localStorage.getItem('auth_token') ? 'present' : 'missing'
+      });
 
       // Load visitor statistics
       const visitorStats = await visitorService.getVisitorStatistics();
@@ -395,7 +442,8 @@ const AdminDashboard: React.FC = () => {
         total: allProductsData.length,
         archived: archivedProducts.length,
         published: publishedProducts.length,
-        archivedSample: archivedProducts.slice(0, 3).map((p: any) => ({ id: p.id, name: p.name, status: p.status }))
+        archivedSample: archivedProducts.slice(0, 3).map((p: any) => ({ id: p.id, name: p.name, status: p.status })),
+        allProductsSample: allProductsData.slice(0, 3).map((p: any) => ({ id: p.id, name: p.name, status: p.status }))
       });
       
       // Debug specific product with rating
@@ -416,9 +464,23 @@ const AdminDashboard: React.FC = () => {
       const accessoriesData = allProductsData.filter((product: any) => product.category === 'accessory');
       const suggestionsData = allProductsData.filter((product: any) => product.category === 'suggestion');
 
-      // Transform data
-      setArticles(Array.isArray(articlesData) ? articlesData.map(transformArticleToContentItem) : []);
-      setVideos(Array.isArray(videosData) ? videosData.map(transformVideoToContentItem) : []);
+      // Transform data with error handling
+      setArticles(Array.isArray(articlesData) ? articlesData.map((item: any) => {
+        try {
+          return transformArticleToContentItem(item);
+        } catch (error) {
+          console.error('Error transforming article:', item, error);
+          return null;
+        }
+      }).filter(Boolean) : []);
+      setVideos(Array.isArray(videosData) ? videosData.map((item: any) => {
+        try {
+          return transformVideoToContentItem(item);
+        } catch (error) {
+          console.error('Error transforming video:', item, error);
+          return null;
+        }
+      }).filter(Boolean) : []);
       
       // Set products for Product Management (Tools/Pots/Accessories/Suggestions/Books)
       setProducts([
@@ -795,10 +857,15 @@ const AdminDashboard: React.FC = () => {
   // Bulk status change handler
   const handleBulkStatusChange = async (ids: string[], status: string) => {
     try {
+      console.log('handleBulkStatusChange called with:', { ids, status });
+      
       const updatePromises = ids.map(id => {
         // Find item in articles, videos, or products
         const item = [...articles, ...videos, ...products].find(i => i.id === id);
-        if (!item) return Promise.resolve();
+        if (!item) {
+          console.log('Item not found for id:', id);
+          return Promise.resolve();
+        }
 
         const type = item.category;
         let serviceType = type?.toLowerCase();
@@ -806,19 +873,35 @@ const AdminDashboard: React.FC = () => {
         else if (type === 'Video') serviceType = 'videos';
         // For products, use productService directly
         else if (['tool', 'book', 'pot', 'accessory', 'suggestion'].includes(type?.toLowerCase() || '')) {
+          console.log('Updating product:', id, 'to status:', status);
           return productService.update(id, { status });
         }
 
         const updateData = { status };
+        console.log('Updating', serviceType, 'item:', id, 'to status:', status);
 
         switch (serviceType) {
-          case 'articles': return articlesService.update(id, updateData);
-          case 'videos': return videosService.update(id, updateData);
-          default: return Promise.resolve();
+          case 'articles': 
+            console.log('Calling articlesService.update for:', id);
+            return articlesService.update(id, updateData).catch(error => {
+              console.error('Error updating article:', id, error);
+              throw error;
+            });
+          case 'videos': 
+            console.log('Calling videosService.update for:', id);
+            return videosService.update(id, updateData).catch(error => {
+              console.error('Error updating video:', id, error);
+              throw error;
+            });
+          default: 
+            console.log('Unknown serviceType:', serviceType, 'for item:', id);
+            return Promise.resolve();
         }
       });
 
+      console.log('Executing', updatePromises.length, 'update promises');
       await Promise.all(updatePromises);
+      console.log('All updates completed, reloading data');
       await loadData();
       showToast(`Successfully updated ${ids.length} items to ${status}!`, 'success');
     } catch (error) {
@@ -880,8 +963,10 @@ const AdminDashboard: React.FC = () => {
 
   const handleSave = async (formData: Partial<ContentItem>) => {
     try {
+      // Get currentContentType from formData or state
+      const contentType = (formData as any).currentContentType || currentContentType;
       console.log('AdminDashboard.handleSave - Input:', {
-        currentContentType,
+        currentContentType: contentType,
         editingItem: !!editingItem,
         formData
       });
@@ -892,9 +977,9 @@ const AdminDashboard: React.FC = () => {
       }
       
       // Normalize currentContentType to plural form for consistency
-      let serviceType = currentContentType;
-      if (currentContentType === 'article') serviceType = 'articles';
-      if (currentContentType === 'video') serviceType = 'videos';
+      let serviceType = contentType;
+      if (contentType === 'article' || contentType === 'Technique') serviceType = 'articles';
+      if (contentType === 'video' || contentType === 'Video') serviceType = 'videos';
       
       console.log('AdminDashboard.handleSave - Normalized serviceType:', serviceType);
       
@@ -936,11 +1021,17 @@ const AdminDashboard: React.FC = () => {
             console.log('AdminDashboard.handleSave - Calling articlesService.create with:', formData);
             const articleResult = await articlesService.create(formData);
             console.log('AdminDashboard.handleSave - articlesService.create result:', articleResult);
+            if (!articleResult || (articleResult as any).success === false) {
+              throw new Error((articleResult as any).message || 'Failed to create article');
+            }
             break;
           case 'videos':
             console.log('AdminDashboard.handleSave - Calling videosService.create with:', formData);
             const videoResult = await videosService.create(formData);
             console.log('AdminDashboard.handleSave - videosService.create result:', videoResult);
+            if (!videoResult || (videoResult as any).success === false) {
+              throw new Error((videoResult as any).message || 'Failed to create video');
+            }
             break;
           case 'books':
             await booksService.create(formData);
@@ -1801,6 +1892,7 @@ Updated: ${product.updatedAt}
           sortBy={sortBy}
           isDarkMode={isDarkMode}
           editingItem={editingItem}
+          currentContentType={currentContentType || 'Technique'} // Default to Technique if undefined
           onSearchTermChange={setSearchTerm}
           onSelectedCategoryChange={setSelectedCategory}
           onSortByChange={setSortBy}
@@ -1815,6 +1907,7 @@ Updated: ${product.updatedAt}
           }}
           onBulkDelete={handleBulkDelete}
           onBulkStatusChange={handleBulkStatusChange}
+          showConfirmDialog={showConfirmDialog}
         />
       )}
 
@@ -1841,6 +1934,7 @@ Updated: ${product.updatedAt}
           onCancelCreate={() => setActiveTab('product-list')}
           onBulkDelete={handleProductBulkDelete}
           onBulkStatusChange={handleProductBulkStatusChange}
+          showConfirmDialog={showConfirmDialog}
         />
       )}
 
@@ -1884,21 +1978,25 @@ Updated: ${product.updatedAt}
       </AnimatePresence>
 
       {/* Toast Notifications */}
-      <Snackbar
-        open={snackbar.open}
+      <Toast
+        open={toast.open}
+        message={toast.message}
+        severity={toast.severity}
+        onClose={handleCloseToast}
         autoHideDuration={4000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+        position={{ vertical: 'bottom', horizontal: 'center' }}
+      />
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type={confirmDialog.type}
+        onConfirm={handleConfirmDialogConfirm}
+        onCancel={handleConfirmDialogClose}
+        isDarkMode={isDarkMode}
+      />
           </div>
         </div>
       </div>

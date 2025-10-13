@@ -132,28 +132,80 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check if editing admin or changing to admin - require security password
-    const isChangingToAdmin = formData.role === 'admin';
-    const isAlreadyAdmin = originalRole === 'admin';
-    
-    if (isChangingToAdmin || isAlreadyAdmin) {
-      setPendingData(formData);
-      setShowSecurityModal(true);
-    } else {
-      onSave(formData);
+    try {
+      // Check if editing admin or changing to admin - require security password
+      const isChangingToAdmin = formData.role === 'admin';
+      const isAlreadyAdmin = originalRole === 'admin';
+      
+      if (isChangingToAdmin || isAlreadyAdmin) {
+        setPendingData(formData);
+        setShowSecurityModal(true);
+      } else {
+        await onSave(formData);
+      }
+    } catch (error: any) {
+      console.error('UserEditForm - Save error:', error);
+      
+      // Handle different types of errors
+      let errorMessage = 'Failed to save user. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.response?.status === 422) {
+        errorMessage = 'Validation failed. Please check your input.';
+      } else if (error?.response?.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (error?.response?.status === 401) {
+        errorMessage = 'Unauthorized. Please login again.';
+      } else if (error?.response?.status === 403) {
+        errorMessage = 'Access denied. You do not have permission.';
+      } else if (error?.response?.status === 409) {
+        errorMessage = 'User with this email already exists.';
+      }
+      
+      // Show error toast
+      setToast({ open: true, message: errorMessage, severity: 'error' });
     }
   };
   
-  const handleSecurityConfirm = (securityPassword: string) => {
-    if (pendingData) {
-      // Add security password to data
-      const dataWithSecurity = {
-        ...pendingData,
-        security_password: securityPassword
-      };
-      onSave(dataWithSecurity);
-      setShowSecurityModal(false);
-      setPendingData(null);
+  const handleSecurityConfirm = async (securityPassword: string) => {
+    try {
+      if (pendingData) {
+        // Add security password to data
+        const dataWithSecurity = {
+          ...pendingData,
+          security_password: securityPassword
+        };
+        await onSave(dataWithSecurity);
+        setShowSecurityModal(false);
+        setPendingData(null);
+      }
+    } catch (error: any) {
+      console.error('UserEditForm - Security confirm error:', error);
+      
+      // Handle different types of errors
+      let errorMessage = 'Failed to save user. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.response?.status === 422) {
+        errorMessage = 'Validation failed. Please check your input.';
+      } else if (error?.response?.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (error?.response?.status === 401) {
+        errorMessage = 'Unauthorized. Please login again.';
+      } else if (error?.response?.status === 403) {
+        errorMessage = 'Access denied. You do not have permission.';
+      } else if (error?.response?.status === 409) {
+        errorMessage = 'User with this email already exists.';
+      }
+      
+      // Show error toast
+      setToast({ open: true, message: errorMessage, severity: 'error' });
     }
   };
 

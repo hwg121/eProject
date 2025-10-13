@@ -42,7 +42,12 @@ const ContentCreate: React.FC<ContentCreateProps> = ({
   };
 
   const handleSave = (data: Partial<ContentItem>) => {
-    onSave(data);
+    // Add category to data if not present
+    const dataWithCategory = {
+      ...data,
+      category: selectedType // Ensure category is set to selectedType
+    };
+    onSave(dataWithCategory);
   };
 
   const handleCancel = () => {

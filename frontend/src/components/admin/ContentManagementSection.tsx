@@ -14,6 +14,7 @@ interface ContentManagementSectionProps {
   sortBy: string;
   isDarkMode: boolean;
   editingItem: ContentItem | null;
+  currentContentType?: string; // Add currentContentType prop
   onSearchTermChange: (term: string) => void;
   onSelectedCategoryChange: (category: string) => void;
   onSortByChange: (sortBy: string) => void;
@@ -25,6 +26,7 @@ interface ContentManagementSectionProps {
   onCancelEdit?: () => void;
   onBulkDelete?: (ids: string[], types: string[]) => void;
   onBulkStatusChange?: (ids: string[], status: string) => void;
+  showConfirmDialog?: (title: string, message: string, onConfirm: () => void, type?: 'warning' | 'success' | 'info' | 'error') => void;
 }
 
 const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
@@ -36,6 +38,7 @@ const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
   sortBy,
   isDarkMode,
   editingItem,
+  currentContentType,
   onSearchTermChange,
   onSelectedCategoryChange,
   onSortByChange,
@@ -46,7 +49,8 @@ const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
   onCancelCreate,
   onCancelEdit,
   onBulkDelete,
-  onBulkStatusChange
+  onBulkStatusChange,
+  showConfirmDialog
 }) => {
 
   const handleEditClick = (content: ContentItem) => {
@@ -67,7 +71,14 @@ const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
   };
 
   const handleCreateSave = (data: Partial<ContentItem>) => {
-    onCreate(data);
+    // Use category from data if currentContentType is not set or is default
+    const contentType = currentContentType && currentContentType !== 'Technique' ? currentContentType : (data.category || 'Technique');
+    // Add currentContentType to data
+    const dataWithType = {
+      ...data,
+      currentContentType: contentType
+    };
+    onCreate(dataWithType);
   };
 
   const handleCreateCancel = () => {
@@ -92,6 +103,7 @@ const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
           isDarkMode={isDarkMode}
           onBulkDelete={onBulkDelete}
           onBulkStatusChange={onBulkStatusChange}
+          showConfirmDialog={showConfirmDialog}
         />
       )}
 

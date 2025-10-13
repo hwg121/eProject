@@ -52,6 +52,7 @@ interface ProductManagementProps {
   onCancelCreate?: () => void;
   onBulkDelete?: (ids: string[]) => void;
   onBulkStatusChange?: (ids: string[], status: string) => void;
+  showConfirmDialog?: (title: string, message: string, onConfirm: () => void, type?: 'warning' | 'success' | 'info' | 'error') => void;
 }
 
 const ProductManagement: React.FC<ProductManagementProps> = ({
@@ -74,7 +75,8 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
   onEditCancel,
   onCancelCreate,
   onBulkDelete,
-  onBulkStatusChange
+  onBulkStatusChange,
+  showConfirmDialog
 }) => {
 
   const handleEditClick = (product: Product) => {
@@ -133,6 +135,7 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
           isDarkMode={isDarkMode}
           onBulkDelete={onBulkDelete}
           onBulkStatusChange={onBulkStatusChange}
+          showConfirmDialog={showConfirmDialog}
         />
       )}
 

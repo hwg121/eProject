@@ -138,6 +138,7 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
     
     // Check if there are any errors
     if (hasErrors(newErrors)) {
+      console.log('ContentForm - Validation errors:', newErrors);
       setErrors(newErrors);
       showToast('Please fix validation errors', 'error');
       return;
@@ -147,6 +148,9 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
     setErrors({});
     
     try {
+      // Filter out product-specific fields for articles/videos
+      const isProductType = ['books', 'tools', 'pots', 'accessories', 'suggestions'].includes(type?.toLowerCase() || '');
+      
       const processedData = {
         ...formData,
         // Ensure required fields have values
@@ -173,7 +177,12 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
         price: parseFloat(formData.price?.toString() || '0') || 0,
         duration: formData.duration || '',
         // Ensure boolean fields are properly cast
-        is_featured: Boolean(formData.featured || formData.is_featured)
+        is_featured: Boolean(formData.featured || formData.is_featured),
+        // Only include product-specific fields for products
+        ...(isProductType ? {
+          buyLink: formData.buyLink,
+          borrowLink: formData.borrowLink
+        } : {})
       };
       
       console.log('ContentForm - Submitting data:', {
@@ -186,9 +195,27 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
       
       onSave(processedData);
       showToast(`${item ? 'Updated' : 'Created'} successfully!`, 'success');
-    } catch (error) {
-      console.error('Save error:', error);
-      showToast('Failed to save. Please try again.', 'error');
+    } catch (error: any) {
+      console.error('ContentForm - Save error:', error);
+      
+      // Handle different types of errors
+      let errorMessage = 'Failed to save. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.response?.status === 422) {
+        errorMessage = 'Validation failed. Please check your input.';
+      } else if (error?.response?.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (error?.response?.status === 401) {
+        errorMessage = 'Unauthorized. Please login again.';
+      } else if (error?.response?.status === 403) {
+        errorMessage = 'Access denied. You do not have permission.';
+      }
+      
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -279,8 +306,14 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
               setErrors({ ...errors, category: null });
             }}
             error={!!errors.category}
-            helperText={errors.category}
+            helperText={
+              errors.category || 
+              (type === 'Technique' || type === 'Video' || type === 'technique' || type === 'video' 
+                ? 'Category is automatically set based on content type' 
+                : '')
+            }
             required
+            disabled={type === 'Technique' || type === 'Video' || type === 'technique' || type === 'video'} // Lock for Technique and Video
             sx={textFieldStyles}
           >
             {categories && Array.isArray(categories) && categories.map((category) => (
@@ -523,42 +556,43 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
           </div>
         )}
 
-        {(type === 'books' || type === 'suggestions') && (
-          <>
-            <div>
-              <TextField
-                fullWidth
-                size="small"
-                label="Buy Link"
-                value={formData.buyLink || ''}
-                onChange={(e) => {
-                  setFormData({ ...formData, buyLink: e.target.value });
-                  setErrors({ ...errors, buyLink: null });
-                }}
-                error={!!errors.buyLink}
-                helperText={errors.buyLink}
-                sx={textFieldStyles}
-              />
-            </div>
-            {type === 'books' && (
+        {/* Only show buy/borrow links for products, not articles/videos */}
+        {['books', 'tools', 'pots', 'accessories', 'suggestions'].includes(type?.toLowerCase() || '') && (
+            <>
               <div>
                 <TextField
                   fullWidth
                   size="small"
-                  label="Borrow Link"
-                  value={formData.borrowLink || ''}
+                  label="Buy Link"
+                  value={formData.buyLink || ''}
                   onChange={(e) => {
-                    setFormData({ ...formData, borrowLink: e.target.value });
-                    setErrors({ ...errors, borrowLink: null });
+                    setFormData({ ...formData, buyLink: e.target.value });
+                    setErrors({ ...errors, buyLink: null });
                   }}
-                  error={!!errors.borrowLink}
-                  helperText={errors.borrowLink}
+                  error={!!errors.buyLink}
+                  helperText={errors.buyLink}
                   sx={textFieldStyles}
                 />
               </div>
-            )}
-          </>
-        )}
+              {type === 'books' && (
+                <div>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Borrow Link"
+                    value={formData.borrowLink || ''}
+                    onChange={(e) => {
+                      setFormData({ ...formData, borrowLink: e.target.value });
+                      setErrors({ ...errors, borrowLink: null });
+                    }}
+                    error={!!errors.borrowLink}
+                    helperText={errors.borrowLink}
+                    sx={textFieldStyles}
+                  />
+                </div>
+              )}
+            </>
+          )}
       </div>
 
       <div className="flex items-center space-x-4">
