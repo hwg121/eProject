@@ -37,7 +37,7 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({ stats, isDarkMode
     },
     { 
       label: 'Total Views', 
-      value: stats.totalViews, 
+      value: campaignStats?.views?.current_value ?? stats.totalViews, 
       icon: Eye, 
       bgGradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
       color: '#10b981',

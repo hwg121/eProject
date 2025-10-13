@@ -203,10 +203,16 @@ class CampaignSettingController extends Controller
                     return 0.0;
 
                 case 'views':
-                    // Total views from all content
-                    $articleViews = Schema::hasTable('articles') ? (Article::sum('views') ?? 0) : 0;
-                    $videoViews = Schema::hasTable('videos') ? (Video::sum('views') ?? 0) : 0;
-                    $productViews = Schema::hasTable('products') ? (Product::sum('views') ?? 0) : 0;
+                    // Total views from published content only
+                    $articleViews = Schema::hasTable('articles') 
+                        ? (Article::where('status', 'published')->sum('views') ?? 0) 
+                        : 0;
+                    $videoViews = Schema::hasTable('videos') 
+                        ? (Video::where('status', 'published')->sum('views') ?? 0) 
+                        : 0;
+                    $productViews = Schema::hasTable('products') 
+                        ? (Product::where('status', 'published')->sum('views') ?? 0) 
+                        : 0;
                     return (float) ($articleViews + $videoViews + $productViews);
 
                 case 'content':
