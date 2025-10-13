@@ -18,6 +18,20 @@ const Header: React.FC = () => {
   const [visitorCount, setVisitorCount] = useState<number>(0);
   const [visitorInfo, setVisitorInfo] = useState<{city?: string, country?: string} | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Prevent background scroll when menu is open
+  React.useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMenuOpen]);
   const [scrolled, setScrolled] = useState(false);
   const [userTimezone, setUserTimezone] = useState<string>('');
   
@@ -354,32 +368,26 @@ const Header: React.FC = () => {
                 
                 {/* Menu Panel - Perfect Mobile Responsive */}
                 <motion.div
-                  className="lg:hidden fixed top-0 right-0 h-full w-80 sm:w-96 max-w-[90vw] z-50"
+                  className="lg:hidden fixed top-0 right-0 h-screen w-80 sm:w-96 max-w-[90vw] z-50"
                   initial={{ x: "100%" }}
                   animate={{ x: 0 }}
                   exit={{ x: "100%" }}
                   transition={{ type: "spring", damping: 25, stiffness: 200 }}
                 >
-                  <div className={`h-full relative ${
+                  <div className={`h-full flex flex-col ${
                     isDarkMode 
-                      ? 'bg-gray-900' 
-                      : 'bg-white'
+                      ? 'bg-gray-900/95 backdrop-blur-2xl' 
+                      : 'bg-white/95 backdrop-blur-xl'
                   } shadow-2xl border-l ${
                     isDarkMode ? 'border-emerald-500/20' : 'border-emerald-100'
-                  }`} style={{
-                    backgroundColor: isDarkMode ? '#111827' : '#ffffff',
-                    opacity: 1
+                  }`} style={{ 
+                    background: isDarkMode 
+                      ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' 
+                      : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)'
                   }}>
-                    {/* Solid overlay to ensure complete separation */}
-                    <div className={`absolute inset-0 ${
-                      isDarkMode ? 'bg-gray-900' : 'bg-white'
-                    }`} style={{
-                      backgroundColor: isDarkMode ? '#111827' : '#ffffff',
-                      opacity: 1
-                    }}></div>
                     
                     {/* Header - Perfect Mobile Spacing */}
-                    <div className={`relative z-10 flex items-center justify-between p-4 sm:p-6 border-b ${
+                    <div className={`relative flex items-center justify-between p-4 sm:p-6 border-b ${
                       isDarkMode ? 'border-emerald-500/20' : 'border-emerald-100'
                     }`}>
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent"></div>
@@ -430,7 +438,7 @@ const Header: React.FC = () => {
                     </div>
                     
                     {/* Navigation Items - Perfect Mobile Touch */}
-                    <div className="relative z-10 flex-1 overflow-y-auto p-4 sm:p-6 space-y-2 sm:space-y-3">
+                    <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-2 sm:space-y-3 min-h-0">
                       {displayNavItems.map((item, index) => (
                         <motion.div
                           key={item.path}
