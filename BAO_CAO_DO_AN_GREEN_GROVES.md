@@ -31,16 +31,17 @@
 - **Trưởng nhóm:** Nguyễn Trần Trung Hiếu
 - **Thành viên nhóm:**
   - Nguyễn Trần Trung Hiếu (Trưởng nhóm) - Backend Laravel API
-  - Huỳnh Nguyễn Hưng - Fullstack Developer (Frontend React.js + Backend API + VPS Deployment)
+  - Huỳnh Nguyễn Hưng - Fullstack Developer (Frontend React.js + Backend API + VPS Deployment + Configuration Management)
   - Vương Ngọc Gia Bảo - Backend API & Tính năng đặc biệt
-  - Ngô Phúc Khang - Nội dung & Dữ liệu
+  - Ngô Phúc Khang - Nội dung & Dữ liệu & Báo cáo
   - Nguyễn Đức Anh Tài - Frontend Integration & Routing
 
 ### 1.3 Thời gian thực hiện
 - **Ngày bắt đầu:** 15/01/2024
 - **Ngày hoàn thành:** 28/01/2024 (Bản gốc)
-- **Ngày cập nhật:** 21/01/2025 (Bản hiện tại)
+- **Ngày cập nhật:** 12/10/2025 (Bản hiện tại)
 - **Thời gian thực hiện:** 2 tuần (Ban đầu) + Cải tiến liên tục
+- **Số giờ làm việc:** ~739 hours (toàn team)
 
 ---
 
@@ -246,33 +247,86 @@
 ```
 src/
 ├── components/
-│   ├── common/          # Components chung
+│   ├── admin/           # 27 Admin Components
+│   │   ├── AdminSidebar.tsx
+│   │   ├── DashboardCharts.tsx
+│   │   ├── StatisticsSection.tsx
+│   │   ├── ContentManagement.tsx (List, Create, Edit, Form)
+│   │   ├── ProductManagement.tsx (List, Create, Edit, Form)
+│   │   ├── UserManagement.tsx (Section, EditForm, Create, Profile)
+│   │   ├── MobileAdminNav.tsx
+│   │   └── ... (other admin components)
+│   ├── UI/              # UI Components
+│   │   ├── Card.tsx
+│   │   ├── Carousel.tsx
+│   │   ├── DetailPage.tsx
+│   │   ├── PageHeader.tsx
+│   │   ├── Toast.tsx
+│   │   ├── StatusBadge.tsx
+│   │   ├── RoleBadge.tsx
+│   │   └── DarkModeToggle.tsx
+│   ├── common/          # Common Components
+│   │   ├── Header.jsx
+│   │   ├── Footer.jsx
+│   │   ├── LoadingSpinner.tsx
+│   │   ├── ErrorMessage.tsx
+│   │   ├── LazyImage.tsx
+│   │   └── VisitorCounter.jsx
+│   ├── Layout/          # Layout Components
+│   │   ├── Layout.tsx
 │   │   ├── Header.tsx
 │   │   ├── Footer.tsx
-│   │   └── Layout.tsx
-│   ├── pages/           # Trang chính
-│   │   ├── Home.tsx
-│   │   ├── Techniques.tsx
-│   │   └── Tools.tsx
-│   └── admin/           # Admin panel
-│       ├── AdminDashboard.tsx
-│       └── AdminTools.tsx
-├── services/
-│   ├── api.ts           # API service
-│   └── visitorService.ts # Visitor tracking service
-├── context/
-│   ├── AuthContext.tsx  # Authentication context
-│   ├── ThemeContext.tsx # Dark mode context
-│   └── NavigationContext.tsx # Navigation context
-├── hooks/
-│   ├── useGeolocation.ts # Geolocation hook
-│   └── usePerformance.ts # Performance optimization hooks
-├── utils/
-│   ├── helpers.ts       # Utility functions
-│   ├── animations.ts    # Animation configurations
-│   └── slug.ts          # Slug generation utilities
-└── styles/
-    └── performance.css  # Performance optimization styles
+│   │   └── FloatingNav.tsx
+│   ├── ImageUpload.tsx
+│   └── ProtectedRoute.tsx
+├── pages/               # 25 Pages
+│   ├── Home.tsx         # Public pages (16)
+│   ├── Login.tsx
+│   ├── AboutUs.tsx
+│   ├── Techniques.tsx   # Listing pages (8)
+│   ├── Videos.tsx
+│   ├── Tools.tsx
+│   ├── Books.tsx
+│   ├── Pots.tsx
+│   ├── Accessories.tsx
+│   ├── Essentials.tsx
+│   ├── Suggestions.tsx
+│   ├── ArticleDetail.tsx # Detail pages (5)
+│   ├── VideoDetail.tsx
+│   ├── TechniqueDetail.tsx
+│   ├── EssentialDetail.tsx
+│   ├── AdminDashboard.tsx # Admin pages (9)
+│   ├── AdminAboutUs.tsx
+│   └── admin/           # Admin subfolder (7)
+│       ├── AdminHeroSection.tsx
+│       ├── AdminStaffManagement.tsx
+│       ├── AdminMapSettings.tsx
+│       ├── AdminContactSettings.tsx
+│       ├── AdminContactMessages.tsx
+│       ├── AdminCampaignSettings.tsx
+│       └── AdminSecuritySettings.tsx
+├── services/            # 5+ Services
+│   ├── api.ts           # Core API client
+│   ├── auth.ts          # Authentication service
+│   ├── public.ts        # Public endpoints
+│   └── interaction.ts   # User interactions
+├── contexts/            # Context providers
+│   ├── AuthContext.tsx
+│   ├── ThemeContext.tsx
+│   └── NavigationContext.tsx
+├── hooks/               # 10+ Custom Hooks
+│   ├── useGeolocation.ts
+│   ├── usePerformance.ts
+│   └── ... (other hooks)
+├── utils/               # Utility functions
+│   ├── helpers.ts
+│   ├── animations.ts
+│   ├── slug.ts
+│   └── validation.ts
+├── types/               # TypeScript types
+│   └── index.ts
+└── styles/              # CSS files
+    └── performance.css
 ```
 
 #### 5.1.3 Kiến trúc Backend (Laravel 12)
@@ -283,36 +337,53 @@ app/
 ├── Http/
 │   ├── Controllers/
 │   │   └── Api/
-│   │       ├── ArticleController.php
-│   │       ├── VideoController.php
-│   │       ├── ProductController.php
-│   │       ├── UserController.php
-│   │       ├── AuthController.php
-│   │       ├── UploadController.php
-│   │       ├── ImageController.php
-│   │       ├── ContactController.php
-│   │       ├── SettingController.php
-│   │       ├── VisitorController.php
-│   │       ├── GeolocationController.php
-│   │       ├── AboutUsController.php
-│   │       └── InteractionController.php
+│   │       ├── AboutUsController.php (Hiếu)
+│   │       ├── ActivityLogController.php (Hưng)
+│   │       ├── ArticleController.php (Hiếu)
+│   │       ├── AuthController.php (Hiếu)
+│   │       ├── CampaignSettingController.php (Hưng)
+│   │       ├── ContactController.php (Hiếu)
+│   │       ├── ContactSettingController.php (Hưng)
+│   │       ├── EssentialController.php (Hiếu)
+│   │       ├── GeolocationController.php (Bảo)
+│   │       ├── HeroSectionController.php (Hưng)
+│   │       ├── ImageController.php (Hưng - Cloudinary)
+│   │       ├── InteractionController.php (Bảo)
+│   │       ├── MapSettingController.php (Hưng)
+│   │       ├── ProductController.php (Hiếu - Unified)
+│   │       ├── SettingController.php (Hiếu)
+│   │       ├── SimpleController.php (Bảo - Testing)
+│   │       ├── StaffMemberController.php (Hưng)
+│   │       ├── TestController.php (Bảo - CORS)
+│   │       ├── UploadController.php (Hiếu)
+│   │       ├── UserController.php (Hiếu + Hưng enhance)
+│   │       ├── VideoController.php (Hiếu)
+│   │       └── VisitorController.php (Bảo)
 │   ├── Middleware/
 │   ├── Requests/
 │   └── Resources/
 ├── Models/
+│   ├── AboutUs.php
+│   ├── ActivityLog.php
 │   ├── Article.php
-│   ├── Video.php
-│   ├── Product.php
-│   ├── User.php
+│   ├── CampaignSetting.php
 │   ├── Category.php
-│   ├── Tag.php
-│   ├── UserInteraction.php
-│   ├── VisitorStat.php
 │   ├── ContactMessage.php
+│   ├── ContactSetting.php
+│   ├── Essential.php
+│   ├── HeroSection.php
+│   ├── MapSetting.php
+│   ├── Product.php (Unified)
+│   ├── SecuritySetting.php
 │   ├── SiteSetting.php
-│   └── AboutUs.php
+│   ├── StaffMember.php
+│   ├── Tag.php
+│   ├── User.php
+│   ├── UserInteraction.php
+│   ├── Video.php
+│   └── VisitorStat.php
 ├── Services/
-│   └── CloudinaryService.php
+│   └── CloudinaryService.php (Hưng)
 └── Jobs/
     └── IncrementSuggestionViews.php
 ```
@@ -355,17 +426,25 @@ Secondary Colors:
 
 | Bảng | Mô tả | Số trường |
 |------|-------|-----------|
-| users | Thông tin người dùng | 8+ |
-| articles | Bài viết kỹ thuật | 12+ |
-| products | Sản phẩm thống nhất (tools, books, pots, accessories, suggestions) | 25+ |
-| videos | Video hướng dẫn | 15+ |
+| users | Thông tin người dùng | 15+ |
+| articles | Bài viết kỹ thuật | 15+ |
+| products | Sản phẩm thống nhất (tools, books, pots, accessories, suggestions) | 28+ |
+| videos | Video hướng dẫn | 18+ |
 | categories | Danh mục | 5 |
 | tags | Thẻ phân loại | 4 |
 | user_interactions | Tương tác người dùng (like, rating, view) | 8+ |
 | visitor_stats | Thống kê khách truy cập | 6+ |
 | contact_messages | Tin nhắn liên hệ | 8+ |
+| contact_settings | Cài đặt liên hệ | 10+ |
 | site_settings | Cài đặt trang web | 6+ |
-| about_us | Thông tin về chúng tôi | 8+ |
+| about_us | Thông tin về chúng tôi | 10+ |
+| hero_sections | Banner trang chủ | 8+ |
+| staff_members | Thành viên team | 8+ |
+| map_settings | Cài đặt bản đồ | 8+ |
+| campaign_settings | Cài đặt chiến dịch | 10+ |
+| security_settings | Cài đặt bảo mật | 5+ |
+| activity_logs | Nhật ký hoạt động | 8+ |
+| essentials | Sản phẩm cần thiết | 15+ |
 
 #### 5.3.2 Mối quan hệ giữa các bảng
 - **One-to-Many:** users → articles, products, videos
@@ -641,7 +720,7 @@ Dự án Green Groves đã thành công xây dựng một hệ thống quản l�
 
 - **Frontend hiện đại:** React.js với TypeScript, responsive design
 - **Backend mạnh mẽ:** Laravel API với authentication và security
-- **Database tối ưu:** MySQL với 15+ bảng và relationships
+- **Database tối ưu:** MySQL với 19+ bảng và relationships
 - **Performance cao:** Lazy loading, caching, optimization
 - **User experience tốt:** Giao diện thân thiện, dễ sử dụng
 
@@ -704,48 +783,73 @@ Dự án Green Groves đã thành công xây dựng một hệ thống quản l�
 
 ### 8.4 Đóng góp của từng thành viên
 
-#### 8.4.1 Nguyễn Trần Trung Hiếu (Trưởng nhóm)
-- **Backend Laravel API:** Thiết kế và phát triển toàn bộ API
-- **Database Design:** Thiết kế cơ sở dữ liệu và migrations
-- **Authentication:** Implement Laravel Sanctum
-- **Deployment:** Cấu hình production environment
+#### 8.4.1 Nguyễn Trần Trung Hiếu (Trưởng nhóm) - 135 hours
+- **Backend Laravel API:** 9 Core Controllers
+  - ArticleController, VideoController, ProductController (Unified)
+  - EssentialController, AuthController, UploadController
+  - ContactController, SettingController, AboutUsController
+- **Database Design:** Thiết kế 19 models và 29 migrations
+  - ERD design cho 19+ bảng
+  - Relationships (One-to-Many, Many-to-Many)
+  - Database optimization và indexing
+- **Authentication:** Laravel Sanctum implementation
+- **API Development:** ~30 core endpoints với validation
 
-#### 8.4.2 Huỳnh Nguyễn Hưng (Fullstack Developer)
-- **Frontend Development:** Phát triển toàn bộ giao diện React.js với TypeScript
-- **Backend API Development:** Phát triển các API endpoints Laravel
-- **UI/UX Design:** Thiết kế giao diện và trải nghiệm người dùng
-- **VPS Deployment:** Cấu hình và triển khai lên VPS Windows Server
-- **Configuration Management:** Cấu hình toàn bộ hệ thống frontend và backend
-- **Database Integration:** Tích hợp frontend với backend database
-- **Performance Optimization:** Tối ưu hóa hiệu suất toàn hệ thống
-- **Animation System:** Xây dựng hệ thống animation 60fps với Framer Motion
-- **Performance Hooks:** Tạo custom hooks cho tối ưu hóa performance
-- **PWA Implementation:** Service worker, caching strategies, offline support
-- **Admin Panel:** Xây dựng giao diện quản trị hoàn chỉnh
-- **Responsive Design:** Đảm bảo tương thích mọi thiết bị
-- **Bundle Optimization:** Code splitting, tree shaking, lazy loading
-- **Apache Configuration:** Cấu hình virtual hosts và rewrite rules
-- **Environment Setup:** Cấu hình production và development environments
+#### 8.4.2 Huỳnh Nguyễn Hưng (Fullstack Developer) - 249 hours
+- **Frontend Development (212h):** Phát triển toàn bộ giao diện React.js với TypeScript
+  - 49 Components (27 admin + 22 UI/common) - 40h
+  - 25 Pages (16 public + 9 admin) - 32h
+  - Frontend services layer (api, auth, public, interaction) - 10h
+  - Custom hooks & utilities (validation, animations) - 10h
+  - UI/UX Design (design system, color palette, typography) - 22h
+  - Performance optimization (60fps animations, bundle) - 20h
+  - Dark mode, responsive design - included
+  - Testing & debugging - 18h
+- **Backend API Development (100h):** User Management & Site Settings
+  - UserController TOÀN BỘ (CRUD, avatar, security, roles) - 15h
+  - 7 Site Settings Controllers (Hero, Staff, Map, Contact, Campaign, Activity, Image) - 25h
+  - CloudinaryService (upload/delete/management) - 15h
+  - Backend configuration (Laravel, Cloudinary, Cache) - 25h
+  - Database integration (frontend-backend connection) - 20h
+- **VPS Deployment & Configuration (50h):**
+  - Windows Server setup, Apache virtual hosts - 25h
+  - SSL/HTTPS configuration, security headers - 25h
+- **Documentation:** 12h
 
-#### 8.4.3 Vương Ngọc Gia Bảo
-- **Advanced Features:** Geolocation, visitor tracking
-- **API Integration:** Tích hợp các API bên thứ 3
-- **Performance Optimization:** Tối ưu hóa hiệu suất
-- **Security:** Implement các biện pháp bảo mật
+#### 8.4.3 Vương Ngọc Gia Bảo (Backend Advanced Features) - 117 hours
+- **5 Advanced Controllers (55h):**
+  - VisitorController (visitor tracking real-time)
+  - GeolocationController (location services với fallback APIs)
+  - InteractionController (like, rating, view tracking)
+  - SimpleController, TestController (testing endpoints)
+- **Third-party API Integration (20h):** ipapi.co, ipinfo.io
+- **Security Implementation (18h):** Rate limiting, XSS, CSRF protection
+- **Performance Optimization (15h):** Caching, query optimization
+- **Testing & Debugging:** 12h
 
-#### 8.4.4 Ngô Phúc Khang
-- **Content Management:** Thu thập và quản lý nội dung
-- **Data Seeding:** Tạo dữ liệu mẫu cho database
-- **Database Design:** Thiết kế cấu trúc database
-- **Documentation:** Viết tài liệu hướng dẫn
-- **Quality Assurance:** Kiểm tra chất lượng nội dung
+#### 8.4.4 Ngô Phúc Khang (Content & Documentation) - 130 hours
+- **Content Collection & Creation (75h):**
+  - 50+ sample articles (techniques)
+  - 120+ product entries (tools, books, pots, accessories, suggestions)
+  - 20+ video entries
+  - 10+ user entries, 15+ categories, 50+ tags
+- **Project Reporting (30h):**
+  - BAO_CAO_DO_AN_GREEN_GROVES.md (1,028 dòng) - 12h
+  - TASKLIST_THANH_VIEN.md (957 dòng) - 10h
+  - THUYET_TRINH_DO_AN_Q&A.md (812 dòng) - 8h
+  - Tổng: 3 files, 2,797 dòng
+- **Documentation (15h):** User guides, technical docs
+- **Quality Assurance (10h):** Content review, accuracy verification
 
-#### 8.4.5 Nguyễn Đức Anh Tài
-- **Frontend Integration:** Tích hợp frontend với backend
-- **Routing:** Cấu hình React Router
-- **State Management:** Implement Context API
-- **API Integration:** Tích hợp các API services
-- **Testing:** Testing và debugging
+#### 8.4.5 Nguyễn Đức Anh Tài (Frontend Integration) - 108 hours
+- **React Router Setup (15h):** 25+ routes configuration
+- **State Management (18h):** Context API (Auth, Theme, Navigation)
+- **API Integration (20h):** Frontend-backend connection
+- **Page Implementation (30h):** 10 public pages implementation
+  - Techniques, Videos, Tools, Books, Pots, Accessories, Essentials, Suggestions
+  - Detail pages integration
+- **Form Handling (10h):** Validation, error display
+- **Testing & Debugging (18h):** Component testing, user flow testing
 
 ---
 
@@ -858,5 +962,67 @@ GET    /api/settings          # Lấy cài đặt trang web
 - 📱 **Mobile-First** responsive design
 
 *Báo cáo được hoàn thành vào ngày 28/01/2024 (Bản gốc)*
-*Cập nhật lần cuối: 21/01/2025 (Bản hiện tại)*
+*Cập nhật lần cuối: 12/10/2025 (Bản hiện tại)*
 *Nhóm Green Groves - Môn Phát triển ứng dụng Web*
+
+---
+
+## 📊 THỐNG KÊ DỰ ÁN THỰC TẾ
+
+### 🏗️ Backend (Laravel 12)
+**22 API Controllers** (Phân công: Hiếu 9, Hưng 8, Bảo 5)
+
+**Hiếu - 9 Core Controllers:**
+- ArticleController, VideoController, ProductController (Unified)
+- EssentialController, AuthController, UploadController
+- ContactController, SettingController, AboutUsController
+
+**Hưng - 8 Controllers (User Management & Site Settings):**
+- UserController (TOÀN BỘ)
+- ImageController, HeroSectionController, StaffMemberController
+- MapSettingController, ContactSettingController, CampaignSettingController, ActivityLogController
+
+**Bảo - 5 Advanced Controllers:**
+- VisitorController, GeolocationController, InteractionController
+- SimpleController, TestController
+
+**Database:**
+- **19 Models** (thiết kế bởi Hiếu, implement: Hiếu 10, Hưng 7, Bảo 2)
+- **29 Migrations** (thiết kế bởi Hiếu)
+- **19+ Database Tables**
+
+### 🎨 Frontend (React.js + TypeScript)
+**49 Components** (27 admin + 22 UI/common) - **Hưng 100%**
+
+**27 Admin Components:**
+- Core: AdminSidebar, DashboardCharts, StatisticsSection, RecentActivity, TopContent, MobileAdminNav (6)
+- Content: ContentManagement, ContentManagementSection, ContentList, ContentCreate, ContentEdit, ContentForm, RichTextEditor (7)
+- Product: ProductManagement, ProductList, ProductCreate, ProductEdit, ProductForm (5)
+- User: UserManagement, UserManagementSection, UserEditForm, UserCreate, UserProfileComponent (5)
+- Utilities: SecurityPasswordModal, Overview, ContactManagement, MessagesSection (4)
+
+**22 UI/Common Components:**
+- Layout: Layout, Header, Footer, FloatingNav (4)
+- UI: Card, Carousel, DetailPage, PageHeader, Toast, StatusBadge, RoleBadge, DarkModeToggle (8)
+- Common: LoadingSpinner, ErrorMessage, LazyImage, IconLoader, Ticker, VisitorCounter (6)
+- Utilities: ImageUpload, PerformanceMonitor, ProtectedRoute, LazyMotion (4)
+
+**25 Pages** (Hưng 16+9, Tài 10 implementation)
+- **16 Public pages:** Home, Login, AboutUs, 8 listing, 5 detail (Hưng design, Hưng+Tài implement)
+- **9 Admin pages:** AdminDashboard, AdminAboutUs + 7 admin subfolder (Hưng 100%)
+
+**Services & Utilities:**
+- **5+ Services:** api.ts, auth.ts, public.ts, interaction.ts (Hưng + Tài)
+- **10+ Custom Hooks:** useGeolocation, usePerformance, etc (Hưng)
+- **~25,000+ dòng code**
+
+### 📊 Worklog Summary
+**Tổng: ~739 hours**
+
+| Thành viên | Giờ | % | Breakdown |
+|-----------|-----|---|-----------|
+| **Hưng** | 249h | 33.7% | Frontend 212h + Backend 100h + Deployment 50h |
+| **Hiếu** | 135h | 18.3% | Backend 90h + Database 45h |
+| **Khang** | 130h | 17.6% | Content 75h + Reporting 30h + QA 25h |
+| **Bảo** | 117h | 15.8% | Backend 55h + Integration 20h + Security 18h + Optimization 15h |
+| **Tài** | 108h | 14.6% | Pages 30h + Routing 15h + State 18h + Integration 20h + Testing 18h |

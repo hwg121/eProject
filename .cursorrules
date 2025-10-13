@@ -1,0 +1,102 @@
+# eProject Development Rules
+
+## 🎯 Git Workflow (CRITICAL - Auto-execute)
+When user says "commit":
+1. Automatically run: `git add frontend/ backend/`
+2. Automatically run: `git commit -m "descriptive message"`
+3. Automatically run: `git push origin main`
+
+**IMPORTANT**: 
+- Only commit `frontend/` and `backend/` folders
+- Do NOT ask for confirmation - execute immediately
+- Write descriptive commit messages following conventional commits format
+
+## 🔐 User Authority & Memory Override
+When user request conflicts with memory/rule:
+1. Ask: "Your request conflicts with [explain rule]. Are you sure?"
+2. Wait for user confirmation
+3. Always follow user's final decision (user owns the memory)
+
+## 🔍 Thorough Verification Standards (CRITICAL)
+When assigned ANY task, you MUST:
+- ✅ Check ALL related files (backend resources, frontend transforms, API endpoints)
+- ✅ Verify end-to-end: Backend → Resource → Transform → Frontend Display
+- ✅ Check type safety (wrap with Number() for toFixed(), handle null/undefined)
+- ✅ Verify both display AND data source
+- ✅ Look for missing fields in complete chain
+- ✅ Test edge cases: null, undefined, empty, 0, negative numbers
+- ✅ Check consistency across all content types
+- ✅ Review related components before making changes
+- ✅ ASK before modifying if uncertain
+
+## 🖥️ Environment Constraints
+**Local Development Setup**:
+- Project path: `F:\xampp\htdocs\eProject` (Windows)
+- Backend files are edited locally but executed on remote server
+- User manually copies files to server
+
+**DO NOT run locally**:
+- ❌ `php artisan migrate`
+- ❌ `php artisan serve`
+- ❌ `composer install`
+- ❌ Any Laravel/PHP commands
+
+**CAN run locally**:
+- ✅ `npm run build` (frontend)
+- ✅ `npm install` (frontend)
+- ✅ Git commands
+
+**Work approach**:
+- Only edit code and migration files
+- User will execute backend commands on server
+- Frontend can be built and tested locally
+
+## 💪 Work Standards & Attitude
+- ✅ Be THOROUGH on EVERY task - no shortcuts
+- ✅ Check EXTENSIVELY before implementing
+- ✅ ASK questions if uncertain about requirements
+- ✅ CONTINUE until completion - NEVER stop mid-task
+- ✅ Test all edge cases before declaring completion
+- ✅ Document major changes with detailed reports
+- ✅ Use real data, NOT mock/fake data
+
+## 🎨 UI/UX Standards
+- Use green color schemes for admin panels: `#10b981`, `#059669`, `#047857`
+- Use MUI (Material-UI) components consistently
+- Always use Toast component for notifications
+- Use StatusBadge and RoleBadge components for status/role display
+- Implement proper dark mode support
+- Ensure circular profile pictures with proper alignment
+
+## 📝 Coding Standards
+- Use TypeScript for all new files
+- Follow React functional components pattern
+- Use custom validation utilities from `frontend/src/utils/validation.ts`
+- Always validate email, phone, username uniqueness
+- Implement proper security password verification for admin operations
+- Keep components modular and reusable
+- Maintain comprehensive test coverage
+
+## 📂 Project Structure
+- Frontend: React + TypeScript + MUI + Tailwind
+- Backend: Laravel + PHP
+- Centralize validation utilities
+- Keep validation utilities well-documented
+
+## 🔒 Security & Validation
+- Always validate email, phone, username uniqueness
+- Use enhanced validation utilities with comprehensive error handling
+- Implement proper security password verification for admin operations
+- Follow RFC standards for email validation (254 char limit)
+
+## 📦 File Organization
+- Keep components modular and reusable
+- Use proper TypeScript interfaces and types
+- Document all major features with detailed reports
+- Keep validation utilities centralized
+
+## 🚀 Task Management
+- Break complex tasks into clear steps
+- Continue working until ALL steps are complete
+- Do NOT stop mid-task or leave incomplete work
+- Commit and push when task is fully finished

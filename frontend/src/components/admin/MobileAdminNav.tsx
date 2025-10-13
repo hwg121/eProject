@@ -231,7 +231,7 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
             >
-              <div className={`h-full ${
+              <div className={`h-full flex flex-col ${
                 isDarkMode 
                   ? 'bg-gray-900/95 backdrop-blur-2xl' 
                   : 'bg-white/95 backdrop-blur-xl'
@@ -272,8 +272,8 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
                   </div>
                 </div>
                 
-                {/* Navigation Items */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                {/* Navigation Items - Improved scroll */}
+                <div className="flex-1 overflow-y-auto p-4 pb-8 space-y-2 max-h-[calc(100vh-200px)] scrollbar-thin scrollbar-thumb-emerald-500 scrollbar-track-transparent">
                   {filteredNavItems.map((item, index) => (
                     <motion.div
                       key={item.id}
@@ -378,7 +378,7 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
                 </div>
                 
                 {/* Footer */}
-                <div className={`p-6 border-t ${
+                <div className={`flex-shrink-0 p-6 border-t ${
                   isDarkMode ? 'border-gray-700/30' : 'border-emerald-100'
                 }`}>
                   <div className={`text-center text-sm ${
