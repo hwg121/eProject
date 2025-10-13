@@ -363,11 +363,6 @@
     filter: blur(2px) !important;
   }
   
-  /* Simplify gradients */
-  .bg-gradient-to-br {
-    background: linear-gradient(135deg, #059669, #10b981) !important;
-  }
-  
   /* Touch-friendly buttons */
   button, a {
     min-height: 44px;
