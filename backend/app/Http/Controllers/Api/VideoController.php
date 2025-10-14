@@ -229,7 +229,33 @@ class VideoController extends Controller
                 'message' => 'Video created successfully',
                 'data' => new \App\Http\Resources\VideoResource($video)
             ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed. Please check your input.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle duplicate slug or other DB constraints
+            if ($e->getCode() == 23000) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Video with this title or slug already exists.'
+                ], 409);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Database error: ' . $e->getMessage()
+            ], 500);
         } catch (\Exception $e) {
+            \Log::error('VideoController::store failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all(),
+                'user_id' => auth()->id(),
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Error creating video: ' . $e->getMessage()
@@ -380,7 +406,7 @@ class VideoController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed',
+                'message' => 'Validation failed. Please check your input.',
                 'errors' => $e->errors()
             ], 422);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -388,7 +414,28 @@ class VideoController extends Controller
                 'success' => false,
                 'message' => 'Video not found'
             ], 404);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle duplicate slug or other DB constraints
+            if ($e->getCode() == 23000) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Video with this title or slug already exists.'
+                ], 409);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Database error: ' . $e->getMessage()
+            ], 500);
         } catch (\Exception $e) {
+            \Log::error('VideoController::update failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all(),
+                'user_id' => auth()->id(),
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Error updating video: ' . $e->getMessage()

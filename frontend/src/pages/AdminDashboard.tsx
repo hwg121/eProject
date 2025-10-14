@@ -1147,11 +1147,22 @@ const AdminDashboard: React.FC = () => {
       // Extract proper error message from backend
       let errorMessage = 'Failed to save content. Please try again.';
       
+      // Priority 1: Backend message field
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
-      } else if (error?.response?.data?.error) {
+      } 
+      // Priority 2: Backend error field
+      else if (error?.response?.data?.error) {
         errorMessage = error.response.data.error;
-      } else if (error?.message) {
+      } 
+      // Priority 3: Backend errors object (validation errors)
+      else if (error?.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        const firstError = Object.values(errors)[0];
+        errorMessage = Array.isArray(firstError) ? firstError[0] : String(firstError);
+      }
+      // Priority 4: Error message property
+      else if (error?.message) {
         errorMessage = error.message;
       }
       
@@ -1220,6 +1231,10 @@ const AdminDashboard: React.FC = () => {
         errorMessage = error.response.data.message;
       } else if (error?.response?.data?.error) {
         errorMessage = error.response.data.error;
+      } else if (error?.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        const firstError = Object.values(errors)[0];
+        errorMessage = Array.isArray(firstError) ? firstError[0] : String(firstError);
       } else if (error?.message) {
         errorMessage = error.message;
       }
@@ -1255,6 +1270,10 @@ const AdminDashboard: React.FC = () => {
         errorMessage = error.response.data.message;
       } else if (error?.response?.data?.error) {
         errorMessage = error.response.data.error;
+      } else if (error?.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        const firstError = Object.values(errors)[0];
+        errorMessage = Array.isArray(firstError) ? firstError[0] : String(firstError);
       } else if (error?.message) {
         errorMessage = error.message;
       }
@@ -1298,6 +1317,10 @@ const AdminDashboard: React.FC = () => {
         errorMessage = error.response.data.message;
       } else if (error?.response?.data?.error) {
         errorMessage = error.response.data.error;
+      } else if (error?.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        const firstError = Object.values(errors)[0];
+        errorMessage = Array.isArray(firstError) ? firstError[0] : String(firstError);
       } else if (error?.message) {
         errorMessage = error.message;
       }
