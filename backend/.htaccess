@@ -5,6 +5,7 @@ php_value max_execution_time 300
 php_value max_input_time 300
 php_value memory_limit 256M
 
+# Enable mod_rewrite for Laravel
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
@@ -26,3 +27,4 @@ php_value memory_limit 256M
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
