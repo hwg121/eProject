@@ -4,6 +4,7 @@ import { TextField, MenuItem, Checkbox, FormControlLabel, Typography } from '@mu
 import Toast from '../UI/Toast';
 import ImageUpload from '../ImageUpload';
 import RichTextEditor from './RichTextEditor';
+import TagInput from './TagInput';
 import { ContentFormProps } from '../../types/admin';
 import { validateText, validateURL, validateNumber, hasErrors } from '../../utils/validation';
 
@@ -15,7 +16,7 @@ interface FormData {
   status: 'published' | 'archived';
   description?: string;
   excerpt?: string;
-  tags?: string | string[];
+  tags?: number[];
   featured_image?: string;
   buyLink?: string;
   borrowLink?: string;
@@ -61,7 +62,7 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
       category: type === 'Technique' || type === 'techniques' || type === 'article' ? 'Technique' : type === 'Video' || type === 'videos' || type === 'video' ? 'Video' : (categories && categories.length > 0 ? categories[0] : ''),
       status: 'published',
       description: '',
-      tags: '',
+      tags: [],
       featured_image: '',
       buyLink: '',
       borrowLink: '',
@@ -89,7 +90,11 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
         // For videos, prioritize videoUrl, fallback to link
         video_url: isVideoType(type) ? (item.videoUrl || item.link || '') : '',
         // For products, use link
-        link: (type === 'books' || type === 'suggestions') ? (item.link || '') : ''
+        link: (type === 'books' || type === 'suggestions') ? (item.link || '') : '',
+        // Convert tags from Tag objects to IDs for TagInput
+        tags: Array.isArray(item.tags) 
+          ? item.tags.map((tag: any) => typeof tag === 'object' && tag.id ? tag.id : tag).filter(Boolean)
+          : []
       };
       
       setFormData(processedItem);
@@ -165,14 +170,8 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
         // Video URL for videos, link for products
         video_url: isVideoType(type) ? (formData.video_url || '') : '',
         link: (type === 'books' || type === 'suggestions') ? (formData.link || '') : (isVideoType(type) ? (formData.video_url || '') : ''),
-        // Tags should be string for backend (comma-separated)
-        tags: formData.tags 
-          ? Array.isArray(formData.tags) 
-            ? formData.tags.join(', ')
-            : typeof formData.tags === 'string' 
-              ? formData.tags
-              : ''
-          : '',
+        // Tags should be array of tag IDs for backend
+        tags: Array.isArray(formData.tags) ? formData.tags : [],
         rating: parseFloat(formData.rating?.toString() || '0') || 0,
         price: parseFloat(formData.price?.toString() || '0') || 0,
         duration: formData.duration || '',
@@ -513,14 +512,12 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
         <div>
-          <TextField
-            fullWidth
-            size="small"
-            label="Tags (comma-separated)"
-            value={Array.isArray(formData.tags) ? formData.tags.join(', ') : (formData.tags || '')}
-            onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-            placeholder="e.g., organic, beginner, indoor"
-            sx={textFieldStyles}
+          <TagInput
+            value={Array.isArray(formData.tags) ? formData.tags : []}
+            onChange={(tagIds) => setFormData({ ...formData, tags: tagIds })}
+            label="Tags"
+            placeholder="Select tags..."
+            helperText="Select relevant tags for better content discovery"
           />
         </div>
 

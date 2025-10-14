@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BarChart3, Users, Package, MessageSquare,
   Menu, X, ChevronRight,
-  FileText, Settings, Target
+  FileText, Settings, Target, Hash
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { 
@@ -81,6 +81,13 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
         { id: 'content-create', label: 'Create', icon: null },
         { id: 'content-edit', label: 'Edit', icon: null }
       ]
+    },
+    {
+      id: 'tags',
+      label: 'Tag Management',
+      icon: Hash,
+      color: 'from-emerald-500 to-green-600',
+      description: 'Manage tags for content'
     },
     {
       id: 'products',

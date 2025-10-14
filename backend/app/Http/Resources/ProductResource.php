@@ -14,59 +14,34 @@ class ProductResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $data = [
+        return [
             'id' => $this->id,
             'name' => $this->name,
             'title' => $this->name, // Frontend expects 'title'
-            'slug' => $this->slug,
-            'description' => $this->description,
+            'slug' => $this->slug ?? '',
+            'description' => $this->description ?? '',
             'category' => $this->category,
-            'subcategory' => (string) ($this->subcategory ?? ''), // Ensure always string, cast explicitly
+            'subcategory' => $this->subcategory ?? '',
             'price' => $this->price !== null && $this->price !== '' 
                 ? (float) $this->price 
-                : null, // Return actual price as float or null
-            'brand' => $this->brand,
-            'material' => $this->material,
-            'size' => $this->size,
-            'color' => $this->color,
-            'status' => $this->status,
-            'is_featured' => (bool) $this->is_featured,
+                : null,
+            'brand' => $this->brand ?? '',
+            'material' => $this->material ?? '',
+            'size' => $this->size ?? '',
+            'color' => $this->color ?? '',
+            'status' => $this->status ?? 'published',
+            'is_featured' => (bool) ($this->is_featured ?? false),
             'views' => $this->views ?? 0,
             'likes' => $this->likes ?? 0,
-            'rating' => is_numeric($this->rating) ? (float) $this->rating : 0.0,
-            'link' => $this->link,
+            'rating' => is_numeric($this->rating ?? 0) ? (float) $this->rating : 0.0,
+            'link' => $this->link ?? '',
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'createdAt' => $this->created_at, // Frontend camelCase
             'updatedAt' => $this->updated_at, // Frontend camelCase
+            
+            // Tags relationship
+            'tags' => TagResource::collection($this->whenLoaded('tags')),
         ];
-
-        // Add category-specific fields
-        switch ($this->category) {
-            case 'book':
-                $data['author'] = $this->author;
-                $data['pages'] = $this->pages;
-                $data['published_year'] = $this->published_year;
-                break;
-                
-            case 'pot':
-                $data['drainage_holes'] = $this->drainage_holes;
-                break;
-                
-            case 'accessory':
-                $data['is_waterproof'] = $this->is_waterproof;
-                $data['is_durable'] = $this->is_durable;
-                break;
-                
-            case 'suggestion':
-                $data['difficulty_level'] = $this->difficulty_level;
-                $data['season'] = $this->season;
-                $data['plant_type'] = $this->plant_type;
-                $data['estimated_time'] = $this->estimated_time;
-                $data['tags'] = $this->tags;
-                break;
-        }
-
-        return $data;
     }
 }

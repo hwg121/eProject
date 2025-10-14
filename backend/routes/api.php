@@ -21,7 +21,8 @@ use App\Http\Controllers\Api\{
     StaffMemberController,
     MapSettingController,
     ContactSettingController,
-    CampaignSettingController
+    CampaignSettingController,
+    TagController
 };
 
 /*
@@ -40,6 +41,11 @@ Route::middleware(['cors'])->group(function () {
     // Public GET routes
     Route::get('/articles', [ArticleController::class, 'index']);
     Route::get('/videos', [VideoController::class, 'index']);
+    
+    // Tags (Public)
+    Route::get('/tags', [TagController::class, 'index']);
+    Route::get('/tags/{slug}', [TagController::class, 'show']);
+    Route::get('/tags/{slug}/contents', [TagController::class, 'contents']);
     
     // About Us - New structure (Public)
     Route::get('/hero-sections/active', [HeroSectionController::class, 'getActive']);
@@ -61,6 +67,8 @@ Route::middleware(['cors'])->group(function () {
         Route::delete('/products/{id}', [ProductController::class, 'destroy']);
         
         // Admin routes (same as Articles)
+        Route::get('/admin/products', [ProductController::class, 'index']);
+        Route::get('/admin/products/{id}', [ProductController::class, 'show']);
         Route::put('/admin/products/{id}', [ProductController::class, 'update']);
         Route::post('/admin/products/{id}', [ProductController::class, 'update']); // Support POST with _method=PUT
         
@@ -207,6 +215,13 @@ Route::middleware(['cors'])->group(function () {
         Route::get('/admin/activity-logs/security', [App\Http\Controllers\Api\ActivityLogController::class, 'getSecurityActivities']);
         Route::get('/admin/activity-logs/recent', [App\Http\Controllers\Api\ActivityLogController::class, 'getRecentActivities']);
         Route::delete('/admin/activity-logs/clear', [App\Http\Controllers\Api\ActivityLogController::class, 'clearOldLogs']);
+        
+        // Tags Management (Admin)
+        Route::get('/admin/tags', [TagController::class, 'index']);
+        Route::post('/admin/tags', [TagController::class, 'store']);
+        Route::get('/admin/tags/{id}', [TagController::class, 'show']);
+        Route::put('/admin/tags/{id}', [TagController::class, 'update']);
+        Route::delete('/admin/tags/{id}', [TagController::class, 'destroy']);
         
     });
 

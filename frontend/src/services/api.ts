@@ -18,7 +18,10 @@ class ApiClient {
 
   // Public methods for HTTP verbs
   async get<T = unknown>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET' });
+    console.log('🔍 [ApiClient.get] Called with endpoint:', endpoint);
+    const result = await this.request<T>(endpoint, { method: 'GET' });
+    console.log('🔍 [ApiClient.get] Result:', result);
+    return result;
   }
 
   async post<T = unknown>(endpoint: string, data?: unknown): Promise<T> {
@@ -1543,6 +1546,76 @@ export const mapSettingService = {
     body: JSON.stringify(data),
   }),
   delete: (id: string) => apiClient.request(`/admin/map-settings/${id}`, { method: 'DELETE' }),
+};
+
+// Tag Service
+export const tagService = {
+  // Public
+  getAll: (params?: { search?: string; sortBy?: string; sortOrder?: string; per_page?: number }) => {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== '' && value !== null) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    const url = queryParams.toString() ? `/tags?${queryParams}` : '/tags';
+    return apiClient.get(url);
+  },
+  
+  getBySlug: (slug: string) => apiClient.get(`/tags/${slug}`),
+  
+  getContents: (slug: string, params?: { type?: 'all' | 'articles' | 'videos' | 'products'; per_page?: number }) => {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== '' && value !== null) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    const url = queryParams.toString() ? `/tags/${slug}/contents?${queryParams}` : `/tags/${slug}/contents`;
+    return apiClient.get(url);
+  },
+  
+  // Admin
+  getAllAdmin: async (params?: { search?: string; sortBy?: string; sortOrder?: string; per_page?: number }) => {
+    console.log('🔍 [API Service] Step 1: getAllAdmin called with params:', params);
+    
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== '' && value !== null) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    const url = queryParams.toString() ? `/admin/tags?${queryParams}` : '/admin/tags';
+    
+    console.log('🔍 [API Service] Step 2: Calling URL:', url);
+    console.log('🔍 [API Service] Full URL:', `${apiClient['baseURL']}${url}`);
+    
+    try {
+      const result = await apiClient.get(url);
+      console.log('🔍 [API Service] Step 3: Raw result from apiClient.get:', result);
+      console.log('🔍 [API Service] Result type:', typeof result);
+      return result;
+    } catch (error) {
+      console.error('🔍 [API Service] Step ERROR in getAllAdmin:', error);
+      throw error;
+    }
+  },
+  
+  getById: (id: string | number) => apiClient.get(`/admin/tags/${id}`),
+  
+  create: (data: { name: string; slug?: string; description?: string }) => 
+    apiClient.post('/admin/tags', data),
+  
+  update: (id: string | number, data: { name?: string; slug?: string; description?: string }) => 
+    apiClient.put(`/admin/tags/${id}`, data),
+  
+  delete: (id: string | number) => apiClient.delete(`/admin/tags/${id}`),
 };
 
 export default apiClient;

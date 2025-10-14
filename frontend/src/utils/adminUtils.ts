@@ -36,6 +36,7 @@ export const transformVideoToContentItem = (video: any): ContentItem & { embedUr
   updatedAt: video.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
   description: video.description || video.excerpt || '',
   content: video.content || video.transcript || '',
+  tags: video.tags || [],
   videoUrl: video.video_url || video.videoUrl || '',
   embedUrl: video.embed_url || video.embedUrl || '',
   imageUrl: video.featured_image || '/image.png',
@@ -55,6 +56,7 @@ export const transformBookToContentItem = (book: any): ContentItem => ({
   createdAt: book.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
   updatedAt: book.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
   description: book.description,
+  tags: book.tags || [],
   imageUrl: book.image || '/image.png',
   featured_image: book.image || ''
 });
@@ -81,6 +83,7 @@ export const transformToolToContentItem = (tool: any): ContentItem => ({
   updatedAt: tool.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
   description: tool.description,
   content: tool.content,
+  tags: tool.tags || [],
   cover: tool.cover,
   imageUrl: tool.images_json ? JSON.parse(tool.images_json)[0] : '/image.png'
 });
@@ -104,6 +107,7 @@ export const transformEssentialToContentItem = (essential: any): ContentItem => 
   updatedAt: essential.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
   description: essential.description,
   content: essential.content,
+  tags: essential.tags || [],
   cover: essential.cover,
   imageUrl: essential.image || '/image.png'
 });
@@ -130,6 +134,7 @@ export const transformPotToContentItem = (pot: any): ContentItem => ({
   updatedAt: pot.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
   description: pot.description,
   content: pot.content,
+  tags: pot.tags || [],
   cover: pot.cover,
   imageUrl: pot.image || '/image.png'
 });
@@ -156,6 +161,7 @@ export const transformAccessoryToContentItem = (accessory: any): ContentItem => 
   updatedAt: accessory.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
   description: accessory.description,
   content: accessory.content,
+  tags: accessory.tags || [],
   cover: accessory.cover,
   imageUrl: accessory.image || '/image.png'
 });

@@ -6,6 +6,13 @@ import { findItemBySlug } from '../utils/slug';
 import { publicService } from '../services/api';
 import { ApiVideo } from '../types/api';
 
+interface Tag {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string | null;
+}
+
 interface Video {
   id: string;
   title: string;
@@ -13,7 +20,7 @@ interface Video {
   content: string;
   author: string;
   publishedAt: string;
-  tags: string[];
+  tags: Tag[];
   views: number;
   likes: number;
   rating: number;
@@ -39,6 +46,16 @@ const VideoDetail: React.FC = () => {
           const data = await publicService.getVideos();
           const videoData = findItemBySlug<ApiVideo>(data as ApiVideo[], slug!, 'slug', 'title');
           if (videoData) {
+            // Convert ApiTag[] to TagData[] for DetailPage compatibility
+            const convertedTags = Array.isArray(videoData.tags) 
+              ? videoData.tags.map(tag => ({
+                  id: tag.id,
+                  name: tag.name,
+                  slug: tag.slug,
+                  description: tag.description || null
+                }))
+              : [];
+
             const video: Video = {
               id: videoData.id?.toString() || slug!,
               title: videoData.title || '',
@@ -46,7 +63,7 @@ const VideoDetail: React.FC = () => {
               content: videoData.content || videoData.transcript || '',
               author: videoData.author || videoData.instructor || '',
               publishedAt: videoData.published_at || videoData.created_at || new Date().toISOString(),
-              tags: videoData.tags || videoData.categories || [],
+              tags: convertedTags,
               views: videoData.views || 0,
               likes: videoData.likes || 0,
               rating: videoData.rating || 0,

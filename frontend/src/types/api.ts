@@ -1,5 +1,18 @@
 // API response types for better type safety
 
+export interface ApiTag {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string | null;
+  articles_count?: number;
+  videos_count?: number;
+  products_count?: number;
+  total_count?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface ApiVideo {
   id?: string | number;
   title?: string;
@@ -10,7 +23,7 @@ export interface ApiVideo {
   instructor?: string;
   published_at?: string;
   created_at?: string;
-  tags?: string[];
+  tags?: ApiTag[];
   categories?: string[];
   thumbnail?: string;
   featured_image?: string;
@@ -33,7 +46,7 @@ export interface ApiEssential {
   manufacturer?: string;
   created_at?: string;
   updated_at?: string;
-  tags?: string[];
+  tags?: ApiTag[];
   categories?: string[];
   image?: string;
   imageUrl?: string;
@@ -60,7 +73,7 @@ export interface ApiArticle {
   author?: string;
   published_at?: string;
   created_at?: string;
-  tags?: string[];
+  tags?: ApiTag[];
   categories?: string[];
   image?: string;
   featured_image?: string;
@@ -103,7 +116,7 @@ export interface ApiBook {
   publisher?: string;
   published_at?: string;
   created_at?: string;
-  tags?: string[];
+  tags?: ApiTag[];
   categories?: string[];
   image?: string;
   imageUrl?: string;
@@ -134,7 +147,7 @@ export interface ApiPot {
   in_stock?: boolean;
   image?: string;
   imageUrl?: string;
-  tags?: string[];
+  tags?: ApiTag[];
   published_at?: string;
   created_at?: string;
   author?: string;
@@ -155,7 +168,7 @@ export interface ApiAccessory {
   in_stock?: boolean;
   image?: string;
   imageUrl?: string;
-  tags?: string[];
+  tags?: ApiTag[];
   published_at?: string;
   created_at?: string;
   author?: string;
@@ -180,7 +193,7 @@ export interface ApiSuggestion {
   likes?: number;
   image?: string;
   imageUrl?: string;
-  tags?: string[];
+  tags?: ApiTag[];
   is_featured?: boolean;
   is_published?: boolean;
   published_at?: string;

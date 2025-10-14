@@ -20,10 +20,9 @@ class ArticleResource extends JsonResource
             'slug' => $this->slug,
             'excerpt' => $this->excerpt,
             'body' => $this->body,
+            'content' => $this->content ?? $this->body, // Return content field for frontend
             'status' => $this->status ?? 'published',
-            'category' => new CategoryResource($this->whenLoaded('category')),
-            'tags' => TagResource::collection($this->whenLoaded('tags')),
-            'author' => new UserResource($this->whenLoaded('author')),
+            'category' => $this->category ?? 'Technique', // Return category string like Video
             'views' => $this->views ?? 0,
             'likes' => $this->likes ?? 0,
             'rating' => $this->rating ?? 0,
@@ -33,6 +32,9 @@ class ArticleResource extends JsonResource
             'published_at' => $this->published_at,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            
+            // Tags relationship
+            'tags' => TagResource::collection($this->whenLoaded('tags')),
         ];
     }
 }

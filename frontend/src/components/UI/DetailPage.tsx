@@ -1,12 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// Removed framer-motion to fix motion context errors
 import { 
   ArrowLeft, Calendar, User, Tag, Eye, Share2, BookOpen, Play, Wrench, Leaf, Package,
   Clock, Star, Bookmark, MessageCircle, ExternalLink, ChevronDown, ChevronUp, Heart, ThumbsUp, Image
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Card from './Card';
-import { interactionService } from '../../services/api';
+import TagChip from './TagChip';
+import { interactionService, tagService } from '../../services/api';
+
+interface TagData {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string | null;
+}
 
 interface DetailPageProps {
   type: 'article' | 'video' | 'book' | 'tool' | 'essential' | 'pot' | 'accessory' | 'technique' | 'suggestion';
@@ -16,7 +24,7 @@ interface DetailPageProps {
   author?: string;
   instructor?: string; // For videos and techniques
   publishedAt: string;
-  tags: string[];
+  tags: TagData[] | string[];
   views?: number;
   likes?: number;
   backUrl: string;
@@ -88,6 +96,8 @@ const DetailPage: React.FC<DetailPageProps> = ({
   const [currentLikeCount, setCurrentLikeCount] = useState(Number(likes) || 0);
   const [currentRating, setCurrentRating] = useState(Number(rating) || 0);
   const [currentViewCount, setCurrentViewCount] = useState(Number(views) || 0);
+  const [tagBasedRelatedContent, setTagBasedRelatedContent] = useState<any[]>([]);
+  const [loadingRelated, setLoadingRelated] = useState(false);
 
   const loadUserInteractions = useCallback(async () => {
     try {
@@ -103,6 +113,42 @@ const DetailPage: React.FC<DetailPageProps> = ({
       console.error('Error loading user interactions:', error);
     }
   }, [type, contentId]);
+
+  // Load tag-based related content
+  const loadTagBasedRelatedContent = useCallback(async () => {
+    if (!tags || tags.length === 0) return;
+    
+    try {
+      setLoadingRelated(true);
+      
+      // Get first tag to find related content
+      const firstTag = Array.isArray(tags) && tags.length > 0 ? tags[0] : null;
+      if (!firstTag) return;
+      
+      const tagSlug = typeof firstTag === 'object' ? firstTag.slug : firstTag.toLowerCase().replace(/\s+/g, '-');
+      
+      console.log('🔍 [DetailPage] Loading related content for tag:', tagSlug);
+      
+      const response = await tagService.getContents(tagSlug);
+      
+      if (response && response.success && response.data && Array.isArray(response.data)) {
+        // Filter out current content and limit to 3 items
+        const relatedItems = response.data
+          .filter((item: any) => item && item.id && item.id !== contentId)
+          .slice(0, 3);
+        
+        console.log('🔍 [DetailPage] Found related content:', relatedItems.length);
+        setTagBasedRelatedContent(relatedItems);
+      } else {
+        console.log('🔍 [DetailPage] No related content found for tag:', tagSlug);
+        setTagBasedRelatedContent([]);
+      }
+    } catch (error) {
+      console.error('Error loading related content:', error);
+    } finally {
+      setLoadingRelated(false);
+    }
+  }, [tags, contentId]);
 
   const loadContentStats = useCallback(async () => {
     try {
@@ -143,6 +189,10 @@ const DetailPage: React.FC<DetailPageProps> = ({
       trackView(); // Track view when component mounts
     }
   }, [contentId, type, loadUserInteractions, loadContentStats, trackView]);
+
+  useEffect(() => {
+    loadTagBasedRelatedContent();
+  }, [loadTagBasedRelatedContent]);
 
   const handleToggleLike = async () => {
     if (!contentId) {
@@ -220,12 +270,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
   return (
     <div className="min-h-screen bg-transparent dark:bg-transparent">
       {/* Enhanced Header */}
-      <motion.div
-        className="relative overflow-hidden"
-        initial={{ opacity: 0, y: -50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-      >
+       <div className="relative overflow-hidden">
         {/* Background with pattern */}
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 dark:from-emerald-800/80 dark:via-green-800/80 dark:to-teal-800/80 dark:backdrop-blur-sm rounded-3xl mx-4 my-8">
           <div className="absolute inset-0 opacity-10 dark:opacity-20 rounded-3xl">
@@ -240,12 +285,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
           <div className="container mx-auto px-4">
             <div className="bg-white/10 dark:bg-slate-800/20 backdrop-blur-sm rounded-3xl p-8 mx-4">
             {/* Navigation */}
-            <motion.div
-              className="flex items-center justify-between mb-8"
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-            >
+             <div className="flex items-center justify-between mb-8">
               <Link
                 to={backUrl}
                 className="flex items-center text-white/90 hover:text-white transition-all duration-300 group bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full backdrop-blur-sm"
@@ -269,7 +309,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
                   <Share2 className="h-5 w-5" />
                 </button>
               </div>
-            </motion.div>
+            </div>
 
             {/* Title Section */}
             <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8">
@@ -336,12 +376,58 @@ const DetailPage: React.FC<DetailPageProps> = ({
                     </div>
                   )}
                 </div>
+                
+                {/* Tags Display */}
+                {tags && tags.length > 0 && (
+                  <div className="mt-6">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Tag className="h-4 w-4 text-white/80" />
+                      {tags.map((tag, index) => {
+                        // DEBUG: Log tag structure
+                        console.log('🔍 [DetailPage] Tag at index', index, ':', tag);
+                        console.log('🔍 [DetailPage] Tag type:', typeof tag);
+                        console.log('🔍 [DetailPage] Tag keys:', tag ? Object.keys(tag) : 'null');
+                        
+                        // Handle both Tag objects and strings
+                        const isTagObject = typeof tag === 'object' && tag !== null && 'id' in tag;
+                        console.log('🔍 [DetailPage] Is tag object:', isTagObject);
+                        
+                        if (isTagObject) {
+                          console.log('🔍 [DetailPage] Rendering TagChip with:', {
+                            id: tag.id,
+                            name: tag.name,
+                            slug: tag.slug
+                          });
+                          return (
+                            <TagChip
+                              key={tag.id}
+                              id={tag.id}
+                              name={tag.name}
+                              slug={tag.slug}
+                              size="small"
+                            />
+                          );
+                        }
+                        // Fallback for string tags (old format)
+                        console.log('🔍 [DetailPage] Rendering string tag:', tag);
+                        return (
+                          <span
+                            key={index}
+                            className="px-3 py-1 bg-white/20 text-white rounded-full text-sm font-medium backdrop-blur-sm"
+                          >
+                            {tag}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
@@ -349,12 +435,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
           <div className="lg:col-span-2">
 
             {/* Tabs Navigation */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="mb-8"
-            >
+            <div className="mb-8">
               <Card className="p-0 bg-white/90 dark:bg-slate-800/80 dark:backdrop-blur-sm border-0 shadow-xl rounded-3xl overflow-hidden">
                 <div className="flex border-b border-emerald-100 dark:border-slate-700">
                   {['overview', 'details', 'reviews'].map((tab) => (
@@ -372,25 +453,14 @@ const DetailPage: React.FC<DetailPageProps> = ({
                   ))}
                 </div>
               </Card>
-            </motion.div>
+            </div>
 
             {/* Tab Content */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
+            <div>
               <Card className="shadow-xl bg-white/90 dark:bg-slate-800/80 dark:backdrop-blur-sm border-0 rounded-3xl">
                 <div className="p-8">
-                  <AnimatePresence mode="wait">
                     {activeTab === 'overview' && (
-                      <motion.div
-                        key="overview"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
-                      >
+                      <div key="overview">
                         {/* YouTube Video Embed */}
                         {type === 'video' && embedUrl && (
                           <div className="mb-8">
@@ -649,17 +719,11 @@ const DetailPage: React.FC<DetailPageProps> = ({
                             </button>
                           </div>
                         )}
-                      </motion.div>
+                      </div>
                     )}
                     
                     {activeTab === 'details' && (
-                      <motion.div
-                        key="details"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
-                      >
+                      <div key="details">
                         <div className="space-y-6">
                           {/* Basic Information */}
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -834,7 +898,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
                               </h4>
                               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 {images.map((image, index) => (
-                                  <motion.div
+                                  <div
                                     key={index}
                                     whileHover={{ scale: 1.05 }}
                                     className="relative group cursor-pointer"
@@ -847,45 +911,33 @@ const DetailPage: React.FC<DetailPageProps> = ({
                                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-all duration-300 flex items-center justify-center">
                                       <Eye className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                     </div>
-                                  </motion.div>
+                                  </div>
                                 ))}
                               </div>
                             </div>
                           )}
                         </div>
-                      </motion.div>
+                      </div>
                     )}
                     
                     {activeTab === 'reviews' && (
-                      <motion.div
-                        key="reviews"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
-                      >
+                      <div key="reviews">
                         <div className="text-center py-12">
                           <MessageCircle className="h-12 w-12 text-emerald-400 dark:text-emerald-500 mx-auto mb-4" />
                           <h3 className="text-xl font-semibold text-emerald-800 dark:text-emerald-200 mb-2">No reviews yet</h3>
                           <p className="text-emerald-600 dark:text-emerald-300">Be the first to review this {type}!</p>
                         </div>
-                      </motion.div>
+                      </div>
                     )}
-                  </AnimatePresence>
                 </div>
               </Card>
-            </motion.div>
+            </div>
 
             {/* Additional Content */}
             {children && (
-              <motion.div
-                className="mt-8"
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-              >
+              <div className="mt-8">
                 {children}
-              </motion.div>
+              </div>
             )}
           </div>
 
@@ -893,11 +945,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
           <div className="space-y-6">
 
             {/* Quick Actions */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-            >
+            <div>
               <Card className="shadow-xl bg-white/90 dark:bg-slate-800/80 dark:backdrop-blur-sm border-0 rounded-3xl">
                 <h3 className="text-xl font-bold text-emerald-800 dark:text-emerald-200 mb-6 flex items-center">
                   <ThumbsUp className="h-5 w-5 mr-2" />
@@ -951,40 +999,42 @@ const DetailPage: React.FC<DetailPageProps> = ({
                   </button>
                 </div>
               </Card>
-            </motion.div>
+            </div>
 
             {/* Tags */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-            >
+            <div>
               <Card className="shadow-xl bg-white/90 dark:bg-slate-800/80 dark:backdrop-blur-sm border-0 rounded-3xl">
                 <h3 className="text-xl font-bold text-emerald-800 dark:text-emerald-200 mb-4 flex items-center">
                   <Tag className="h-5 w-5 mr-2" />
                   Tags
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {tags && Array.isArray(tags) && tags.map((tag, index) => (
-                    <motion.span
-                      key={index}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="px-3 py-1 bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-900/30 dark:to-green-900/30 text-emerald-700 dark:text-emerald-200 rounded-full text-sm font-medium hover:from-emerald-200 hover:to-green-200 dark:hover:from-emerald-900/50 dark:hover:to-green-900/50 transition-all duration-300 cursor-pointer border border-emerald-200 dark:border-emerald-700"
-                    >
-                      {tag}
-                    </motion.span>
-                  ))}
+                  {tags && Array.isArray(tags) && tags.map((tag, index) => {
+                    // Handle both Tag objects and strings
+                    const isTagObject = typeof tag === 'object' && tag !== null && 'id' in tag;
+                    const tagName = isTagObject ? tag.name : tag;
+                    const tagSlug = isTagObject ? tag.slug : tag.toLowerCase().replace(/\s+/g, '-');
+                    
+                    return (
+                      <Link 
+                        key={isTagObject ? tag.id : index}
+                        to={`/tags/${tagSlug}`}
+                        className="inline-block no-underline"
+                      >
+                        <span
+                          className="px-3 py-1 bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-900/30 dark:to-green-900/30 text-emerald-700 dark:text-emerald-200 rounded-full text-sm font-medium hover:from-emerald-200 hover:to-green-200 dark:hover:from-emerald-900/50 dark:hover:to-green-900/50 transition-all duration-300 cursor-pointer border border-emerald-200 dark:border-emerald-700 block hover:scale-105 active:scale-95"
+                        >
+                          {tagName}
+                        </span>
+                      </Link>
+                    );
+                  })}
                 </div>
               </Card>
-            </motion.div>
+            </div>
 
             {/* Stats */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-            >
+            <div>
               <Card className="shadow-xl bg-white/90 dark:bg-slate-800/80 dark:backdrop-blur-sm border-0 rounded-3xl">
                 <h3 className="text-xl font-bold text-emerald-800 dark:text-emerald-200 mb-4 flex items-center">
                   <Eye className="h-5 w-5 mr-2" />
@@ -1008,59 +1058,56 @@ const DetailPage: React.FC<DetailPageProps> = ({
                   </div>
                 </div>
               </Card>
-            </motion.div>
+            </div>
 
             {/* Related Content */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6 }}
-            >
+            <div>
               <Card className="shadow-xl bg-white/90 dark:bg-slate-800/80 dark:backdrop-blur-sm border-0 rounded-3xl">
                 <h3 className="text-xl font-bold text-emerald-800 dark:text-emerald-200 mb-4">Related {type}s</h3>
                 <div className="space-y-4">
-                  {relatedContent && Array.isArray(relatedContent) && relatedContent.length > 0 ? (
-                    relatedContent.slice(0, 3).map((item) => (
-                      <motion.div
-                        key={item.id}
-                        whileHover={{ x: 5 }}
-                        className="flex items-center space-x-3 p-4 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-2xl transition-all duration-300 cursor-pointer group border border-transparent hover:border-emerald-200 dark:hover:border-emerald-700"
-                      >
-                        <div className="w-16 h-16 bg-gradient-to-br from-emerald-200 to-green-200 dark:from-emerald-800 dark:to-green-800 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
-                          {getTypeIcon()}
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium text-emerald-800 dark:text-emerald-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                            {item.title}
-                          </h4>
-                          <p className="text-sm text-emerald-600 dark:text-emerald-400 capitalize">{item.type}</p>
-                        </div>
-                        <ExternalLink className="h-4 w-4 text-emerald-400 dark:text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </motion.div>
-                    ))
+                  {loadingRelated ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+                      <span className="ml-2 text-emerald-600 dark:text-emerald-400">Loading related content...</span>
+                    </div>
+                  ) : tagBasedRelatedContent.length > 0 ? (
+                    tagBasedRelatedContent.map((item) => {
+                      const itemTitle = item?.title || item?.name || 'Untitled';
+                      const itemDescription = item?.description || item?.excerpt || 'No description available';
+                      const itemSlug = item?.slug || item?.id || '';
+                      const itemType = item?.type || type;
+                      
+                      return (
+                        <Link 
+                          key={`${itemType}-${item?.id || Math.random()}`}
+                          to={getContentUrl({ ...item, type: itemType })}
+                          className="no-underline"
+                        >
+                          <div
+                            className="flex items-center space-x-3 p-4 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-2xl transition-all duration-300 cursor-pointer group border border-transparent hover:border-emerald-200 dark:hover:border-emerald-700 hover:translate-x-1"
+                          >
+                            <div className="w-16 h-16 bg-gradient-to-br from-emerald-200 to-green-200 dark:from-emerald-800 dark:to-green-800 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                              {getTypeIcon(itemType)}
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-medium text-emerald-800 dark:text-emerald-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors line-clamp-2">
+                                {itemTitle}
+                              </h4>
+                              <p className="text-sm text-emerald-600 dark:text-emerald-400 line-clamp-2">{itemDescription}</p>
+                            </div>
+                            <ExternalLink className="h-4 w-4 text-emerald-400 dark:text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                        </Link>
+                      );
+                    })
                   ) : (
-                    [1, 2, 3].map((item) => (
-                      <motion.div
-                        key={item}
-                        whileHover={{ x: 5 }}
-                        className="flex items-center space-x-3 p-4 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-2xl transition-all duration-300 cursor-pointer group border border-transparent hover:border-emerald-200 dark:hover:border-emerald-700"
-                      >
-                        <div className="w-16 h-16 bg-gradient-to-br from-emerald-200 to-green-200 dark:from-emerald-800 dark:to-green-800 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
-                          {getTypeIcon()}
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium text-emerald-800 dark:text-emerald-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                            Related {type} {item}
-                          </h4>
-                          <p className="text-sm text-emerald-600 dark:text-emerald-400">Short description...</p>
-                        </div>
-                        <ExternalLink className="h-4 w-4 text-emerald-400 dark:text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </motion.div>
-                    ))
+                    <div className="text-center py-8">
+                      <p className="text-emerald-600 dark:text-emerald-400">No related content found</p>
+                    </div>
                   )}
                 </div>
               </Card>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>

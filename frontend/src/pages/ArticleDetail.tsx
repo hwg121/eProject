@@ -7,6 +7,13 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import { findItemBySlug } from '../utils/slug';
 import { ApiArticle } from '../types/api';
 
+interface Tag {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string | null;
+}
+
 interface Article {
   id: string;
   title: string;
@@ -14,7 +21,7 @@ interface Article {
   excerpt: string;
   author: string;
   publishedAt: string;
-  tags: string[];
+  tags: Tag[];
   imageUrl: string;
   views: number;
   likes: number;
@@ -39,6 +46,16 @@ const ArticleDetail: React.FC = () => {
           const data = await publicService.getArticles();
           const articleData = findItemBySlug(data, slug!, 'slug', 'title');
           if (articleData) {
+            // Convert ApiTag[] to TagData[] for DetailPage compatibility
+            const convertedTags = Array.isArray(articleData.tags) 
+              ? articleData.tags.map(tag => ({
+                  id: tag.id,
+                  name: tag.name,
+                  slug: tag.slug,
+                  description: tag.description || null
+                }))
+              : [];
+
             const article: Article = {
               id: articleData.id?.toString() || slug!,
               title: articleData.title || '',
@@ -46,7 +63,7 @@ const ArticleDetail: React.FC = () => {
               excerpt: articleData.excerpt || articleData.description || '',
               author: articleData.author?.name || articleData.author || '',
               publishedAt: articleData.published_at || articleData.created_at || new Date().toISOString(),
-              tags: articleData.tags || articleData.categories || [],
+              tags: convertedTags,
               imageUrl: (articleData as ApiArticle & { featured_image?: string; cover?: string }).featured_image || (articleData as ApiArticle & { cover?: string }).cover || 'https://images.pexels.com/photos/1301856/pexels-photo-1301856.jpeg',
               views: articleData.views || 0,
               likes: articleData.likes || 0,

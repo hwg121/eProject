@@ -44,6 +44,16 @@ const TechniqueDetail: React.FC = () => {
           const data = await publicService.getArticles(); // Using articles as techniques
           const techniqueData = findItemBySlug(data, slug!, 'slug', 'title');
           if (techniqueData) {
+            // Convert ApiTag[] to TagData[] for DetailPage compatibility
+            const convertedTags = Array.isArray(techniqueData.tags) 
+              ? techniqueData.tags.map(tag => ({
+                  id: tag.id,
+                  name: tag.name,
+                  slug: tag.slug,
+                  description: tag.description || null
+                }))
+              : [];
+
             const technique: Technique = {
               id: techniqueData.id?.toString() || slug!,
               title: techniqueData.title || '',
@@ -51,7 +61,7 @@ const TechniqueDetail: React.FC = () => {
               content: techniqueData.body || techniqueData.content || '',
               author: techniqueData.author?.name || techniqueData.author || '',
               publishedAt: techniqueData.published_at || techniqueData.created_at || new Date().toISOString(),
-              tags: techniqueData.tags || techniqueData.categories || [],
+              tags: convertedTags,
               imageUrl: techniqueData.image || techniqueData.imageUrl || 'https://images.pexels.com/photos/1301856/pexels-photo-1301856.jpeg',
               views: techniqueData.views || 0,
               likes: techniqueData.likes || 0,

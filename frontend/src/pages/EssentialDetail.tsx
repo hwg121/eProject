@@ -46,6 +46,16 @@ const EssentialDetail: React.FC = () => {
           const data = await publicService.getEssentials();
           const essentialData = findItemBySlug<ApiEssential>(data as ApiEssential[], slug!, 'slug', 'name');
           if (essentialData) {
+            // Convert ApiTag[] to TagData[] for DetailPage compatibility
+            const convertedTags = Array.isArray(essentialData.tags) 
+              ? essentialData.tags.map(tag => ({
+                  id: tag.id,
+                  name: tag.name,
+                  slug: tag.slug,
+                  description: tag.description || null
+                }))
+              : [];
+
             const essential: Essential = {
               id: essentialData.id?.toString() || slug!,
               name: essentialData.name || '',
@@ -53,7 +63,7 @@ const EssentialDetail: React.FC = () => {
               content: essentialData.content || essentialData.details || '',
               author: essentialData.author || essentialData.manufacturer || '',
               publishedAt: essentialData.created_at || essentialData.updated_at || new Date().toISOString(),
-              tags: essentialData.tags || essentialData.categories || [],
+              tags: convertedTags,
               imageUrl: essentialData.image || essentialData.imageUrl || 'https://images.pexels.com/photos/1301856/pexels-photo-1301856.jpeg',
               views: essentialData.views || 0,
               likes: essentialData.likes || 0,

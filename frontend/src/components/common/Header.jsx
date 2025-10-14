@@ -57,6 +57,12 @@ const Header = () => {
               Videos
             </Link>
             <Link 
+              to="/tags" 
+              className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+            >
+              Tags
+            </Link>
+            <Link 
               to="/contact" 
               className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >
@@ -145,6 +151,13 @@ const Header = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Videos
+              </Link>
+              <Link
+                to="/tags"
+                className="text-gray-700 hover:text-green-600 block px-3 py-2 rounded-md text-base font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Tags
               </Link>
               <Link
                 to="/contact"

@@ -16,11 +16,20 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         try {
-        $query = Product::query();
+        $query = Product::query()->with('tags');
 
             // Filter by status
             // Check if user is authenticated admin/moderator
             $isAdmin = auth()->check() && in_array(auth()->user()->role, ['admin', 'moderator']);
+            
+            // Debug logging
+            \Log::info('ProductController::index - Debug', [
+                'isAdmin' => $isAdmin,
+                'user_id' => auth()->id(),
+                'user_role' => auth()->user() ? auth()->user()->role : 'not_authenticated',
+                'status_param' => $request->get('status'),
+                'has_status' => $request->has('status')
+            ]);
             
             if ($isAdmin) {
                 // Admin can see all, but if status param provided, filter by it
@@ -98,7 +107,7 @@ class ProductController extends Controller
     public function show($id)
     {
         try {
-            $product = Product::published()->findOrFail($id);
+            $product = Product::with('tags')->published()->findOrFail($id);
             
             // Use atomic increment to prevent race conditions
             Product::where('id', $id)->increment('views');
@@ -128,7 +137,8 @@ class ProductController extends Controller
     public function getByCategory($category)
     {
         try {
-            $products = Product::published()
+            $products = Product::with('tags')
+                ->published()
                 ->byCategory($category)
                 ->orderBy('created_at', 'desc')
                 ->get();
@@ -151,7 +161,8 @@ class ProductController extends Controller
     public function getFeatured()
     {
         try {
-            $products = Product::published()
+            $products = Product::with('tags')
+                ->published()
                 ->featured()
                 ->orderBy('created_at', 'desc')
                 ->get();
@@ -211,16 +222,17 @@ class ProductController extends Controller
                 // If already array, leave it as is - Laravel cast will handle
             }
             
-            // Handle tags: Laravel cast will auto-convert array to JSON
+            // Extract tags for pivot table syncing
+            $tags = [];
             if (isset($data['tags'])) {
-                if ($data['tags'] === '' || $data['tags'] === null || $data['tags'] === 'null') {
-                    $data['tags'] = null;
-                } elseif (is_string($data['tags']) && $data['tags'] !== '') {
-                    // If string, decode it to array for Laravel cast
+                if (is_array($data['tags'])) {
+                    $tags = $data['tags'];
+                } elseif (is_string($data['tags']) && $data['tags'] !== '' && $data['tags'] !== 'null') {
                     $decoded = json_decode($data['tags'], true);
-                    $data['tags'] = is_array($decoded) ? $decoded : null;
+                    $tags = is_array($decoded) ? $decoded : [];
                 }
-                // If already array, leave it as is - Laravel cast will handle
+                // Remove tags from data since it's no longer a fillable column
+                unset($data['tags']);
             }
             
             // Handle boolean fields: convert string/number to boolean
@@ -298,11 +310,17 @@ class ProductController extends Controller
                 'season' => 'nullable|string|max:255',
                 'plant_type' => 'nullable|string|max:255',
                 'estimated_time' => 'nullable|string|max:255',
-                'tags' => 'nullable|array',
                 'link' => 'nullable|string',
             ]);
 
             $product = Product::create($validated);
+            
+            // Sync tags via pivot table
+            if (!empty($tags)) {
+                $product->tags()->sync($tags);
+                // Load tags relationship to return in response
+                $product->load('tags');
+            }
 
         return response()->json([
             'success' => true,
@@ -323,7 +341,7 @@ class ProductController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $product = Product::findOrFail($id);
+            $product = Product::with('tags')->findOrFail($id);
             
             // Handle camelCase mapping first
             $data = $request->all();
@@ -365,18 +383,21 @@ class ProductController extends Controller
                 }
             }
             
-            // Handle array fields properly for Laravel casts
+            // Extract tags for pivot table syncing
+            $tags = null;
             if (isset($data['tags'])) {
-                if (is_string($data['tags'])) {
-                    // If tags is string, try to decode JSON or convert to array
+                if (is_array($data['tags'])) {
+                    $tags = $data['tags'];
+                } elseif (is_string($data['tags'])) {
                     if ($data['tags'] === '' || $data['tags'] === 'null') {
-                        $data['tags'] = null;
+                        $tags = [];
                     } else {
                         $decoded = json_decode($data['tags'], true);
-                        $data['tags'] = is_array($decoded) ? $decoded : null;
+                        $tags = is_array($decoded) ? $decoded : [];
                     }
                 }
-                // If already array or null, keep as is
+                // Remove tags from data since it's no longer a fillable column
+                unset($data['tags']);
             }
             
             if (isset($data['images_json'])) {
@@ -460,16 +481,22 @@ class ProductController extends Controller
                 'season' => 'nullable|string|max:255',
                 'plant_type' => 'nullable|string|max:255',
                 'estimated_time' => 'nullable|string|max:255',
-                'tags' => 'nullable',
                 'link' => 'nullable|string',
             ]);
 
             $product->update($validated);
             
+            // Sync tags via pivot table if provided
+            if ($tags !== null) {
+                $product->tags()->sync($tags);
+                // Reload tags relationship after sync
+                $product->load('tags');
+            }
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Product updated successfully',
-                'data' => $product
+                'data' => new ProductResource($product)
             ]);
         } catch (\Throwable $e) {
             // Temporary debug, do not keep in production

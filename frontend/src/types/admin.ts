@@ -20,7 +20,7 @@ export interface ContentItem {
   featured?: boolean;
   type?: string;
   description?: string;
-  tags?: string[];
+  tags?: number[] | { id: number; name: string; slug: string }[];
   imageUrl?: string;
   featured_image?: string;
   videoUrl?: string;

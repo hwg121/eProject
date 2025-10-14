@@ -20,5 +20,15 @@ class Tag extends Model
     {
         return $this->belongsToMany(Article::class);
     }
+
+    public function videos(): BelongsToMany
+    {
+        return $this->belongsToMany(Video::class);
+    }
+
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class);
+    }
 }
 

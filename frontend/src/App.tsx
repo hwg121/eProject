@@ -25,6 +25,10 @@ const ArticleDetail = lazy(() => import('./pages/ArticleDetail'));
 const VideoDetail = lazy(() => import('./pages/VideoDetail'));
 const TechniqueDetail = lazy(() => import('./pages/TechniqueDetail'));
 
+// Tags pages
+const TagsList = lazy(() => import('./pages/TagsList'));
+const TagArchive = lazy(() => import('./pages/TagArchive'));
+
 // Admin pages
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 // TODO: Create these admin pages when needed
@@ -104,7 +108,6 @@ function App() {
               <Route path="/*" element={
                 <Layout>
                   <Suspense fallback={<LoadingSpinner />}>
-                    <AnimatePresence mode="wait">
                       <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/techniques" element={<Techniques />} />
@@ -117,12 +120,15 @@ function App() {
                         <Route path="/books" element={<Books />} />
                         <Route path="/about-us" element={<AboutUs />} />
                         
+                        {/* Tags Pages */}
+                        <Route path="/tags" element={<TagsList />} />
+                        <Route path="/tags/:slug" element={<TagArchive />} />
+                        
                         {/* Detail Pages */}
                         <Route path="/article/:slug" element={<ArticleDetail />} />
                         <Route path="/video/:slug" element={<VideoDetail />} />
                         <Route path="/technique/:slug" element={<TechniqueDetail />} />
                       </Routes>
-                    </AnimatePresence>
                   </Suspense>
                 </Layout>
               } />

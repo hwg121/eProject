@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ArticleResource;
 use App\Models\Article;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
@@ -31,7 +32,7 @@ class ArticleController extends Controller
                 ]);
             }
 
-            $query = Article::query();
+            $query = Article::query()->with('tags');
 
             // Filter by status
             // Check if user is authenticated admin/moderator
@@ -75,7 +76,7 @@ class ArticleController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $articles->items(),
+                'data' => ArticleResource::collection($articles->items()),
                 'meta' => [
                     'current_page' => $articles->currentPage(),
                     'last_page' => $articles->lastPage(),
@@ -84,26 +85,22 @@ class ArticleController extends Controller
                 ]
             ]);
         } catch (\Exception $e) {
-            // Log error for debugging intermittent issues
+            // Log error for debugging
             \Log::error('ArticleController::index failed', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
                 'request' => $request->all(),
                 'user_id' => auth()->id(),
             ]);
             
-            // Return empty data instead of error for better frontend experience
+            // Return error to frontend for debugging
             return response()->json([
-                'success' => true,
-                'data' => [],
-                'meta' => [
-                    'current_page' => 1,
-                    'last_page' => 1,
-                    'per_page' => 15,
-                    'total' => 0,
-                ]
-            ]);
+                'success' => false,
+                'message' => 'Error fetching articles: ' . $e->getMessage(),
+                'data' => []
+            ], 500);
         }
     }
 
@@ -118,10 +115,10 @@ class ArticleController extends Controller
             
             if ($isAdmin) {
                 // Admin can view any article
-                $article = Article::findOrFail($id);
+                $article = Article::with('tags')->findOrFail($id);
             } else {
                 // Public can only view published articles
-                $article = Article::where('status', 'published')->findOrFail($id);
+                $article = Article::with('tags')->where('status', 'published')->findOrFail($id);
             }
             
             // Use atomic increment to prevent race conditions
@@ -130,7 +127,7 @@ class ArticleController extends Controller
             
             return response()->json([
                 'success' => true,
-                'data' => $article
+                'data' => new ArticleResource($article)
             ]);
         } catch (\Exception $e) {
             \Log::error('ArticleController::show failed', [
@@ -151,12 +148,14 @@ class ArticleController extends Controller
         try {
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
+                'slug' => 'required|string|max:255|unique:articles,slug',
                 'excerpt' => 'nullable|string',
-                'body' => 'required|string',
+                'body' => 'nullable|string', // Make body nullable since content can be used instead
                 'content' => 'nullable|string',
                 'featured_image' => 'nullable|string',
                 'cover' => 'nullable|string',
                 'status' => 'required|in:published,archived',
+                'category' => 'nullable|string|max:100', // Accept category as string like Video
                 'category_id' => 'nullable|exists:categories,id',
                 'author_id' => 'nullable|exists:users,id',
                 'published_at' => 'nullable|date',
@@ -164,9 +163,29 @@ class ArticleController extends Controller
                 'likes' => 'nullable|integer',
                 'rating' => 'nullable|numeric|min:0|max:5',
                 'is_featured' => 'nullable|boolean',
+                'tags' => 'nullable|array', // Accept array of tag IDs
+                'tags.*' => 'integer|exists:tags,id',
             ]);
-
+            
+            \Log::info('ArticleController::store - About to create with validated data:', $validated);
+            
+            // Extract tags before creating article
+            $tags = $validated['tags'] ?? [];
+            unset($validated['tags']);
+            
             $article = Article::create($validated);
+            
+            // Sync tags
+            if (!empty($tags)) {
+                $article->tags()->sync($tags);
+                // Load tags relationship to return in response
+                $article->load('tags');
+            }
+            
+            \Log::info('ArticleController::store - Article created:', [
+                'id' => $article->id,
+                'exists_in_db' => Article::where('id', $article->id)->exists()
+            ]);
             
             // Log article creation activity
             ActivityLog::logPublic(
@@ -181,8 +200,14 @@ class ArticleController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Article created successfully',
-                'data' => $article
+                'data' => new ArticleResource($article)
             ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -194,16 +219,18 @@ class ArticleController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $article = Article::findOrFail($id);
+            $article = Article::with('tags')->findOrFail($id);
             
             $validated = $request->validate([
                 'title' => 'sometimes|required|string|max:255',
+                'slug' => 'sometimes|required|string|max:255|unique:articles,slug,' . $id,
                 'excerpt' => 'nullable|string',
-                'body' => 'sometimes|required|string',
+                'body' => 'nullable|string',
                 'content' => 'nullable|string',
                 'featured_image' => 'nullable|string',
                 'cover' => 'nullable|string',
                 'status' => 'sometimes|required|in:published,archived',
+                'category' => 'nullable|string|max:100', // Accept category as string like Video
                 'category_id' => 'nullable|exists:categories,id',
                 'author_id' => 'nullable|exists:users,id',
                 'published_at' => 'nullable|date',
@@ -211,9 +238,22 @@ class ArticleController extends Controller
                 'likes' => 'nullable|integer',
                 'rating' => 'nullable|numeric|min:0|max:5',
                 'is_featured' => 'nullable|boolean',
+                'tags' => 'nullable|array', // Accept array of tag IDs
+                'tags.*' => 'integer|exists:tags,id',
             ]);
 
+            // Extract tags before updating article
+            $tags = $validated['tags'] ?? null;
+            unset($validated['tags']);
+
             $article->update($validated);
+            
+            // Sync tags if provided
+            if ($tags !== null) {
+                $article->tags()->sync($tags);
+                // Reload tags relationship after sync
+                $article->load('tags');
+            }
             
             // Log article update activity
             ActivityLog::logPublic(
@@ -228,7 +268,7 @@ class ArticleController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Article updated successfully',
-                'data' => $article
+                'data' => new ArticleResource($article)
             ]);
         } catch (\Exception $e) {
             return response()->json([

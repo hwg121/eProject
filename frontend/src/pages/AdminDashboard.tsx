@@ -37,6 +37,7 @@ import ContentManagementSection from '../components/admin/ContentManagementSecti
 import ContentForm from '../components/admin/ContentForm';
 import ProductManagement from '../components/admin/ProductManagement';
 import MobileAdminNav from '../components/admin/MobileAdminNav';
+import TagManagement from '../components/admin/TagManagement';
 import { ContentItem } from '../types/admin';
 
 // Import Site Settings components
@@ -1877,6 +1878,10 @@ Updated: ${product.updatedAt}
         />
       )}
 
+      {/* Tag Management */}
+      {activeTab === 'tags' && (
+        <TagManagement isDarkMode={isDarkMode} />
+      )}
 
       {/* Content Management - Only Techniques and Videos */}
       {['articles', 'videos', 'content-list', 'content-create', 'content-edit'].includes(activeTab) && (

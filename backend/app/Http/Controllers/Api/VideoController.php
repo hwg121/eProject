@@ -27,7 +27,7 @@ class VideoController extends Controller
                 ]);
             }
 
-            $query = Video::query();
+            $query = Video::query()->with('tags');
 
             // Filter by status
             // Check if user is authenticated admin/moderator
@@ -65,7 +65,7 @@ class VideoController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $videos->items(),
+                'data' => \App\Http\Resources\VideoResource::collection($videos->items()),
                 'meta' => [
                     'current_page' => $videos->currentPage(),
                     'last_page' => $videos->lastPage(),
@@ -96,10 +96,10 @@ class VideoController extends Controller
             
             if ($isAdmin) {
                 // Admin can view any video
-                $video = Video::findOrFail($id);
+                $video = Video::with('tags')->findOrFail($id);
             } else {
                 // Public can only view published videos
-                $video = Video::where('status', 'published')->findOrFail($id);
+                $video = Video::with('tags')->where('status', 'published')->findOrFail($id);
             }
             
             // Use atomic increment to prevent race conditions
@@ -108,7 +108,7 @@ class VideoController extends Controller
             
             return response()->json([
                 'success' => true,
-                'data' => $video
+                'data' => new \App\Http\Resources\VideoResource($video)
             ]);
         } catch (\Exception $e) {
             \Log::error('VideoController::show failed', [
@@ -172,9 +172,10 @@ class VideoController extends Controller
             if (Schema::hasColumn('videos', 'rating')) {
                 $validationRules['rating'] = 'nullable|numeric|min:0|max:5';
             }
-            if (Schema::hasColumn('videos', 'tags')) {
-                $validationRules['tags'] = 'nullable|string';
-            }
+            
+            // Tags are now managed via pivot table
+            $validationRules['tags'] = 'nullable|array';
+            $validationRules['tags.*'] = 'integer|exists:tags,id';
 
             $validated = $request->validate($validationRules);
 
@@ -200,7 +201,18 @@ class VideoController extends Controller
                 }
             }
             
+            // Extract tags before creating video
+            $tags = $validated['tags'] ?? [];
+            unset($validated['tags']);
+            
             $video = Video::create($validated);
+            
+            // Sync tags
+            if (!empty($tags)) {
+                $video->tags()->sync($tags);
+                // Load tags relationship to return in response
+                $video->load('tags');
+            }
             
             // Log video creation activity
             ActivityLog::logPublic(
@@ -215,7 +227,7 @@ class VideoController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Video created successfully',
-                'data' => $video
+                'data' => new \App\Http\Resources\VideoResource($video)
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
@@ -228,13 +240,23 @@ class VideoController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            \Log::info('VideoController::update called', [
+                'id' => $id,
+                'request_data' => $request->all(),
+                'user_id' => auth()->id()
+            ]);
+            
             // Handle _method=PUT for Laravel compatibility
             if ($request->has('_method') && $request->input('_method') === 'PUT') {
                 $request->merge($request->except('_method'));
             }
             
-            
-            $video = Video::findOrFail($id);
+            $video = Video::with('tags')->findOrFail($id);
+            \Log::info('VideoController::update - Video found', [
+                'video_id' => $video->id,
+                'current_status' => $video->status,
+                'title' => $video->title
+            ]);
             
             // Validation rules - simplified to avoid 422 errors
             $validationRules = [
@@ -273,9 +295,10 @@ class VideoController extends Controller
             if (Schema::hasColumn('videos', 'rating')) {
                 $validationRules['rating'] = 'nullable|numeric|min:0|max:5';
             }
-            if (Schema::hasColumn('videos', 'tags')) {
-                $validationRules['tags'] = 'nullable|string';
-            }
+            
+            // Tags are now managed via pivot table
+            $validationRules['tags'] = 'nullable|array';
+            $validationRules['tags.*'] = 'integer|exists:tags,id';
 
             // Validate with fallback to prevent 422 errors
             try {
@@ -317,7 +340,26 @@ class VideoController extends Controller
                 }
             }
             
+            // Extract tags before updating video
+            $tags = $validated['tags'] ?? null;
+            unset($validated['tags']);
+            
             $video->update($validated);
+            
+            // Sync tags if provided
+            if ($tags !== null) {
+                $video->tags()->sync($tags);
+            }
+            
+            // Reload model with tags relationship after sync
+            $video->refresh();
+            $video->load('tags');
+            
+            \Log::info('VideoController::update - Video updated', [
+                'video_id' => $video->id,
+                'new_status' => $video->status,
+                'updated_fields' => array_keys($validated)
+            ]);
             
             // Log video update activity
             ActivityLog::logPublic(
@@ -332,7 +374,7 @@ class VideoController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Video updated successfully',
-                'data' => $video->fresh()
+                'data' => new \App\Http\Resources\VideoResource($video)
             ]);
             
         } catch (\Illuminate\Validation\ValidationException $e) {

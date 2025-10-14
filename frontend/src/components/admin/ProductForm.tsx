@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { TextField, MenuItem, Checkbox, FormControlLabel } from '@mui/material';
 import Toast from '../UI/Toast';
+import TagInput from './TagInput';
 import { validateText, validateNumber, validateURL } from '../../utils/validation';
 
 interface Product {
@@ -71,9 +72,17 @@ const ProductForm: React.FC<ProductFormProps> = ({
     if (item) {
       // Handle both 'featured' and 'is_featured' fields
       const featured = (item as any).featured ?? item.is_featured ?? false;
+      
+      // Convert tags from Tag objects to IDs for TagInput
+      let tags = [];
+      if (Array.isArray(item.tags)) {
+        tags = item.tags.map((tag: any) => typeof tag === 'object' && tag.id ? tag.id : tag).filter(Boolean);
+      }
+      
       return {
         ...item,
-        is_featured: featured
+        is_featured: featured,
+        tags: tags
       };
     }
     return {
@@ -177,11 +186,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
           : null,
         // Ensure rating is number
         rating: item.rating ? (typeof item.rating === 'string' ? parseFloat(item.rating) : item.rating) : 0,
-        // Convert tags array to comma-separated string for input display
-        tags: item.tags 
-          ? (Array.isArray(item.tags) 
-            ? item.tags 
-            : (typeof item.tags === 'string' ? item.tags : []))
+        // Convert tags from Tag objects to IDs for TagInput
+        tags: Array.isArray(item.tags) 
+          ? item.tags.map((tag: any) => typeof tag === 'object' && tag.id ? tag.id : tag).filter(Boolean)
           : []
       };
       
@@ -218,14 +225,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
       title: undefined,
       // Ensure subcategory is sent (even if empty string)
       subcategory: formData.subcategory || '',
-      // Convert tags to array if it's a string
-      tags: formData.tags 
-        ? (Array.isArray(formData.tags) 
-          ? formData.tags 
-          : (typeof formData.tags === 'string' 
-            ? (formData.tags as string).split(',').map((tag: string) => tag.trim()).filter(Boolean)
-            : []))
-        : undefined,
+      // Tags should be array of tag IDs
+      tags: Array.isArray(formData.tags) ? formData.tags : [],
       rating: (() => {
         const ratingValue = parseFloat(formData.rating as any) || 0;
         console.log('Frontend - Rating Debug:', {
@@ -605,21 +606,19 @@ const ProductForm: React.FC<ProductFormProps> = ({
               />
             </div>
           </div>
-
-          <div>
-            <TextField
-              fullWidth
-              size="small"
-              label="Tags (comma-separated)"
-              value={Array.isArray(formData.tags) ? formData.tags.join(', ') : (formData.tags || '')}
-              onChange={(e) => setFormData({ ...formData, tags: e.target.value as any })}
-              placeholder="tag1, tag2, tag3"
-              helperText="Enter tags separated by commas"
-              sx={textFieldStyles}
-            />
-          </div>
         </>
       )}
+
+      {/* Tags field for all categories */}
+      <div>
+        <TagInput
+          value={Array.isArray(formData.tags) ? formData.tags.map(Number).filter(n => !isNaN(n)) : []}
+          onChange={(tagIds) => setFormData({ ...formData, tags: tagIds as any })}
+          label="Tags"
+          placeholder="Select tags..."
+          helperText="Select relevant tags for better product discovery"
+        />
+      </div>
 
       {/* Link field for all categories */}
       <div>

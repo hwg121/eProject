@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Product extends Model
 {
@@ -30,7 +31,6 @@ class Product extends Model
         'season',
         'plant_type',
         'estimated_time',
-        'tags',
         'link',
         'status',
         'is_featured',
@@ -40,7 +40,6 @@ class Product extends Model
     ];
 
     protected $casts = [
-        'tags' => 'array',
         'drainage_holes' => 'boolean',
         'is_waterproof' => 'boolean',
         'is_durable' => 'boolean',
@@ -94,5 +93,13 @@ class Product extends Model
     public function getDisplayLink()
     {
         return $this->link;
+    }
+
+    /**
+     * Get the tags associated with this product.
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class);
     }
 }

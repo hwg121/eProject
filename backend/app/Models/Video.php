@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Video extends Model
 {
@@ -37,7 +38,6 @@ class Video extends Model
         'link',
         'thumbnail_url',
         'rating',
-        'tags',
     ];
 
 
@@ -110,6 +110,14 @@ class Video extends Model
         }
 
         return $this->cover;
+    }
+
+    /**
+     * Get the tags associated with this video.
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class);
     }
 }
 
