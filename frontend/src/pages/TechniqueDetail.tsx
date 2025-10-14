@@ -30,6 +30,7 @@ interface Technique {
 const TechniqueDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [technique, setTechnique] = useState<Technique | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,14 +40,28 @@ const TechniqueDetail: React.FC = () => {
       try {
         setLoading(true);
         
-        // Try to fetch from API first
+        // Check if user is admin/moderator
+        const isAdmin = user && (user.role === 'admin' || user.role === 'moderator');
+        
+        // Try to fetch from API
         try {
-          const response = await publicService.getArticles(); // Using articles as techniques
+          // If admin, fetch all articles (including archived)
+          // If public, fetch only published articles
+          const response = isAdmin 
+            ? await articlesService.getAll({ per_page: 1000 })
+            : await publicService.getArticles(); // Using articles as techniques
           
           // Handle API response format: {success: true, data: [...]}
           let articlesData: ApiArticle[] = [];
           if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
-            articlesData = (response as any).data;
+            // Check if data is paginated or direct array
+            const dataField = (response as any).data;
+            if (Array.isArray(dataField)) {
+              articlesData = dataField;
+            } else if (dataField && Array.isArray(dataField.data)) {
+              // Paginated response
+              articlesData = dataField.data;
+            }
           } else if (Array.isArray(response)) {
             articlesData = response;
           }

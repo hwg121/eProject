@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import DetailPage from '../components/UI/DetailPage';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { findItemBySlug } from '../utils/slug';
-import { publicService } from '../services/api';
+import { publicService, videosService } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import { ApiVideo } from '../types/api';
 
 interface Tag {
@@ -32,6 +33,7 @@ interface Video {
 const VideoDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [video, setVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,14 +43,28 @@ const VideoDetail: React.FC = () => {
       try {
         setLoading(true);
         
-        // Try to fetch from API first
+        // Check if user is admin/moderator
+        const isAdmin = user && (user.role === 'admin' || user.role === 'moderator');
+        
+        // Try to fetch from API
         try {
-          const response = await publicService.getVideos();
+          // If admin, fetch all videos (including archived)
+          // If public, fetch only published videos
+          const response = isAdmin 
+            ? await videosService.getAll({ per_page: 1000 })
+            : await publicService.getVideos();
           
           // Handle API response format: {success: true, data: [...]}
           let videosData: ApiVideo[] = [];
           if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
-            videosData = (response as any).data;
+            // Check if data is paginated or direct array
+            const dataField = (response as any).data;
+            if (Array.isArray(dataField)) {
+              videosData = dataField;
+            } else if (dataField && Array.isArray(dataField.data)) {
+              // Paginated response
+              videosData = dataField.data;
+            }
           } else if (Array.isArray(response)) {
             videosData = response;
           }

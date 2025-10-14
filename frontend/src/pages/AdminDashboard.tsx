@@ -964,10 +964,14 @@ const AdminDashboard: React.FC = () => {
 
   const handleSave = async (formData: Partial<ContentItem>) => {
     try {
-      // Get currentContentType from formData or state
-      const contentType = (formData as any).currentContentType || currentContentType;
+      // Priority: formData.category > currentContentType from formData > state currentContentType
+      const categoryFromForm = formData.category || (formData as any).currentContentType || currentContentType;
+      
       console.log('AdminDashboard.handleSave - Input:', {
-        currentContentType: contentType,
+        formDataCategory: formData.category,
+        currentContentTypeFromForm: (formData as any).currentContentType,
+        stateCurrentContentType: currentContentType,
+        selectedCategory: categoryFromForm,
         editingItem: !!editingItem,
         formData
       });
@@ -977,12 +981,19 @@ const AdminDashboard: React.FC = () => {
         formData.slug = generateSlug(formData.title);
       }
       
-      // Normalize currentContentType to plural form for consistency
-      let serviceType = contentType;
-      if (contentType === 'article' || contentType === 'Technique') serviceType = 'articles';
-      if (contentType === 'video' || contentType === 'Video') serviceType = 'videos';
+      // Normalize category to service type (plural form)
+      let serviceType = categoryFromForm;
       
-      console.log('AdminDashboard.handleSave - Normalized serviceType:', serviceType);
+      // Handle all variations of article/technique
+      if (categoryFromForm === 'article' || categoryFromForm === 'Technique' || categoryFromForm === 'technique' || categoryFromForm === 'articles') {
+        serviceType = 'articles';
+      }
+      // Handle all variations of video
+      else if (categoryFromForm === 'video' || categoryFromForm === 'Video' || categoryFromForm === 'videos') {
+        serviceType = 'videos';
+      }
+      
+      console.log('AdminDashboard.handleSave - Normalized serviceType:', serviceType, 'from category:', categoryFromForm);
       
       // Save logic based on currentContentType
       if (editingItem) {

@@ -4,7 +4,8 @@ import { motion } from 'framer-motion';
 import { Star, Leaf, Package, Shield } from 'lucide-react';
 import DetailPage from '../components/UI/DetailPage';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import { publicService } from '../services/api';
+import { publicService, productService } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import { findItemBySlug } from '../utils/slug';
 import { ApiEssential } from '../types/api';
 
@@ -32,6 +33,7 @@ interface Essential {
 const EssentialDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [essential, setEssential] = useState<Essential | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,14 +43,28 @@ const EssentialDetail: React.FC = () => {
       try {
         setLoading(true);
         
-        // Try to fetch from API first
+        // Check if user is admin/moderator
+        const isAdmin = user && (user.role === 'admin' || user.role === 'moderator');
+        
+        // Try to fetch from API
         try {
-          const response = await publicService.getEssentials();
+          // If admin, fetch all products (including archived)
+          // If public, fetch only published essentials
+          const response = isAdmin 
+            ? await productService.getAll({ category: 'essential', per_page: 1000 })
+            : await publicService.getEssentials();
           
           // Handle API response format: {success: true, data: [...]}
           let essentialsData: ApiEssential[] = [];
           if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
-            essentialsData = (response as any).data;
+            // Check if data is paginated or direct array
+            const dataField = (response as any).data;
+            if (Array.isArray(dataField)) {
+              essentialsData = dataField;
+            } else if (dataField && Array.isArray(dataField.data)) {
+              // Paginated response
+              essentialsData = dataField.data;
+            }
           } else if (Array.isArray(response)) {
             essentialsData = response;
           }
