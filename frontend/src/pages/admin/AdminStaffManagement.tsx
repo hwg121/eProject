@@ -118,19 +118,15 @@ const AdminStaffManagement: React.FC = () => {
     } catch (err: any) {
       console.error('AdminStaffManagement - Load error:', err);
       
-      // Handle different types of errors
+      // Extract proper error message from backend
       let errorMessage = 'Failed to load staff members. Please try again.';
       
       if (err?.response?.data?.message) {
         errorMessage = err.response.data.message;
+      } else if (err?.response?.data?.error) {
+        errorMessage = err.response.data.error;
       } else if (err?.message) {
         errorMessage = err.message;
-      } else if (err?.response?.status === 500) {
-        errorMessage = 'Server error. Please try again later.';
-      } else if (err?.response?.status === 401) {
-        errorMessage = 'Unauthorized. Please login again.';
-      } else if (err?.response?.status === 403) {
-        errorMessage = 'Access denied. You do not have permission.';
       }
       
       setError(errorMessage);
@@ -177,21 +173,15 @@ const AdminStaffManagement: React.FC = () => {
       } catch (err: any) {
         console.error('AdminStaffManagement - Delete error:', err);
         
-        // Handle different types of errors
+        // Extract proper error message from backend
         let errorMessage = 'Failed to delete staff member. Please try again.';
         
         if (err?.response?.data?.message) {
           errorMessage = err.response.data.message;
+        } else if (err?.response?.data?.error) {
+          errorMessage = err.response.data.error;
         } else if (err?.message) {
           errorMessage = err.message;
-        } else if (err?.response?.status === 500) {
-          errorMessage = 'Server error. Please try again later.';
-        } else if (err?.response?.status === 401) {
-          errorMessage = 'Unauthorized. Please login again.';
-        } else if (err?.response?.status === 403) {
-          errorMessage = 'Access denied. You do not have permission.';
-        } else if (err?.response?.status === 404) {
-          errorMessage = 'Staff member not found.';
         }
         
         setError(errorMessage);
@@ -258,23 +248,26 @@ const AdminStaffManagement: React.FC = () => {
     } catch (err: any) {
       console.error('AdminStaffManagement - Save error:', err);
       
-      // Handle different types of errors
+      // Extract proper error message from backend
       let errorMessage = 'Failed to save staff member. Please try again.';
       
+      // Priority 1: Backend message
       if (err?.response?.data?.message) {
         errorMessage = err.response.data.message;
-      } else if (err?.message) {
+      } 
+      // Priority 2: Backend error field
+      else if (err?.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } 
+      // Priority 3: Backend errors object (validation)
+      else if (err?.response?.data?.errors) {
+        const errors = err.response.data.errors;
+        const firstError = Object.values(errors)[0];
+        errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+      }
+      // Priority 4: Error message property
+      else if (err?.message) {
         errorMessage = err.message;
-      } else if (err?.response?.status === 422) {
-        errorMessage = 'Validation failed. Please check your input.';
-      } else if (err?.response?.status === 500) {
-        errorMessage = 'Server error. Please try again later.';
-      } else if (err?.response?.status === 401) {
-        errorMessage = 'Unauthorized. Please login again.';
-      } else if (err?.response?.status === 403) {
-        errorMessage = 'Access denied. You do not have permission.';
-      } else if (err?.response?.status === 409) {
-        errorMessage = 'Staff member with this name already exists.';
       }
       
       setError(errorMessage);
@@ -712,15 +705,19 @@ const AdminStaffManagement: React.FC = () => {
                   fullWidth
                   size="small"
                   label="Name"
-                  required
                   value={formData.name}
                   onChange={(e) => {
-                    setFormData({ ...formData, name: e.target.value });
+                    const value = e.target.value;
+                    if (value.length > 100) {
+                      setErrors({ ...errors, name: 'Name must not exceed 100 characters' });
+                      return;
+                    }
+                    setFormData({ ...formData, name: value });
                     setErrors({ ...errors, name: null });
                   }}
                   error={!!errors.name}
-                  helperText={errors.name}
-                  inputProps={{ minLength: 2, maxLength: 100 }}
+                  helperText={errors.name || 'Enter full name (2-100 characters)'}
+                  inputProps={{ maxLength: 100 }}
                   placeholder="Enter staff member name"
                   sx={textFieldStyles}
                 />
@@ -729,15 +726,19 @@ const AdminStaffManagement: React.FC = () => {
                   fullWidth
                   size="small"
                   label="Role"
-                  required
                   value={formData.role}
                   onChange={(e) => {
-                    setFormData({ ...formData, role: e.target.value });
+                    const value = e.target.value;
+                    if (value.length > 50) {
+                      setErrors({ ...errors, role: 'Role must not exceed 50 characters' });
+                      return;
+                    }
+                    setFormData({ ...formData, role: value });
                     setErrors({ ...errors, role: null });
                   }}
                   error={!!errors.role}
-                  helperText={errors.role}
-                  inputProps={{ minLength: 2, maxLength: 50 }}
+                  helperText={errors.role || 'Job title or position (2-50 characters)'}
+                  inputProps={{ maxLength: 50 }}
                   placeholder="e.g., CEO, Developer, Designer"
                   sx={textFieldStyles}
                 />
@@ -746,17 +747,21 @@ const AdminStaffManagement: React.FC = () => {
               <TextField
                 fullWidth
                 label="Short Bio"
-                required
                 multiline
                 rows={4}
                 value={formData.short_bio}
                 onChange={(e) => {
-                  setFormData({ ...formData, short_bio: e.target.value });
+                  const value = e.target.value;
+                  if (value.length > 1000) {
+                    setErrors({ ...errors, short_bio: 'Bio must not exceed 1000 characters' });
+                    return;
+                  }
+                  setFormData({ ...formData, short_bio: value });
                   setErrors({ ...errors, short_bio: null });
                 }}
                 error={!!errors.short_bio}
-                helperText={errors.short_bio}
-                inputProps={{ minLength: 10, maxLength: 1000 }}
+                helperText={errors.short_bio || `${formData.short_bio.length}/1000 characters (min 10)`}
+                inputProps={{ maxLength: 1000 }}
                 placeholder="Brief description about this staff member"
                 sx={textFieldStyles}
               />
@@ -769,12 +774,27 @@ const AdminStaffManagement: React.FC = () => {
                   type="number"
                   value={formData.display_order}
                   onChange={(e) => {
-                    setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 });
+                    const value = e.target.value;
+                    if (value === '') {
+                      setFormData({ ...formData, display_order: 0 });
+                      setErrors({ ...errors, display_order: null });
+                      return;
+                    }
+                    const numValue = parseInt(value);
+                    if (numValue < 0) {
+                      setErrors({ ...errors, display_order: 'Order cannot be negative' });
+                      return;
+                    }
+                    if (numValue > 1000) {
+                      setErrors({ ...errors, display_order: 'Order cannot exceed 1000' });
+                      return;
+                    }
+                    setFormData({ ...formData, display_order: numValue });
                     setErrors({ ...errors, display_order: null });
                   }}
                   error={!!errors.display_order}
-                  helperText={errors.display_order}
-                  inputProps={{ min: 0, max: 1000 }}
+                  helperText={errors.display_order || 'Display order (0-1000)'}
+                  inputProps={{ min: 0, max: 1000, step: 1 }}
                   sx={textFieldStyles}
                 />
 

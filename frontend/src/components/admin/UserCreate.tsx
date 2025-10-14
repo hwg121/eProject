@@ -92,18 +92,29 @@ const UserCreate: React.FC<UserCreateProps> = ({
 
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
+    } else if (formData.name.trim().length < 2) {
+      newErrors.name = 'Name must be at least 2 characters';
+    } else if (formData.name.trim().length > 100) {
+      newErrors.name = 'Name must not exceed 100 characters';
     }
 
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+    } else {
+      const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+      if (!emailRegex.test(formData.email.trim())) {
+        newErrors.email = 'Please enter a valid email address';
+      } else if (formData.email.trim().length > 254) {
+        newErrors.email = 'Email must not exceed 254 characters';
+      }
     }
 
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
+    } else if (formData.password.length > 128) {
+      newErrors.password = 'Password must not exceed 128 characters';
     }
 
     if (formData.password !== formData.confirmPassword) {
@@ -112,6 +123,15 @@ const UserCreate: React.FC<UserCreateProps> = ({
 
     if (!formData.phone.trim()) {
       newErrors.phone = 'Phone is required';
+    } else {
+      const phoneDigits = formData.phone.replace(/[\s\-\(\)\+]/g, '');
+      if (!/^\d+$/.test(phoneDigits)) {
+        newErrors.phone = 'Phone can only contain digits, spaces, dashes, and parentheses';
+      } else if (phoneDigits.length < 10) {
+        newErrors.phone = 'Phone must be at least 10 digits';
+      } else if (phoneDigits.length > 15) {
+        newErrors.phone = 'Phone must not exceed 15 digits';
+      }
     }
 
     setErrors(newErrors);
@@ -149,6 +169,29 @@ const UserCreate: React.FC<UserCreateProps> = ({
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Real-time validation for specific fields
+    if (field === 'email' && value) {
+      const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+      if (!emailRegex.test(value.trim())) {
+        setErrors(prev => ({ ...prev, email: 'Invalid email format' }));
+        return;
+      }
+    }
+    
+    if (field === 'phone' && value) {
+      const phoneDigits = value.replace(/[\s\-\(\)\+]/g, '');
+      if (phoneDigits && !/^\d+$/.test(phoneDigits)) {
+        setErrors(prev => ({ ...prev, phone: 'Phone can only contain digits, spaces, dashes, and parentheses' }));
+        return;
+      }
+    }
+    
+    if (field === 'name' && value.length > 100) {
+      setErrors(prev => ({ ...prev, name: 'Name must not exceed 100 characters' }));
+      return;
+    }
+    
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -210,12 +253,12 @@ const UserCreate: React.FC<UserCreateProps> = ({
               <TextField
                 fullWidth
                 label="Full Name"
-                required
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 placeholder="Enter full name"
                 error={!!errors.name}
-                helperText={errors.name}
+                helperText={errors.name || `${formData.name.length}/100 characters (min 2)`}
+                inputProps={{ maxLength: 100 }}
                 sx={textFieldStyles}
               />
 
@@ -223,12 +266,12 @@ const UserCreate: React.FC<UserCreateProps> = ({
                 fullWidth
                 label="Email Address"
                 type="email"
-                required
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 placeholder="Enter email address"
                 error={!!errors.email}
-                helperText={errors.email}
+                helperText={errors.email || 'Valid email format: user@example.com (max 254 chars)'}
+                inputProps={{ maxLength: 254 }}
                 sx={textFieldStyles}
               />
 
@@ -236,12 +279,15 @@ const UserCreate: React.FC<UserCreateProps> = ({
                 fullWidth
                 label="Phone Number"
                 type="tel"
-                required
                 value={formData.phone}
                 onChange={(e) => handleInputChange('phone', e.target.value)}
                 placeholder="Enter phone number"
                 error={!!errors.phone}
-                helperText={errors.phone}
+                helperText={errors.phone || 'Format: +1234567890 or (123) 456-7890 (10-15 digits)'}
+                inputProps={{ 
+                  pattern: '[0-9\\s\\-\\(\\)\\+]{10,20}',
+                  maxLength: 20
+                }}
                 sx={textFieldStyles}
               />
 
@@ -285,12 +331,16 @@ const UserCreate: React.FC<UserCreateProps> = ({
                 fullWidth
                 label="Password"
                 type="password"
-                required
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
                 placeholder="Enter password"
                 error={!!errors.password}
-                helperText={errors.password || 'Minimum 6 characters'}
+                helperText={errors.password || 'Password: 6-128 characters, no spaces'}
+                inputProps={{ 
+                  minLength: 6,
+                  maxLength: 128,
+                  pattern: '\\S{6,128}'
+                }}
                 sx={textFieldStyles}
               />
 
@@ -298,7 +348,6 @@ const UserCreate: React.FC<UserCreateProps> = ({
                 fullWidth
                 label="Confirm Password"
                 type="password"
-                required
                 value={formData.confirmPassword}
                 onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
                 placeholder="Confirm password"
@@ -347,8 +396,14 @@ const UserCreate: React.FC<UserCreateProps> = ({
                 multiline
                 rows={3}
                 value={formData.bio}
-                onChange={(e) => handleInputChange('bio', e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.length > 1000) return;
+                  handleInputChange('bio', value);
+                }}
                 placeholder="Tell us about this user..."
+                helperText={`${formData.bio.length}/1000 characters`}
+                inputProps={{ maxLength: 1000 }}
                 sx={textFieldStyles}
               />
 

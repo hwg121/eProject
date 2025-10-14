@@ -192,7 +192,6 @@ const Login: React.FC = () => {
                       : 'bg-white border-emerald-200 text-gray-900'
                   }`}
                   placeholder="Enter your email"
-                  required
                 />
               </div>
             </div>
@@ -217,7 +216,6 @@ const Login: React.FC = () => {
                       : 'bg-white border-emerald-200 text-gray-900'
                   }`}
                   placeholder="Enter your password"
-                  required
                 />
                 <button
                   type="button"

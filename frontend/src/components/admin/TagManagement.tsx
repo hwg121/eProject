@@ -139,7 +139,19 @@ const TagManagement: React.FC<TagManagementProps> = ({ isDarkMode }) => {
         response: error?.response,
         data: error?.response?.data,
       });
-      showToast(error?.message || 'Failed to load tags', 'error');
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to load tags. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
       console.log('🔍 [TagManagement] Step 4: Loading complete');
@@ -197,17 +209,33 @@ const TagManagement: React.FC<TagManagementProps> = ({ isDarkMode }) => {
     if (!formData.name.trim()) {
       errors.name = 'Tag name is required';
       isValid = false;
-    } else if (formData.name.length < 2) {
+    } else if (formData.name.trim().length < 2) {
       errors.name = 'Tag name must be at least 2 characters';
       isValid = false;
-    } else if (formData.name.length > 255) {
+    } else if (formData.name.trim().length > 255) {
       errors.name = 'Tag name must not exceed 255 characters';
       isValid = false;
     }
 
-    if (formData.slug && formData.slug.length > 255) {
-      errors.slug = 'Slug must not exceed 255 characters';
-      isValid = false;
+    if (formData.slug) {
+      if (formData.slug.length > 255) {
+        errors.slug = 'Slug must not exceed 255 characters';
+        isValid = false;
+      }
+      // Validate slug format: only lowercase, numbers, hyphens
+      const slugRegex = /^[a-z0-9-]+$/;
+      if (!slugRegex.test(formData.slug)) {
+        errors.slug = 'Slug can only contain lowercase letters, numbers, and hyphens';
+        isValid = false;
+      }
+      if (formData.slug.startsWith('-') || formData.slug.endsWith('-')) {
+        errors.slug = 'Slug cannot start or end with a hyphen';
+        isValid = false;
+      }
+      if (formData.slug.includes('--')) {
+        errors.slug = 'Slug cannot contain consecutive hyphens';
+        isValid = false;
+      }
     }
 
     setFormErrors(errors);
@@ -246,7 +274,22 @@ const TagManagement: React.FC<TagManagementProps> = ({ isDarkMode }) => {
       }
     } catch (error: any) {
       console.error('Error saving tag:', error);
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save tag';
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to save tag. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        const firstError = Object.values(errors)[0];
+        errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
       showToast(errorMessage, 'error');
     }
   };
@@ -268,7 +311,18 @@ const TagManagement: React.FC<TagManagementProps> = ({ isDarkMode }) => {
       }
     } catch (error: any) {
       console.error('Error deleting tag:', error);
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete tag';
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to delete tag. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
       showToast(errorMessage, 'error');
     } finally {
       setConfirmDialogOpen(false);
@@ -478,9 +532,14 @@ const TagManagement: React.FC<TagManagementProps> = ({ isDarkMode }) => {
             fullWidth
             label="Tag Name *"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value.length > 255) return;
+              setFormData({ ...formData, name: value });
+            }}
             error={!!formErrors.name}
-            helperText={formErrors.name}
+            helperText={formErrors.name || `${formData.name.length}/255 characters (min 2)`}
+            inputProps={{ maxLength: 255 }}
             placeholder="e.g., Organic Farming"
             sx={textFieldStyles}
           />
@@ -488,9 +547,19 @@ const TagManagement: React.FC<TagManagementProps> = ({ isDarkMode }) => {
             fullWidth
             label="Slug (URL-friendly)"
             value={formData.slug}
-            onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+            onChange={(e) => {
+              const value = e.target.value;
+              // Auto-convert to lowercase and remove invalid chars
+              const slugValue = value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+              if (slugValue.length > 255) return;
+              setFormData({ ...formData, slug: slugValue });
+            }}
             error={!!formErrors.slug}
-            helperText={formErrors.slug || 'Leave empty to auto-generate from name'}
+            helperText={formErrors.slug || `${formData.slug.length}/255 characters - Only lowercase, numbers, hyphens. Leave empty to auto-generate`}
+            inputProps={{ 
+              maxLength: 255,
+              pattern: '[a-z0-9-]*'
+            }}
             placeholder="e.g., organic-farming"
             sx={textFieldStyles}
           />
@@ -500,8 +569,14 @@ const TagManagement: React.FC<TagManagementProps> = ({ isDarkMode }) => {
             rows={3}
             label="Description"
             value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value.length > 1000) return;
+              setFormData({ ...formData, description: value });
+            }}
             placeholder="Brief description of this tag..."
+            helperText={`${formData.description.length}/1000 characters (optional)`}
+            inputProps={{ maxLength: 1000 }}
             sx={textFieldStyles}
           />
         </DialogContent>

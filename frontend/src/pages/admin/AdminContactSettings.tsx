@@ -108,9 +108,21 @@ const AdminContactSettings: React.FC = () => {
       setError(null);
       const data = await contactSettingService.getAll();
       setContactSettings(data);
-    } catch (err) {
-      setError('Failed to load contact settings');
+    } catch (err: any) {
       console.error('Error loading contact settings:', err);
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to load contact settings. Please try again.';
+      
+      if (err?.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err?.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -159,9 +171,25 @@ const AdminContactSettings: React.FC = () => {
         resetForm();
       }, 1500);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save contact settings');
-      showToast('Failed to save contact settings', 'error');
       console.error('Submit error:', err);
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to save contact settings. Please try again.';
+      
+      if (err?.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err?.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err?.response?.data?.errors) {
+        const errors = err.response.data.errors;
+        const firstError = Object.values(errors)[0];
+        errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setSubmitting(false);
     }
@@ -201,8 +229,21 @@ const AdminContactSettings: React.FC = () => {
         setSuccessMessage(null);
       }, 3000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete contact settings');
       console.error('Delete error:', err);
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to delete contact settings. Please try again.';
+      
+      if (err?.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err?.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -219,8 +260,21 @@ const AdminContactSettings: React.FC = () => {
         setSuccessMessage(null);
       }, 3000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to set contact setting as active');
       console.error('Set active error:', err);
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to set contact setting as active. Please try again.';
+      
+      if (err?.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err?.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -411,9 +465,11 @@ const AdminContactSettings: React.FC = () => {
                         setErrors({ ...errors, email: null });
                       }}
                       error={!!errors.email}
-                      helperText={errors.email}
-                      required
-                      inputProps={{ minLength: 5, maxLength: 100 }}
+                      helperText={errors.email || 'Valid email format: contact@example.com (max 254 chars)'}
+                      inputProps={{ 
+                        maxLength: 254,
+                        pattern: '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'
+                      }}
                       placeholder="contact@example.com"
                       sx={textFieldStyles}
                     />
@@ -432,9 +488,11 @@ const AdminContactSettings: React.FC = () => {
                         setErrors({ ...errors, phone: null });
                       }}
                       error={!!errors.phone}
-                      helperText={errors.phone}
-                      required
-                      inputProps={{ minLength: 10, maxLength: 15 }}
+                      helperText={errors.phone || 'Format: +1234567890 or (555) 123-4567 (10-15 digits)'}
+                      inputProps={{ 
+                        pattern: '[0-9\\s\\-\\(\\)\\+]{10,20}',
+                        maxLength: 20
+                      }}
                       placeholder="+1 (555) 123-4567"
                       sx={textFieldStyles}
                     />
@@ -454,7 +512,6 @@ const AdminContactSettings: React.FC = () => {
                       }}
                       error={!!errors.address}
                       helperText={errors.address}
-                      required
                       inputProps={{ minLength: 10, maxLength: 200 }}
                       placeholder="123 Main Street, City, State 12345"
                       sx={textFieldStyles}
@@ -467,13 +524,18 @@ const AdminContactSettings: React.FC = () => {
                       fullWidth
                       size="small"
                       label="Website"
+                      type="url"
                       value={formData.website || ''}
                       onChange={(e) => {
                         setFormData({ ...formData, website: e.target.value });
                         setErrors({ ...errors, website: null });
                       }}
                       error={!!errors.website}
-                      helperText={errors.website}
+                      helperText={errors.website || 'Full URL with https:// (e.g., https://example.com)'}
+                      inputProps={{
+                        pattern: 'https?://.+',
+                        maxLength: 500
+                      }}
                       placeholder="https://example.com"
                       sx={textFieldStyles}
                     />

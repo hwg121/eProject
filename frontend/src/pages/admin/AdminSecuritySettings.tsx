@@ -132,10 +132,23 @@ const AdminSecuritySettings: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Error updating security password:', error);
-      showToast(
-        error.message || 'Failed to update security password. Please try again.',
-        'error'
-      );
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to update security password. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        const firstError = Object.values(errors)[0];
+        errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }

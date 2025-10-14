@@ -105,24 +105,57 @@ const AdminCampaignSettings: React.FC = () => {
 
       setGoals(goalsObj);
       setOriginalGoals({ ...goalsObj });
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error loading campaign data:', error);
       console.error('Error details:', {
         message: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined
       });
-      showSnackbar('Failed to load campaign settings', 'error');
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to load campaign settings. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      showSnackbar(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoalChange = (metric: string, value: string) => {
-    const numValue = parseFloat(value);
-    if (!isNaN(numValue) && numValue >= 0) {
-      setGoals(prev => ({ ...prev, [metric]: numValue }));
-    } else if (value === '') {
+    if (value === '') {
       setGoals(prev => ({ ...prev, [metric]: 0 }));
+      return;
+    }
+    
+    const numValue = parseFloat(value);
+    
+    // Validate based on metric type
+    if (metric === 'rating') {
+      if (numValue < 0 || numValue > 5) {
+        showSnackbar('Rating must be between 0 and 5', 'error');
+        return;
+      }
+    } else {
+      if (numValue < 0) {
+        showSnackbar('Goal value cannot be negative', 'error');
+        return;
+      }
+      if (numValue > 1000000) {
+        showSnackbar('Goal value cannot exceed 1,000,000', 'error');
+        return;
+      }
+    }
+    
+    if (!isNaN(numValue)) {
+      setGoals(prev => ({ ...prev, [metric]: numValue }));
     }
   };
 
@@ -153,9 +186,25 @@ const AdminCampaignSettings: React.FC = () => {
         `Campaign settings updated for ${changedMetrics.length} metric(s)`,
         'success'
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving campaign settings:', error);
-      showSnackbar('Failed to save campaign settings', 'error');
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to save campaign settings. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        const firstError = Object.values(errors)[0];
+        errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      showSnackbar(errorMessage, 'error');
     } finally {
       setSaving(false);
     }
@@ -433,7 +482,12 @@ const AdminCampaignSettings: React.FC = () => {
                       size="small"
                       value={goals[metric.name] || ''}
                       onChange={(e) => handleGoalChange(metric.name, e.target.value)}
-                      inputProps={{ min: 0, step: metric.name === 'rating' ? 0.1 : 1 }}
+                      inputProps={{ 
+                        min: 0, 
+                        max: metric.name === 'rating' ? 5 : 1000000,
+                        step: metric.name === 'rating' ? 0.1 : 1 
+                      }}
+                      helperText={metric.name === 'rating' ? 'Rating: 0.0 - 5.0' : 'Value: 0 - 1,000,000'}
                       sx={{ 
                         mb: 1.5,
                         '& .MuiOutlinedInput-root': {
@@ -445,6 +499,10 @@ const AdminCampaignSettings: React.FC = () => {
                         },
                         '& .MuiInputLabel-root.Mui-focused': {
                           color: metric.color
+                        },
+                        '& .MuiFormHelperText-root': {
+                          fontSize: '0.7rem',
+                          color: isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'
                         }
                       }}
                     />

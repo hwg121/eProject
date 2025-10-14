@@ -383,7 +383,6 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                 <TextField
                   fullWidth
                   label="Full Name"
-                  required
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Full name"
@@ -394,7 +393,6 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                   fullWidth
                   label="Email Address"
                   type="email"
-                  required
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="Email address"

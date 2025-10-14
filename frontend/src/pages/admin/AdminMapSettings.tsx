@@ -113,9 +113,19 @@ const AdminMapSettings: React.FC = () => {
         console.error('Invalid response format:', response);
         setMapSettings([]);
       }
-    } catch (err) {
-      setError('Failed to load map settings');
+    } catch (err: any) {
       console.error('Error loading map settings:', err);
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to load map settings. Please try again.';
+      
+      if (err?.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -145,9 +155,23 @@ const AdminMapSettings: React.FC = () => {
       try {
         await mapSettingService.delete(id);
         loadMapSettings();
-      } catch (err) {
-        setError('Failed to delete map setting');
+        showToast('Map setting deleted successfully!', 'success');
+      } catch (err: any) {
         console.error('Error deleting map setting:', err);
+        
+        // Extract proper error message from backend
+        let errorMessage = 'Failed to delete map setting. Please try again.';
+        
+        if (err?.response?.data?.message) {
+          errorMessage = err.response.data.message;
+        } else if (err?.response?.data?.error) {
+          errorMessage = err.response.data.error;
+        } else if (err?.message) {
+          errorMessage = err.message;
+        }
+        
+        setError(errorMessage);
+        showToast(errorMessage, 'error');
       }
     }
   };
@@ -188,10 +212,26 @@ const AdminMapSettings: React.FC = () => {
       }
       setShowForm(false);
       loadMapSettings();
-    } catch (err) {
-      setError('Failed to save map setting');
-      showToast('Failed to save map setting', 'error');
+    } catch (err: any) {
       console.error('Error saving map setting:', err);
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to save map setting. Please try again.';
+      
+      if (err?.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err?.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err?.response?.data?.errors) {
+        const errors = err.response.data.errors;
+        const firstError = Object.values(errors)[0];
+        errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setSaving(false);
     }
@@ -333,12 +373,17 @@ const AdminMapSettings: React.FC = () => {
                   label="Location Name"
                   value={formData.location_name || ''}
                   onChange={(e) => {
-                    setFormData({ ...formData, location_name: e.target.value });
+                    const value = e.target.value;
+                    if (value.length > 100) {
+                      setErrors({ ...errors, location_name: 'Location name must not exceed 100 characters' });
+                      return;
+                    }
+                    setFormData({ ...formData, location_name: value });
                     setErrors({ ...errors, location_name: null });
                   }}
                   error={!!errors.location_name}
-                  helperText={errors.location_name}
-                  inputProps={{ minLength: 3, maxLength: 100 }}
+                  helperText={errors.location_name || `${(formData.location_name || '').length}/100 characters (min 3)`}
+                  inputProps={{ maxLength: 100 }}
                   placeholder="e.g., Green Groves Office"
                   sx={textFieldStyles}
                 />
@@ -349,12 +394,17 @@ const AdminMapSettings: React.FC = () => {
                   label="Address"
                   value={formData.address || ''}
                   onChange={(e) => {
-                    setFormData({ ...formData, address: e.target.value });
+                    const value = e.target.value;
+                    if (value.length > 200) {
+                      setErrors({ ...errors, address: 'Address must not exceed 200 characters' });
+                      return;
+                    }
+                    setFormData({ ...formData, address: value });
                     setErrors({ ...errors, address: null });
                   }}
                   error={!!errors.address}
-                  helperText={errors.address}
-                  inputProps={{ minLength: 5, maxLength: 200 }}
+                  helperText={errors.address || `${(formData.address || '').length}/200 characters (min 5)`}
+                  inputProps={{ maxLength: 200 }}
                   placeholder="Full address"
                   sx={textFieldStyles}
                 />
@@ -366,13 +416,17 @@ const AdminMapSettings: React.FC = () => {
                   label="Google Maps Embed Code"
                   value={formData.embed_url}
                   onChange={(e) => {
-                    setFormData({ ...formData, embed_url: e.target.value });
+                    const value = e.target.value;
+                    if (value.length > 5000) {
+                      setErrors({ ...errors, embed_url: 'Embed code must not exceed 5000 characters' });
+                      return;
+                    }
+                    setFormData({ ...formData, embed_url: value });
                     setErrors({ ...errors, embed_url: null });
                   }}
                   error={!!errors.embed_url}
-                  helperText={errors.embed_url || "Copy the entire iframe code from Google Maps Share → Embed a map"}
-                  required
-                  inputProps={{ minLength: 10, maxLength: 5000 }}
+                  helperText={errors.embed_url || `${formData.embed_url.length}/5000 characters - Copy iframe code from Google Maps`}
+                  inputProps={{ maxLength: 5000 }}
                   placeholder='<iframe src="https://www.google.com/maps/embed?pb=..." ...></iframe>'
                   sx={{
                     ...textFieldStyles,

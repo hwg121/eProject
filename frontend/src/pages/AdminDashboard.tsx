@@ -196,11 +196,14 @@ const AdminDashboard: React.FC = () => {
       if (action === 'create-article') {
         setActiveTab('content-create');
         setCurrentContentType('Technique'); // Use 'Technique' to match ContentCreate
+        setEditingItem(null); // Reset editing state when creating new
       } else if (action === 'create-video') {
         setActiveTab('content-create');
         setCurrentContentType('Video'); // Use 'Video' to match ContentCreate
+        setEditingItem(null); // Reset editing state when creating new
       } else if (action === 'create-product') {
         setActiveTab('product-create');
+        setEditingItem(null); // Reset editing state when creating new
       }
     } else if (section === 'content-list') {
       setActiveTab('content-list');
@@ -819,9 +822,21 @@ const AdminDashboard: React.FC = () => {
       // Reload data after deletion
       await loadData();
       showToast('Item deleted successfully!', 'success');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting item:', error);
-      showToast('Failed to delete item. Please try again.', 'error');
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to delete item. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -849,9 +864,21 @@ const AdminDashboard: React.FC = () => {
       await Promise.all(deletePromises);
       await loadData();
       showToast(`Successfully deleted ${ids.length} items!`, 'success');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error bulk deleting:', error);
-      showToast('Failed to delete some items. Please try again.', 'error');
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to delete some items. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -905,9 +932,21 @@ const AdminDashboard: React.FC = () => {
       console.log('All updates completed, reloading data');
       await loadData();
       showToast(`Successfully updated ${ids.length} items to ${status}!`, 'success');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error bulk updating status:', error);
-      showToast('Failed to update some items. Please try again.', 'error');
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to update some items. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -918,9 +957,21 @@ const AdminDashboard: React.FC = () => {
       await Promise.all(deletePromises);
       await loadData();
       showToast(`Successfully deleted ${ids.length} products!`, 'success');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error bulk deleting products:', error);
-      showToast('Failed to delete some products. Please try again.', 'error');
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to delete some products. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -931,9 +982,21 @@ const AdminDashboard: React.FC = () => {
       await Promise.all(updatePromises);
       await loadData();
       showToast(`Successfully updated ${ids.length} products to ${status}!`, 'success');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error bulk updating products:', error);
-      showToast('Failed to update some products. Please try again.', 'error');
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to update some products. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -964,6 +1027,7 @@ const AdminDashboard: React.FC = () => {
 
   const handleSave = async (formData: Partial<ContentItem>) => {
     try {
+      console.log('AdminDashboard - handleSave called with:', formData);
       // Priority: formData.category > currentContentType from formData > state currentContentType
       const categoryFromForm = formData.category || (formData as any).currentContentType || currentContentType;
       
@@ -1077,9 +1141,24 @@ const AdminDashboard: React.FC = () => {
       
       // Show success message
       showToast(editingItem ? 'Content updated successfully!' : 'Content created successfully!', 'success');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving content:', error);
-      showToast('Failed to save content. Please try again.', 'error');
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to save content. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      showToast(errorMessage, 'error');
+      
+      // RE-THROW error so child form can catch it if needed
+      throw error;
     }
   };
 
@@ -1120,16 +1199,35 @@ const AdminDashboard: React.FC = () => {
           response = await booksService.create(productData);
           break;
         default:
-          console.error('Unknown product category:', category);
-          return;
+          const error = new Error('Unknown product category: ' + category);
+          showToast(error.message, 'error');
+          throw error;
       }
       
       // Reload products data
       await loadData();
       showToast('Product created successfully!', 'success');
-    } catch (error) {
+      
+      // Navigate back to list
+      setActiveTab('product-list');
+    } catch (error: any) {
       console.error('Error creating product:', error);
-      showToast('Failed to create product. Please try again.', 'error');
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to create product. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      showToast(errorMessage, 'error');
+      
+      // RE-THROW error so child form can catch it if needed
+      throw error;
     }
   };
 
@@ -1147,9 +1245,21 @@ const AdminDashboard: React.FC = () => {
       
       setEditingProduct(freshProduct);
       setActiveTab('product-edit');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching product data:', error);
-      showToast('Failed to load product data', 'error');
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to load product data. Using cached data.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      showToast(errorMessage, 'warning');
       // Fallback to cached data if fetch fails
       setEditingProduct(product);
       setActiveTab('product-edit');
@@ -1178,10 +1288,24 @@ const AdminDashboard: React.FC = () => {
       setActiveTab('product-list');
       
       showToast('Product updated successfully!', 'success');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating product:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      showToast(`Failed to update product: ${errorMessage}`, 'error');
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to update product. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      showToast(errorMessage, 'error');
+      
+      // RE-THROW error so child form can catch it if needed
+      throw error;
     }
   };
 
@@ -1217,9 +1341,21 @@ const AdminDashboard: React.FC = () => {
       // Reload products data
       await loadData();
       showToast('Product deleted successfully!', 'success');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting product:', error);
-      showToast('Failed to delete product. Please try again.', 'error');
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to delete product. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -1289,15 +1425,25 @@ Updated: ${product.updatedAt}
           ...response.data
         }));
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving user profile:', error);
       
-      // More detailed error handling
-      if (error instanceof Error) {
-        showToast(`Failed to save user profile: ${error.message}`, 'error');
-      } else {
-        showToast('Failed to save user profile. Please check the console for details.', 'error');
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to save user profile. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        const firstError = Object.values(errors)[0];
+        errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+      } else if (error?.message) {
+        errorMessage = error.message;
       }
+      
+      showToast(errorMessage, 'error');
     }
   }, [userProfile]);
 
@@ -1351,9 +1497,24 @@ Updated: ${product.updatedAt}
       
       // Switch back to user list
       setActiveTab('user-list');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating user:', error);
-      showToast('Failed to create user. Please try again.', 'error');
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to create user. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      showToast(errorMessage, 'error');
+      
+      // RE-THROW error so child form can catch it
+      throw error;
     }
   }, [loadData]);
 
@@ -1367,9 +1528,21 @@ Updated: ${product.updatedAt}
       
       // Reload data
       await loadData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting user:', error);
-      showToast('Failed to delete user. Please try again.', 'error');
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to delete user. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      showToast(errorMessage, 'error');
     }
   }, []);
 
@@ -1377,7 +1550,7 @@ Updated: ${product.updatedAt}
     try {
       if (!editingUser?.id) {
         showToast('No user selected for editing', 'warning');
-        return;
+        throw new Error('No user selected for editing');
       }
 
       // Clean user data (remove preview fields and empty password)
@@ -1398,9 +1571,24 @@ Updated: ${product.updatedAt}
       // Switch back to user list
       setActiveTab('user-list');
       setEditingUser(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating user:', error);
-      showToast('Failed to update user. Please try again.', 'error');
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to update user. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      showToast(errorMessage, 'error');
+      
+      // RE-THROW error so child form can catch it
+      throw error;
     }
   }, [editingUser, loadData]);
 
@@ -1897,6 +2085,7 @@ Updated: ${product.updatedAt}
           onDeleteUser={handleDeleteUser}
           onCreateUser={handleCreateUser}
           currentUserRole={user?.role}
+          currentUserId={user?.id}
         />
       )}
 

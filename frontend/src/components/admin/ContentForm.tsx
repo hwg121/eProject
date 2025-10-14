@@ -54,6 +54,26 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
     setSnackbar({ open: true, message, severity });
   };
   
+  // Helper function for rating validation
+  const handleRatingChange = (value: string) => {
+    if (value === '') {
+      setFormData({ ...formData, rating: 0 });
+      setErrors({ ...errors, rating: null });
+      return;
+    }
+    const numValue = parseFloat(value);
+    if (numValue < 0) {
+      setErrors({ ...errors, rating: 'Rating cannot be negative' });
+      return;
+    }
+    if (numValue > 5) {
+      setErrors({ ...errors, rating: 'Rating cannot exceed 5' });
+      return;
+    }
+    setFormData({ ...formData, rating: numValue });
+    setErrors({ ...errors, rating: null });
+  };
+  
   const [formData, setFormData] = useState<FormData>(
     item || {
       title: '',
@@ -152,70 +172,47 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
     // Clear errors
     setErrors({});
     
-    try {
-      // Filter out product-specific fields for articles/videos
-      const isProductType = ['books', 'tools', 'pots', 'accessories', 'suggestions'].includes(type?.toLowerCase() || '');
-      
-      const processedData = {
-        ...formData,
-        // Ensure required fields have values
-        title: formData.title || '',
-        status: formData.status || 'published',
-        // Ensure content is saved properly to both content and body fields
-        content: formData.content || '',
-        body: formData.content || formData.body || '',
-        excerpt: formData.excerpt || formData.description || '',
-        // Ensure featured image is saved to the correct field
-        featured_image: formData.featured_image || '',
-        // Video URL for videos, link for products
-        video_url: isVideoType(type) ? (formData.video_url || '') : '',
-        link: (type === 'books' || type === 'suggestions') ? (formData.link || '') : (isVideoType(type) ? (formData.video_url || '') : ''),
-        // Tags should be array of tag IDs for backend
-        tags: Array.isArray(formData.tags) ? formData.tags : [],
-        rating: parseFloat(formData.rating?.toString() || '0') || 0,
-        price: parseFloat(formData.price?.toString() || '0') || 0,
-        duration: formData.duration || '',
-        // Ensure boolean fields are properly cast
-        is_featured: Boolean(formData.featured || formData.is_featured),
-        // Only include product-specific fields for products
-        ...(isProductType ? {
-          buyLink: formData.buyLink,
-          borrowLink: formData.borrowLink
-        } : {})
-      };
-      
-      console.log('ContentForm - Submitting data:', {
-        type,
-        processedData,
-        hasContent: !!processedData.content,
-        hasBody: !!processedData.body,
-        category: processedData.category
-      });
-      
-      onSave(processedData);
-      showToast(`${item ? 'Updated' : 'Created'} successfully!`, 'success');
-    } catch (error: any) {
-      console.error('ContentForm - Save error:', error);
-      
-      // Handle different types of errors
-      let errorMessage = 'Failed to save. Please try again.';
-      
-      if (error?.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error?.message) {
-        errorMessage = error.message;
-      } else if (error?.response?.status === 422) {
-        errorMessage = 'Validation failed. Please check your input.';
-      } else if (error?.response?.status === 500) {
-        errorMessage = 'Server error. Please try again later.';
-      } else if (error?.response?.status === 401) {
-        errorMessage = 'Unauthorized. Please login again.';
-      } else if (error?.response?.status === 403) {
-        errorMessage = 'Access denied. You do not have permission.';
-      }
-      
-      showToast(errorMessage, 'error');
-    }
+    // Filter out product-specific fields for articles/videos
+    const isProductType = ['books', 'tools', 'pots', 'accessories', 'suggestions'].includes(type?.toLowerCase() || '');
+    
+    const processedData = {
+      ...formData,
+      // Ensure required fields have values
+      title: formData.title || '',
+      status: formData.status || 'published',
+      // Ensure content is saved properly to both content and body fields
+      content: formData.content || '',
+      body: formData.content || formData.body || '',
+      excerpt: formData.excerpt || formData.description || '',
+      // Ensure featured image is saved to the correct field
+      featured_image: formData.featured_image || '',
+      // Video URL for videos, link for products
+      video_url: isVideoType(type) ? (formData.video_url || '') : '',
+      link: (type === 'books' || type === 'suggestions') ? (formData.link || '') : (isVideoType(type) ? (formData.video_url || '') : ''),
+      // Tags should be array of tag IDs for backend
+      tags: Array.isArray(formData.tags) ? formData.tags : [],
+      rating: parseFloat(formData.rating?.toString() || '0') || 0,
+      price: parseFloat(formData.price?.toString() || '0') || 0,
+      duration: formData.duration || '',
+      // Ensure boolean fields are properly cast
+      is_featured: Boolean(formData.featured || formData.is_featured),
+      // Only include product-specific fields for products
+      ...(isProductType ? {
+        buyLink: formData.buyLink,
+        borrowLink: formData.borrowLink
+      } : {})
+    };
+    
+    console.log('ContentForm - Submitting data:', {
+      type,
+      processedData,
+      hasContent: !!processedData.content,
+      hasBody: !!processedData.body,
+      category: processedData.category
+    });
+    
+    // Call parent's onSave - parent will handle success/error messages
+    onSave(processedData);
   };
 
   // MUI TextField styles (matching Campaign Settings)
@@ -248,13 +245,17 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
             label="Title"
             value={formData.title}
             onChange={(e) => {
-              setFormData({ ...formData, title: e.target.value });
+              const value = e.target.value;
+              if (value.length > 200) {
+                setErrors({ ...errors, title: 'Title must not exceed 200 characters' });
+                return;
+              }
+              setFormData({ ...formData, title: value });
               setErrors({ ...errors, title: null });
             }}
             error={!!errors.title}
-            helperText={errors.title}
-            required
-            inputProps={{ minLength: 3, maxLength: 200 }}
+            helperText={errors.title || `${formData.title.length}/200 characters (min 3)`}
+            inputProps={{ maxLength: 200 }}
             sx={textFieldStyles}
           />
         </div>
@@ -265,10 +266,20 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
             size="small"
             label="Slug (URL)"
             value={formData.slug || ''}
-            onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+            onChange={(e) => {
+              const value = e.target.value;
+              // Only allow lowercase, numbers, and hyphens
+              const slugValue = value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+              if (slugValue.length > 255) return;
+              setFormData({ ...formData, slug: slugValue });
+            }}
             placeholder="auto-generated-from-title"
             sx={textFieldStyles}
-            helperText="Leave empty to auto-generate from title"
+            helperText={`${(formData.slug || '').length}/255 characters - Leave empty to auto-generate. Only lowercase, numbers, hyphens allowed`}
+            inputProps={{ 
+              maxLength: 255,
+              pattern: '[a-z0-9-]*'
+            }}
           />
         </div>
 
@@ -281,13 +292,17 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
               value={isVideoType(type) ? formData.instructor : formData.author}
               onChange={(e) => {
                 const field = isVideoType(type) ? 'instructor' : 'author';
-                setFormData({ ...formData, [field]: e.target.value });
+                const value = e.target.value;
+                if (value.length > 100) {
+                  setErrors({ ...errors, [field]: `${isVideoType(type) ? 'Instructor' : 'Author'} name must not exceed 100 characters` });
+                  return;
+                }
+                setFormData({ ...formData, [field]: value });
                 setErrors({ ...errors, [field]: null });
               }}
               error={!!(isVideoType(type) ? errors.instructor : errors.author)}
-              helperText={isVideoType(type) ? errors.instructor : errors.author}
-              required
-              inputProps={{ minLength: 2, maxLength: 100 }}
+              helperText={(isVideoType(type) ? errors.instructor : errors.author) || `${((isVideoType(type) ? formData.instructor : formData.author) || '').length}/100 characters (min 2)`}
+              inputProps={{ maxLength: 100 }}
               sx={textFieldStyles}
             />
           </div>
@@ -311,7 +326,6 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
                 ? 'Category is automatically set based on content type' 
                 : '')
             }
-            required
             disabled={type === 'Technique' || type === 'Video' || type === 'technique' || type === 'video'} // Lock for Technique and Video
             sx={textFieldStyles}
           >
@@ -344,13 +358,10 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
                 type="number"
                 size="small"
                 label="Rating (0-5)"
-                value={formData.rating || ''}
-                onChange={(e) => {
-                  setFormData({ ...formData, rating: parseFloat(e.target.value) || 0 });
-                  setErrors({ ...errors, rating: null });
-                }}
+                value={formData.rating ?? ''}
+                onChange={(e) => handleRatingChange(e.target.value)}
                 error={!!errors.rating}
-                helperText={errors.rating}
+                helperText={errors.rating || 'Enter rating between 0.0 - 5.0'}
                 inputProps={{ min: 0, max: 5, step: 0.1 }}
                 sx={textFieldStyles}
               />
@@ -360,13 +371,20 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
                 fullWidth
                 size="small"
                 label="Product Link"
+                type="url"
                 value={formData.link || ''}
                 onChange={(e) => {
-                  setFormData({ ...formData, link: e.target.value });
+                  const value = e.target.value;
+                  if (value.length > 500) return;
+                  setFormData({ ...formData, link: value });
                   setErrors({ ...errors, link: null });
                 }}
                 error={!!errors.link}
-                helperText={errors.link}
+                helperText={errors.link || `${(formData.link || '').length}/500 characters - Full URL with https://`}
+                inputProps={{
+                  maxLength: 500,
+                  pattern: 'https?://.*'
+                }}
                 placeholder="https://example.com/product"
                 sx={textFieldStyles}
               />
@@ -382,8 +400,19 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
                 size="small"
                 label="Duration"
                 value={formData.duration || ''}
-                onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                placeholder="e.g., 12:45"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Only allow digits and colons
+                  const durationValue = value.replace(/[^0-9:]/g, '');
+                  if (durationValue.length > 10) return;
+                  setFormData({ ...formData, duration: durationValue });
+                }}
+                placeholder="e.g., 12:45 or 1:23:45"
+                helperText="Format: MM:SS or HH:MM:SS"
+                inputProps={{ 
+                  maxLength: 10,
+                  pattern: '[0-9:]+'
+                }}
                 sx={textFieldStyles}
               />
             </div>
@@ -393,13 +422,10 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
                 type="number"
                 size="small"
                 label="Rating (0-5)"
-                value={formData.rating || ''}
-                onChange={(e) => {
-                  setFormData({ ...formData, rating: parseFloat(e.target.value) || 0 });
-                  setErrors({ ...errors, rating: null });
-                }}
+                value={formData.rating ?? ''}
+                onChange={(e) => handleRatingChange(e.target.value)}
                 error={!!errors.rating}
-                helperText={errors.rating}
+                helperText={errors.rating || 'Enter rating between 0.0 - 5.0'}
                 inputProps={{ min: 0, max: 5, step: 0.1 }}
                 sx={textFieldStyles}
               />
@@ -408,16 +434,28 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
         )}
 
         {type === 'books' && (
-          <div>
-            <TextField
-              fullWidth
-              size="small"
-              label="ISBN"
-              value={formData.isbn || ''}
-              onChange={(e) => setFormData({ ...formData, isbn: e.target.value })}
-              sx={textFieldStyles}
-            />
-          </div>
+            <div>
+              <TextField
+                fullWidth
+                size="small"
+                label="ISBN"
+                value={formData.isbn || ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Only allow digits and hyphens for ISBN
+                  const isbnValue = value.replace(/[^0-9-]/g, '');
+                  if (isbnValue.length > 17) return; // ISBN-13 with hyphens: 978-0-123456-78-9
+                  setFormData({ ...formData, isbn: isbnValue });
+                }}
+                placeholder="e.g., 978-0-123456-78-9"
+                helperText={`${(formData.isbn || '').length}/17 characters - Format: 978-X-XXXXXX-XX-X`}
+                inputProps={{ 
+                  maxLength: 17,
+                  pattern: '[0-9-]*'
+                }}
+                sx={textFieldStyles}
+              />
+            </div>
         )}
 
         {type === 'techniques' && (
@@ -443,13 +481,10 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
                 type="number"
                 size="small"
                 label="Rating (0-5)"
-                value={formData.rating || ''}
-                onChange={(e) => {
-                  setFormData({ ...formData, rating: parseFloat(e.target.value) || 0 });
-                  setErrors({ ...errors, rating: null });
-                }}
+                value={formData.rating ?? ''}
+                onChange={(e) => handleRatingChange(e.target.value)}
                 error={!!errors.rating}
-                helperText={errors.rating}
+                helperText={errors.rating || 'Enter rating between 0.0 - 5.0'}
                 inputProps={{ min: 0, max: 5, step: 0.1 }}
                 sx={textFieldStyles}
               />
@@ -499,13 +534,18 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
           label="Description (Short Summary)"
           value={formData.description || ''}
           onChange={(e) => {
-            setFormData({ ...formData, description: e.target.value });
+            const value = e.target.value;
+            if (value.length > 5000) {
+              setErrors({ ...errors, description: 'Description must not exceed 5000 characters' });
+              return;
+            }
+            setFormData({ ...formData, description: value });
             setErrors({ ...errors, description: null });
           }}
           error={!!errors.description}
-          helperText={errors.description}
+          helperText={errors.description || `${(formData.description || '').length}/5000 characters (min 10 recommended)`}
           placeholder="Brief description for preview..."
-          inputProps={{ minLength: 10, maxLength: 5000 }}
+          inputProps={{ maxLength: 5000 }}
           sx={textFieldStyles}
         />
       </div>
@@ -535,22 +575,29 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
         </div>
 
         {isVideoType(type) && (
-          <div>
-            <TextField
-              fullWidth
-              size="small"
-              label="Video URL"
-              value={formData.video_url || ''}
-              onChange={(e) => {
-                setFormData({ ...formData, video_url: e.target.value });
-                setErrors({ ...errors, video_url: null });
-              }}
-              error={!!errors.video_url}
-              helperText={errors.video_url || "Paste video URL (YouTube, Vimeo, etc.)"}
-              placeholder="https://www.youtube.com/watch?v=..."
-              sx={textFieldStyles}
-            />
-          </div>
+            <div>
+              <TextField
+                fullWidth
+                size="small"
+                label="Video URL"
+                type="url"
+                value={formData.video_url || ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.length > 500) return;
+                  setFormData({ ...formData, video_url: value });
+                  setErrors({ ...errors, video_url: null });
+                }}
+                error={!!errors.video_url}
+                helperText={errors.video_url || `${(formData.video_url || '').length}/500 characters - Full URL (YouTube, Vimeo, etc.)`}
+                inputProps={{
+                  maxLength: 500,
+                  pattern: 'https?://.*'
+                }}
+                placeholder="https://www.youtube.com/watch?v=..."
+                sx={textFieldStyles}
+              />
+            </div>
         )}
 
         {/* Only show buy/borrow links for products, not articles/videos */}
@@ -561,13 +608,21 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
                   fullWidth
                   size="small"
                   label="Buy Link"
+                  type="url"
                   value={formData.buyLink || ''}
                   onChange={(e) => {
-                    setFormData({ ...formData, buyLink: e.target.value });
+                    const value = e.target.value;
+                    if (value.length > 500) return;
+                    setFormData({ ...formData, buyLink: value });
                     setErrors({ ...errors, buyLink: null });
                   }}
                   error={!!errors.buyLink}
-                  helperText={errors.buyLink}
+                  helperText={errors.buyLink || `${(formData.buyLink || '').length}/500 characters - Full URL with https://`}
+                  inputProps={{
+                    maxLength: 500,
+                    pattern: 'https?://.*'
+                  }}
+                  placeholder="https://example.com/buy"
                   sx={textFieldStyles}
                 />
               </div>
@@ -577,13 +632,21 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
                     fullWidth
                     size="small"
                     label="Borrow Link"
+                    type="url"
                     value={formData.borrowLink || ''}
                     onChange={(e) => {
-                      setFormData({ ...formData, borrowLink: e.target.value });
+                      const value = e.target.value;
+                      if (value.length > 500) return;
+                      setFormData({ ...formData, borrowLink: value });
                       setErrors({ ...errors, borrowLink: null });
                     }}
                     error={!!errors.borrowLink}
-                    helperText={errors.borrowLink}
+                    helperText={errors.borrowLink || `${(formData.borrowLink || '').length}/500 characters - Full URL with https://`}
+                    inputProps={{
+                      maxLength: 500,
+                      pattern: 'https?://.*'
+                    }}
+                    placeholder="https://example.com/borrow"
                     sx={textFieldStyles}
                   />
                 </div>

@@ -21,6 +21,7 @@ interface UserManagementSectionProps {
   filteredUsers: any[];
   userSearchTerm: string;
   currentUserRole?: string;
+  currentUserId?: string | number;
 }
 
 const UserManagementSection: React.FC<UserManagementSectionProps> = memo(({
@@ -35,7 +36,8 @@ const UserManagementSection: React.FC<UserManagementSectionProps> = memo(({
   userProfile,
   filteredUsers,
   userSearchTerm,
-  currentUserRole = 'admin'
+  currentUserRole = 'admin',
+  currentUserId
 }) => {
   const { isDarkMode } = useTheme();
   
@@ -149,7 +151,13 @@ const UserManagementSection: React.FC<UserManagementSectionProps> = memo(({
                     </button>
                     <button
                       onClick={() => onDeleteUser(userItem.id)}
-                      className="px-3 py-1 text-xs font-medium bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                      disabled={currentUserId && String(currentUserId) === String(userItem.id)}
+                      className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                        currentUserId && String(currentUserId) === String(userItem.id)
+                          ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                          : 'bg-red-500 text-white hover:bg-red-600'
+                      }`}
+                      title={currentUserId && String(currentUserId) === String(userItem.id) ? 'Cannot delete yourself' : 'Delete user'}
                     >
                       Delete
                     </button>

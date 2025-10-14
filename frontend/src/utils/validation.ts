@@ -308,6 +308,79 @@ export const validateRequired = (value: any, fieldName: string): string | null =
 };
 
 /**
+ * Validates slug format (URL-friendly identifier)
+ * @param slug - Slug to validate
+ * @param required - Whether slug is required (default: false)
+ * @returns Error message or null if valid
+ */
+export const validateSlug = (slug: string, required: boolean = false): string | null => {
+  if (!slug || slug.trim() === '') {
+    return required ? 'Slug is required' : null;
+  }
+  
+  const trimmed = slug.trim();
+  
+  if (trimmed.length < 1) return 'Slug must be at least 1 character';
+  if (trimmed.length > 255) return 'Slug must not exceed 255 characters';
+  
+  // Only allow lowercase letters, numbers, and hyphens
+  const slugRegex = /^[a-z0-9-]+$/;
+  if (!slugRegex.test(trimmed)) {
+    return 'Slug can only contain lowercase letters, numbers, and hyphens';
+  }
+  
+  // Cannot start or end with hyphen
+  if (trimmed.startsWith('-') || trimmed.endsWith('-')) {
+    return 'Slug cannot start or end with a hyphen';
+  }
+  
+  // Cannot have consecutive hyphens
+  if (trimmed.includes('--')) {
+    return 'Slug cannot contain consecutive hyphens';
+  }
+  
+  return null;
+};
+
+/**
+ * Validates slug uniqueness (for content creation/editing)
+ * @param slug - Slug to validate
+ * @param existingSlugs - Array of existing slugs to check against
+ * @param currentSlug - Current item's slug (for editing, to exclude from duplicate check)
+ * @param required - Whether slug is required (default: false)
+ * @returns Error message or null if valid
+ */
+export const validateSlugUnique = (
+  slug: string, 
+  existingSlugs: string[] = [], 
+  currentSlug?: string,
+  required: boolean = false
+): string | null => {
+  // First validate slug format
+  const formatError = validateSlug(slug, required);
+  if (formatError) return formatError;
+  
+  if (!slug || slug.trim() === '') {
+    return required ? 'Slug is required' : null;
+  }
+  
+  const trimmedSlug = slug.trim().toLowerCase();
+  const currentSlugLower = currentSlug ? currentSlug.trim().toLowerCase() : '';
+  
+  // Check if slug already exists (excluding current item's slug)
+  const isDuplicate = existingSlugs.some(existingSlug => {
+    const existingSlugLower = existingSlug.trim().toLowerCase();
+    return existingSlugLower === trimmedSlug && existingSlugLower !== currentSlugLower;
+  });
+  
+  if (isDuplicate) {
+    return 'Slug already exists. Please use a different slug.';
+  }
+  
+  return null;
+};
+
+/**
  * Validates username format
  * @param username - Username to validate
  * @param required - Whether username is required (default: true)

@@ -86,9 +86,21 @@ const AdminHeroSection: React.FC = () => {
         console.error('Invalid response format:', response);
         setHeroSections([]);
       }
-    } catch (err) {
-      setError('Failed to load hero sections');
+    } catch (err: any) {
       console.error('Error loading hero sections:', err);
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to load hero sections. Please try again.';
+      
+      if (err?.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err?.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -117,9 +129,23 @@ const AdminHeroSection: React.FC = () => {
       try {
         await heroSectionService.delete(id);
         loadHeroSections();
-      } catch (err) {
-        setError('Failed to delete hero section');
+        showToast('Hero section deleted successfully!', 'success');
+      } catch (err: any) {
         console.error('Error deleting hero section:', err);
+        
+        // Extract proper error message from backend
+        let errorMessage = 'Failed to delete hero section. Please try again.';
+        
+        if (err?.response?.data?.message) {
+          errorMessage = err.response.data.message;
+        } else if (err?.response?.data?.error) {
+          errorMessage = err.response.data.error;
+        } else if (err?.message) {
+          errorMessage = err.message;
+        }
+        
+        setError(errorMessage);
+        showToast(errorMessage, 'error');
       }
     }
   };
@@ -154,10 +180,26 @@ const AdminHeroSection: React.FC = () => {
       }
       setShowForm(false);
       loadHeroSections();
-    } catch (err) {
-      setError('Failed to save hero section');
-      showToast('Failed to save hero section', 'error');
+    } catch (err: any) {
       console.error('Error saving hero section:', err);
+      
+      // Extract proper error message from backend
+      let errorMessage = 'Failed to save hero section. Please try again.';
+      
+      if (err?.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err?.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err?.response?.data?.errors) {
+        const errors = err.response.data.errors;
+        const firstError = Object.values(errors)[0];
+        errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setSaving(false);
     }
@@ -281,13 +323,17 @@ const AdminHeroSection: React.FC = () => {
                   label="Title"
                   value={formData.title}
                   onChange={(e) => {
-                    setFormData({ ...formData, title: e.target.value });
+                    const value = e.target.value;
+                    if (value.length > 100) {
+                      setErrors({ ...errors, title: 'Title must not exceed 100 characters' });
+                      return;
+                    }
+                    setFormData({ ...formData, title: value });
                     setErrors({ ...errors, title: null });
                   }}
                   error={!!errors.title}
-                  helperText={errors.title}
-                  required
-                  inputProps={{ minLength: 3, maxLength: 100 }}
+                  helperText={errors.title || `${formData.title.length}/100 characters (min 3)`}
+                  inputProps={{ maxLength: 100 }}
                   placeholder="Enter hero section title"
                   sx={textFieldStyles}
                 />
@@ -299,13 +345,17 @@ const AdminHeroSection: React.FC = () => {
                   label="Description"
                   value={formData.description}
                   onChange={(e) => {
-                    setFormData({ ...formData, description: e.target.value });
+                    const value = e.target.value;
+                    if (value.length > 500) {
+                      setErrors({ ...errors, description: 'Description must not exceed 500 characters' });
+                      return;
+                    }
+                    setFormData({ ...formData, description: value });
                     setErrors({ ...errors, description: null });
                   }}
                   error={!!errors.description}
-                  helperText={errors.description}
-                  required
-                  inputProps={{ minLength: 10, maxLength: 500 }}
+                  helperText={errors.description || `${formData.description.length}/500 characters (min 10)`}
+                  inputProps={{ maxLength: 500 }}
                   placeholder="Enter hero section description"
                   sx={textFieldStyles}
                 />

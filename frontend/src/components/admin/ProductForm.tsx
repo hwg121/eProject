@@ -134,6 +134,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const [brandError, setBrandError] = useState('');
   const [authorError, setAuthorError] = useState('');
   const [linkError, setLinkError] = useState('');
+  const [ratingError, setRatingError] = useState('');
+  const [pagesError, setPagesError] = useState('');
+  const [yearError, setYearError] = useState('');
   
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -157,6 +160,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
     setBrandError('');
     setAuthorError('');
     setLinkError('');
+    setRatingError('');
+    setPagesError('');
+    setYearError('');
   };
   
   // MUI TextField styles (matching Campaign Settings)
@@ -249,33 +255,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
       is_published: formData.is_published !== undefined ? formData.is_published : formData.status === 'published'
     };
     
-    try {
-      onSave(processedData);
-      showToast(item ? 'Product updated successfully!' : 'Product created successfully!', 'success');
-    } catch (error: any) {
-      console.error('ProductForm - Save error:', error);
-      
-      // Handle different types of errors
-      let errorMessage = 'Failed to save product. Please try again.';
-      
-      if (error?.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error?.message) {
-        errorMessage = error.message;
-      } else if (error?.response?.status === 422) {
-        errorMessage = 'Validation failed. Please check your input.';
-      } else if (error?.response?.status === 500) {
-        errorMessage = 'Server error. Please try again later.';
-      } else if (error?.response?.status === 401) {
-        errorMessage = 'Unauthorized. Please login again.';
-      } else if (error?.response?.status === 403) {
-        errorMessage = 'Access denied. You do not have permission.';
-      } else if (error?.response?.status === 409) {
-        errorMessage = 'Product with this name already exists.';
-      }
-      
-      showToast(errorMessage, 'error');
-    }
+    // Call parent's onSave - parent will handle success/error messages
+    onSave(processedData);
   };
 
   const inputClass = `w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
@@ -302,13 +283,17 @@ const ProductForm: React.FC<ProductFormProps> = ({
             label="Name"
             value={formData.title || formData.name || ''}
             onChange={(e) => {
-              setFormData({ ...formData, title: e.target.value, name: e.target.value });
+              const value = e.target.value;
+              if (value.length > 100) {
+                setNameError('Name must not exceed 100 characters');
+                return;
+              }
+              setFormData({ ...formData, title: value, name: value });
               setNameError('');
             }}
             error={!!nameError}
-            helperText={nameError}
-            required
-            inputProps={{ minLength: 2, maxLength: 100 }}
+            helperText={nameError || `${(formData.title || formData.name || '').length}/100 characters (min 2)`}
+            inputProps={{ maxLength: 100 }}
             sx={textFieldStyles}
           />
         </div>
@@ -321,7 +306,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
             label="Category"
             value={formData.category || 'tool'}
             onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
-            required
             sx={textFieldStyles}
           >
             <MenuItem value="tool">Tool</MenuItem>
@@ -338,8 +322,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
             size="small"
             label="Subcategory"
             value={formData.subcategory || ''}
-            onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value.length > 100) return;
+              setFormData({ ...formData, subcategory: value });
+            }}
             placeholder="e.g., Digging tools, Art books..."
+            helperText={`${(formData.subcategory || '').length}/100 characters`}
+            inputProps={{ maxLength: 100 }}
             sx={textFieldStyles}
           />
         </div>
@@ -350,13 +340,28 @@ const ProductForm: React.FC<ProductFormProps> = ({
             type="number"
             size="small"
             label="Price ($)"
-            value={formData.price || ''}
+            value={formData.price ?? ''}
             onChange={(e) => {
-              setFormData({ ...formData, price: parseFloat(e.target.value) || 0 });
+              const value = e.target.value;
+              if (value === '') {
+                setFormData({ ...formData, price: null });
+                setPriceError('');
+                return;
+              }
+              const numValue = parseFloat(value);
+              if (numValue < 0) {
+                setPriceError('Price cannot be negative');
+                return;
+              }
+              if (numValue > 999999) {
+                setPriceError('Price cannot exceed $999,999');
+                return;
+              }
+              setFormData({ ...formData, price: numValue });
               setPriceError('');
             }}
             error={!!priceError}
-            helperText={priceError}
+            helperText={priceError || 'Enter price between $0 - $999,999'}
             inputProps={{ min: 0, max: 999999, step: 0.01 }}
             placeholder="0.00"
             sx={textFieldStyles}
@@ -370,12 +375,17 @@ const ProductForm: React.FC<ProductFormProps> = ({
             label="Brand"
             value={formData.brand || ''}
             onChange={(e) => {
-              setFormData({ ...formData, brand: e.target.value });
+              const value = e.target.value;
+              if (value.length > 50) {
+                setBrandError('Brand must not exceed 50 characters');
+                return;
+              }
+              setFormData({ ...formData, brand: value });
               setBrandError('');
             }}
             error={!!brandError}
-            helperText={brandError}
-            inputProps={{ minLength: 2, maxLength: 50 }}
+            helperText={brandError || `${(formData.brand || '').length}/50 characters`}
+            inputProps={{ maxLength: 50 }}
             placeholder="Product brand"
             sx={textFieldStyles}
           />
@@ -387,7 +397,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
             size="small"
             label="Material"
             value={formData.material || ''}
-            onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value.length > 100) return;
+              setFormData({ ...formData, material: value });
+            }}
+            helperText={`${(formData.material || '').length}/100 characters`}
+            inputProps={{ maxLength: 100 }}
             placeholder="Product material"
             sx={textFieldStyles}
           />
@@ -399,7 +415,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
             size="small"
             label="Size"
             value={formData.size || ''}
-            onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value.length > 50) return;
+              setFormData({ ...formData, size: value });
+            }}
+            helperText={`${(formData.size || '').length}/50 characters`}
+            inputProps={{ maxLength: 50 }}
             placeholder="Product size"
             sx={textFieldStyles}
           />
@@ -411,7 +433,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
             size="small"
             label="Color"
             value={formData.color || ''}
-            onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value.length > 50) return;
+              setFormData({ ...formData, color: value });
+            }}
+            helperText={`${(formData.color || '').length}/50 characters`}
+            inputProps={{ maxLength: 50 }}
             placeholder="Product color"
             sx={textFieldStyles}
           />
@@ -425,9 +453,26 @@ const ProductForm: React.FC<ProductFormProps> = ({
             label="Rating (0-5)"
             value={formData.rating ?? ''}
             onChange={(e) => {
-              const newRating = parseFloat(e.target.value) || 0;
-              setFormData({ ...formData, rating: newRating });
+              const value = e.target.value;
+              if (value === '') {
+                setFormData({ ...formData, rating: 0 });
+                setRatingError('');
+                return;
+              }
+              const numValue = parseFloat(value);
+              if (numValue < 0) {
+                setRatingError('Rating cannot be negative');
+                return;
+              }
+              if (numValue > 5) {
+                setRatingError('Rating cannot exceed 5');
+                return;
+              }
+              setFormData({ ...formData, rating: numValue });
+              setRatingError('');
             }}
+            error={!!ratingError}
+            helperText={ratingError || 'Enter rating between 0.0 - 5.0'}
             inputProps={{ min: 0, max: 5, step: 0.1 }}
             sx={textFieldStyles}
           />
@@ -443,13 +488,17 @@ const ProductForm: React.FC<ProductFormProps> = ({
             label="Description"
             value={formData.description || ''}
             onChange={(e) => {
-              setFormData({ ...formData, description: e.target.value });
+              const value = e.target.value;
+              if (value.length > 5000) {
+                setDescriptionError('Description must not exceed 5000 characters');
+                return;
+              }
+              setFormData({ ...formData, description: value });
               setDescriptionError('');
             }}
             error={!!descriptionError}
-            helperText={descriptionError}
-            required
-            inputProps={{ minLength: 10, maxLength: 5000 }}
+            helperText={descriptionError || `${(formData.description || '').length}/5000 characters (min 10)`}
+            inputProps={{ maxLength: 5000 }}
             placeholder="Short product description..."
             sx={textFieldStyles}
           />
@@ -466,12 +515,17 @@ const ProductForm: React.FC<ProductFormProps> = ({
               label="Author"
               value={formData.author || ''}
               onChange={(e) => {
-                setFormData({ ...formData, author: e.target.value });
+                const value = e.target.value;
+                if (value.length > 100) {
+                  setAuthorError('Author name must not exceed 100 characters');
+                  return;
+                }
+                setFormData({ ...formData, author: value });
                 setAuthorError('');
               }}
               error={!!authorError}
-              helperText={authorError}
-              inputProps={{ minLength: 2, maxLength: 100 }}
+              helperText={authorError || `${(formData.author || '').length}/100 characters (min 2)`}
+              inputProps={{ maxLength: 100 }}
               placeholder="Author name"
               sx={textFieldStyles}
             />
@@ -482,9 +536,29 @@ const ProductForm: React.FC<ProductFormProps> = ({
               type="number"
               size="small"
               label="Pages"
-              value={formData.pages || ''}
-              onChange={(e) => setFormData({ ...formData, pages: parseInt(e.target.value) || 0 })}
-              inputProps={{ min: 1, max: 10000 }}
+              value={formData.pages ?? ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '') {
+                  setFormData({ ...formData, pages: undefined });
+                  setPagesError('');
+                  return;
+                }
+                const numValue = parseInt(value);
+                if (numValue < 1) {
+                  setPagesError('Pages must be at least 1');
+                  return;
+                }
+                if (numValue > 10000) {
+                  setPagesError('Pages cannot exceed 10,000');
+                  return;
+                }
+                setFormData({ ...formData, pages: numValue });
+                setPagesError('');
+              }}
+              error={!!pagesError}
+              helperText={pagesError || 'Enter number of pages (1 - 10,000)'}
+              inputProps={{ min: 1, max: 10000, step: 1 }}
               placeholder="Number of pages"
               sx={textFieldStyles}
             />
@@ -495,10 +569,30 @@ const ProductForm: React.FC<ProductFormProps> = ({
               type="number"
               size="small"
               label="Published Year"
-              value={formData.published_year || new Date().getFullYear()}
-              onChange={(e) => setFormData({ ...formData, published_year: parseInt(e.target.value) || new Date().getFullYear() })}
-              inputProps={{ min: 1900, max: 2100 }}
-              placeholder="2024"
+              value={formData.published_year ?? new Date().getFullYear()}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '') {
+                  setFormData({ ...formData, published_year: new Date().getFullYear() });
+                  setYearError('');
+                  return;
+                }
+                const numValue = parseInt(value);
+                if (numValue < 1900) {
+                  setYearError('Year must be 1900 or later');
+                  return;
+                }
+                if (numValue > 2100) {
+                  setYearError('Year cannot exceed 2100');
+                  return;
+                }
+                setFormData({ ...formData, published_year: numValue });
+                setYearError('');
+              }}
+              error={!!yearError}
+              helperText={yearError || 'Enter year (1900 - 2100)'}
+              inputProps={{ min: 1900, max: 2100, step: 1 }}
+              placeholder={new Date().getFullYear().toString()}
               sx={textFieldStyles}
             />
           </div>
@@ -578,8 +672,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 size="small"
                 label="Season"
                 value={formData.season || ''}
-                onChange={(e) => setFormData({ ...formData, season: e.target.value })}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.length > 50) return;
+                  setFormData({ ...formData, season: value });
+                }}
                 placeholder="e.g., Spring, Summer, All year"
+                helperText={`${(formData.season || '').length}/50 characters`}
+                inputProps={{ maxLength: 50 }}
                 sx={textFieldStyles}
               />
             </div>
@@ -589,8 +689,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 size="small"
                 label="Plant Type"
                 value={formData.plant_type || ''}
-                onChange={(e) => setFormData({ ...formData, plant_type: e.target.value })}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.length > 100) return;
+                  setFormData({ ...formData, plant_type: value });
+                }}
                 placeholder="e.g., Indoor plants, Vegetables"
+                helperText={`${(formData.plant_type || '').length}/100 characters`}
+                inputProps={{ maxLength: 100 }}
                 sx={textFieldStyles}
               />
             </div>
@@ -600,8 +706,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 size="small"
                 label="Estimated Time"
                 value={formData.estimated_time || ''}
-                onChange={(e) => setFormData({ ...formData, estimated_time: e.target.value })}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.length > 50) return;
+                  setFormData({ ...formData, estimated_time: value });
+                }}
                 placeholder="e.g., 30 minutes, 2 hours"
+                helperText={`${(formData.estimated_time || '').length}/50 characters`}
+                inputProps={{ maxLength: 50 }}
                 sx={textFieldStyles}
               />
             </div>
