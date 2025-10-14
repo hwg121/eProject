@@ -5,7 +5,8 @@ import { Wrench, Clock, Users, ThumbsUp, CheckCircle, Star } from 'lucide-react'
 import DetailPage from '../components/UI/DetailPage';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { findItemBySlug } from '../utils/slug';
-import { publicService } from '../services/api';
+import { publicService, articlesService } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Technique {
   id: string;
