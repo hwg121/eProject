@@ -108,6 +108,7 @@ function App() {
               <Route path="/*" element={
                 <Layout>
                   <Suspense fallback={<LoadingSpinner />}>
+                    <AnimatePresence mode="wait">
                       <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/techniques" element={<Techniques />} />
@@ -129,6 +130,7 @@ function App() {
                         <Route path="/video/:slug" element={<VideoDetail />} />
                         <Route path="/technique/:slug" element={<TechniqueDetail />} />
                       </Routes>
+                    </AnimatePresence>
                   </Suspense>
                 </Layout>
               } />

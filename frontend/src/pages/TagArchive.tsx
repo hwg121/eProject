@@ -52,11 +52,21 @@ const TagArchive: React.FC = () => {
 
       try {
         setLoading(true);
+        setError(null);
         
         // Fetch tag details
         const tagResponse = await tagService.getBySlug(slug);
-        if (tagResponse && typeof tagResponse === 'object' && 'success' in tagResponse && (tagResponse as any).success && (tagResponse as any).data) {
+        
+        
+        // Check multiple possible response formats
+        if (tagResponse && (tagResponse as any).success && (tagResponse as any).data) {
           setTag((tagResponse as any).data);
+        } else if (tagResponse && (tagResponse as any).id) {
+          // Direct tag object response
+          setTag(tagResponse as any);
+        } else {
+          setError('Tag not found');
+          setTag(null);
         }
 
         // Fetch tag contents
@@ -65,12 +75,22 @@ const TagArchive: React.FC = () => {
           per_page: 50,
         });
         
-        if (contentsResponse && typeof contentsResponse === 'object' && 'success' in contentsResponse && (contentsResponse as any).success && (contentsResponse as any).data) {
-          setContents((contentsResponse as any).data.contents || []);
+        
+        if (contentsResponse && (contentsResponse as any).success && (contentsResponse as any).data) {
+          // Contents API returns: {success: true, data: {tag: {...}, contents: [...]}}
+          const contentsData = (contentsResponse as any).data;
+          if (contentsData && contentsData.contents && Array.isArray(contentsData.contents)) {
+            setContents(contentsData.contents);
+          } else {
+            setContents([]);
+          }
+        } else {
+          setContents([]);
         }
       } catch (err) {
         setError('Failed to load tag data');
-        console.error('Error loading tag data:', err);
+        setTag(null);
+        setContents([]);
       } finally {
         setLoading(false);
       }
@@ -114,56 +134,69 @@ const TagArchive: React.FC = () => {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Breadcrumbs */}
-      <nav className="text-sm text-gray-600 mb-6">
-        <Link to="/" className="hover:text-emerald-500 transition-colors">
-          Home
-        </Link>
-        <ChevronRight className="inline w-4 h-4 mx-2" />
-        <Link to="/tags" className="hover:text-emerald-500 transition-colors">
-          Tags
-        </Link>
-        <ChevronRight className="inline w-4 h-4 mx-2" />
-        <span className="text-gray-900">
-          {tag?.name || slug}
-        </span>
-      </nav>
-
-      {loading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-          <p className="text-emerald-600">Loading content...</p>
-        </div>
-      ) : error ? (
-        <div className="text-center py-12">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      ) : !tag ? (
-        <Card className="p-12 text-center">
-          <Hash className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-          <h2 className="text-2xl font-bold mb-2 text-gray-700">Tag Not Found</h2>
-          <p className="text-sm mb-6 text-gray-600">
-            The tag you're looking for doesn't exist.
-          </p>
-          <Link
-            to="/tags"
-            className="inline-block px-6 py-3 bg-emerald-500 text-white rounded-lg font-semibold hover:bg-emerald-600 transition-colors"
-          >
-            Browse All Tags
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-emerald-900">
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        {/* Breadcrumbs */}
+        <nav className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+          <Link to="/" className="hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors">
+            Home
           </Link>
-        </Card>
-      ) : (
+          <ChevronRight className="inline w-4 h-4 mx-2" />
+          <Link to="/tags" className="hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors">
+            Tags
+          </Link>
+          <ChevronRight className="inline w-4 h-4 mx-2" />
+          <span className="text-gray-900 dark:text-white font-medium">
+            {tag?.name || slug}
+          </span>
+        </nav>
+
+        {loading ? (
+          <div className="text-center py-16">
+            <div className="relative">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-emerald-200 dark:border-emerald-800 mx-auto mb-6"></div>
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-transparent border-t-emerald-600 dark:border-t-emerald-400 absolute top-0 left-1/2 transform -translate-x-1/2"></div>
+            </div>
+            <p className="text-lg font-medium text-emerald-600 dark:text-emerald-400">Loading content...</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Discovering amazing content</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-16">
+            <div className="p-6 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-800 max-w-md mx-auto">
+              <div className="w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Hash className="w-6 h-6 text-red-600 dark:text-red-400" />
+              </div>
+              <p className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">Oops! Something went wrong</p>
+              <p className="text-sm text-red-600 dark:text-red-300 mb-6">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        ) : !tag ? (
+          <Card className="p-16 text-center bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-emerald-200/50 dark:border-emerald-700/50">
+            <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Hash className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <h2 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">Tag Not Found</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
+              The tag you're looking for doesn't exist or may have been removed.
+            </p>
+            <Link
+              to="/tags"
+              className="inline-block px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold transition-colors duration-200 shadow-lg hover:shadow-xl"
+            >
+              Browse All Tags
+            </Link>
+          </Card>
+        ) : (
         <>
           {/* Tag Header */}
-          <Card className="p-8">
-            <div className="flex items-start justify-between mb-4">
+          <Card className="p-8 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-gray-800 dark:to-emerald-900/30 border-emerald-200/50 dark:border-emerald-700/50">
+            <div className="flex items-start justify-between mb-6">
               <div className="flex-1">
                 <TagChip
                   id={tag.id}
@@ -171,34 +204,34 @@ const TagArchive: React.FC = () => {
                   slug={tag.slug}
                   clickable={false}
                   size="large"
-                  className="mb-4"
+                  className="mb-6"
                 />
                 {tag.description && (
-                  <p className="text-lg mb-4 text-gray-600">
+                  <p className="text-lg mb-6 text-gray-700 dark:text-gray-300 leading-relaxed">
                     {tag.description}
                   </p>
                 )}
                 <div className="flex items-center space-x-6 text-sm">
                   {tag.articles_count !== undefined && tag.articles_count > 0 && (
-                    <div className="flex items-center space-x-2">
-                      <FileText className="w-5 h-5 text-blue-600" />
-                      <span className="text-gray-700">
+                    <div className="flex items-center space-x-2 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-3 py-2 rounded-lg">
+                      <FileText className="w-5 h-5" />
+                      <span className="font-medium">
                         {tag.articles_count} {tag.articles_count === 1 ? 'Article' : 'Articles'}
                       </span>
                     </div>
                   )}
                   {tag.videos_count !== undefined && tag.videos_count > 0 && (
-                    <div className="flex items-center space-x-2">
-                      <Video className="w-5 h-5 text-red-600" />
-                      <span className="text-gray-700">
+                    <div className="flex items-center space-x-2 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 px-3 py-2 rounded-lg">
+                      <Video className="w-5 h-5" />
+                      <span className="font-medium">
                         {tag.videos_count} {tag.videos_count === 1 ? 'Video' : 'Videos'}
                       </span>
                     </div>
                   )}
                   {tag.products_count !== undefined && tag.products_count > 0 && (
-                    <div className="flex items-center space-x-2">
-                      <Package className="w-5 h-5 text-purple-600" />
-                      <span className="text-gray-700">
+                    <div className="flex items-center space-x-2 text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30 px-3 py-2 rounded-lg">
+                      <Package className="w-5 h-5" />
+                      <span className="font-medium">
                         {tag.products_count} {tag.products_count === 1 ? 'Product' : 'Products'}
                       </span>
                     </div>
@@ -209,45 +242,47 @@ const TagArchive: React.FC = () => {
           </Card>
 
           {/* Filter Tabs */}
-          <Card className="p-4">
-            <div className="flex items-center space-x-2 overflow-x-auto">
-              <Filter className="w-5 h-5 flex-shrink-0 text-gray-600" />
+          <Card className="p-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-emerald-200/50 dark:border-emerald-700/50">
+            <div className="flex items-center space-x-3 overflow-x-auto">
+              <div className="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg flex-shrink-0">
+                <Filter className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              </div>
               <button
                 onClick={() => setFilterType('all')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
+                className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 whitespace-nowrap ${
                   filterType === 'all'
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? 'bg-emerald-600 text-white shadow-lg'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                 }`}
               >
                 All ({tag.total_count || 0})
               </button>
               <button
                 onClick={() => setFilterType('articles')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
+                className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 whitespace-nowrap ${
                   filterType === 'articles'
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? 'bg-emerald-600 text-white shadow-lg'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                 }`}
               >
                 Articles ({tag.articles_count || 0})
               </button>
               <button
                 onClick={() => setFilterType('videos')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
+                className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 whitespace-nowrap ${
                   filterType === 'videos'
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? 'bg-emerald-600 text-white shadow-lg'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                 }`}
               >
                 Videos ({tag.videos_count || 0})
               </button>
               <button
                 onClick={() => setFilterType('products')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
+                className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 whitespace-nowrap ${
                   filterType === 'products'
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? 'bg-emerald-600 text-white shadow-lg'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                 }`}
               >
                 Products ({tag.products_count || 0})
@@ -333,7 +368,8 @@ const TagArchive: React.FC = () => {
             </div>
           )}
         </>
-      )}
+        )}
+      </div>
     </div>
   );
 };

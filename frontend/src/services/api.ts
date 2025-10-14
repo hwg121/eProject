@@ -142,10 +142,7 @@ class ApiClient {
       }
       
       // Handle Laravel API response format for other endpoints
-      if (data && typeof data === 'object' && 'data' in data) {
-        return data.data;
-      }
-      
+      // Return the full response object to preserve success field
       return data;
     } catch (error) {
       console.error('API request failed:', error);

@@ -42,8 +42,6 @@ const TagInput: React.FC<TagInputProps> = ({
     try {
       setLoading(true);
       
-      console.log('🔍 [TagInput] Step 1: Starting fetch tags...');
-      alert('🔍 [TagInput] Step 1: Starting fetch tags...');
       
       const response = await tagService.getAllAdmin({
         per_page: 100,
@@ -51,13 +49,6 @@ const TagInput: React.FC<TagInputProps> = ({
         sortOrder: 'asc',
       });
       
-      console.log('🔍 [TagInput] Step 2: API Response received:', response);
-      console.log('🔍 [TagInput] Response type:', typeof response);
-      console.log('🔍 [TagInput] Response is array?', Array.isArray(response));
-      console.log('🔍 [TagInput] Response.success:', response?.success);
-      console.log('🔍 [TagInput] Response.data:', response?.data);
-      
-      alert(`🔍 [TagInput] Step 2: API Response received!\n\nType: ${typeof response}\nIs Array: ${Array.isArray(response)}\nHas Success: ${!!response?.success}\nHas Data: ${!!response?.data}\n\nCheck console for full response.`);
       
       // Handle both formats: 
       // 1. Full Laravel response: {success: true, data: [...]}
@@ -66,44 +57,22 @@ const TagInput: React.FC<TagInputProps> = ({
       
       if (Array.isArray(response)) {
         // Case 2: Response is already unwrapped array
-        console.log('🔍 [TagInput] Step 3a: Response is direct array. Count:', response.length);
-        alert(`🔍 [TagInput] Step 3a: Response is direct array!\n\nCount: ${response.length}\nFirst tag: ${response[0]?.name || 'N/A'}`);
         tagsData = response;
       } else if (response && response.success && response.data) {
         // Case 1: Full Laravel response
-        console.log('🔍 [TagInput] Step 3b: Laravel format response. Count:', response.data.length);
-        alert(`🔍 [TagInput] Step 3b: Laravel format response!\n\nCount: ${response.data.length}\nFirst tag: ${response.data[0]?.name || 'N/A'}`);
         tagsData = response.data;
       } else if (response && Array.isArray(response.data)) {
         // Case 3: Has data property but no success
-        console.log('🔍 [TagInput] Step 3c: Has data property. Count:', response.data.length);
-        alert(`🔍 [TagInput] Step 3c: Has data property!\n\nCount: ${response.data.length}\nFirst tag: ${response.data[0]?.name || 'N/A'}`);
         tagsData = response.data;
       }
       
       if (tagsData && Array.isArray(tagsData)) {
-        console.log('🔍 [TagInput] Step 4: Setting tags. Count:', tagsData.length);
-        console.log('🔍 [TagInput] First tag:', tagsData[0]);
         setTags(tagsData);
-        alert(`✅ [TagInput] SUCCESS: Loaded ${tagsData.length} tags!\n\nFirst tag: ${tagsData[0]?.name || 'N/A'}\n\nTags loaded successfully!`);
       } else {
-        console.warn('🔍 [TagInput] Step 4: Could not extract tags data');
-        console.warn('🔍 [TagInput] Response type:', typeof response);
-        console.warn('🔍 [TagInput] Full response:', response);
-        console.warn('🔍 [TagInput] Response keys:', Object.keys(response || {}));
-        alert(`⚠️ [TagInput] WARNING: Could not extract tags!\n\nResponse type: ${typeof response}\nIs array: ${Array.isArray(response)}\nHas success: ${!!response?.success}\nHas data: ${!!response?.data}\n\nFull response logged to console.`);
       }
     } catch (error) {
-      console.error('🔍 [TagInput] Step ERROR:', error);
-      console.error('🔍 [TagInput] Error details:', {
-        message: error?.message,
-        response: error?.response,
-        data: error?.response?.data,
-      });
-      alert(`❌ [TagInput] ERROR fetching tags:\n\n${error?.message || 'Unknown error'}\n\nCheck console for details.`);
     } finally {
       setLoading(false);
-      console.log('🔍 [TagInput] Step 5: Loading complete');
     }
   };
 
