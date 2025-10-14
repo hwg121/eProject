@@ -696,7 +696,13 @@ const DetailPage: React.FC<DetailPageProps> = ({
                               }
                             `
                           }} />
-                          <div dangerouslySetInnerHTML={{ __html: content }} />
+                          <div 
+                            dangerouslySetInnerHTML={{ 
+                              __html: showFullContent || content.length <= 1000 
+                                ? content 
+                                : content.substring(0, 1000) + '...' 
+                            }} 
+                          />
                         </div>
                         
                         {content.length > 1000 && (
