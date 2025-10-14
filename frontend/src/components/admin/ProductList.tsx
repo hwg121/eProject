@@ -780,7 +780,15 @@ const ProductList: React.FC<ProductListProps> = ({
                               />
                             )}
                           </div>
-                          <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} truncate`}>
+                          <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}
+                             style={{
+                               display: '-webkit-box',
+                               WebkitLineClamp: 2,
+                               WebkitBoxOrient: 'vertical',
+                               overflow: 'hidden',
+                               textOverflow: 'ellipsis',
+                               lineHeight: '1.4'
+                             }}>
                             {product.description}
                           </p>
                         </div>
