@@ -698,14 +698,50 @@ const DetailPage: React.FC<DetailPageProps> = ({
                           }} />
                           <div 
                             dangerouslySetInnerHTML={{ 
-                              __html: showFullContent || content.length <= 1000 
-                                ? content 
-                                : content.substring(0, 1000) + '...' 
+                              __html: (() => {
+                                // Strip HTML tags to get actual text length
+                                const textContent = content.replace(/<[^>]*>/g, '').trim();
+                                const shouldShowMore = textContent.length > 500;
+                                
+                                if (showFullContent || !shouldShowMore) {
+                                  return content;
+                                } else {
+                                  // Simple truncation for now - can be improved later
+                                  let cutIndex = 500;
+                                  const text = content.replace(/<[^>]*>/g, '');
+                                  
+                                  // Try to cut at sentence end
+                                  const sentenceEnd = text.lastIndexOf('.', cutIndex);
+                                  if (sentenceEnd > 200) {
+                                    cutIndex = sentenceEnd + 1;
+                                  }
+                                  
+                                  // Find corresponding HTML position
+                                  let htmlCutIndex = 0;
+                                  let textIndex = 0;
+                                  let inTag = false;
+                                  
+                                  for (let i = 0; i < content.length && textIndex < cutIndex; i++) {
+                                    if (content[i] === '<') inTag = true;
+                                    else if (content[i] === '>') inTag = false;
+                                    else if (!inTag) {
+                                      textIndex++;
+                                    }
+                                    htmlCutIndex = i + 1;
+                                  }
+                                  
+                                  return content.substring(0, htmlCutIndex) + '...';
+                                }
+                              })()
                             }} 
                           />
                         </div>
                         
-                        {content.length > 1000 && (
+                        {(() => {
+                          // Strip HTML tags to get actual text length
+                          const textContent = content.replace(/<[^>]*>/g, '').trim();
+                          return textContent.length > 500;
+                        })() && (
                           <div className="mt-6 text-center">
                             <button
                               onClick={() => setShowFullContent(!showFullContent)}
