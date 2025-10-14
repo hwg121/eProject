@@ -762,8 +762,14 @@ const ProductList: React.FC<ProductListProps> = ({
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <h3 className={`font-medium text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'} truncate`}>
-                              {product.name || product.title}
+                            <h3 
+                              className={`font-medium text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'} truncate`}
+                              style={{ maxWidth: '300px' }}
+                              title={product.name || product.title}
+                            >
+                              {(product.name || product.title || '').length > 50 
+                                ? `${(product.name || product.title).substring(0, 50)}...` 
+                                : (product.name || product.title)}
                             </h3>
                             {product.featured && (
                               <Chip 

@@ -629,8 +629,14 @@ const ContentList: React.FC<ContentListProps> = ({
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <h3 className={`font-medium text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'} truncate`}>
-                              {item.title}
+                            <h3 
+                              className={`font-medium text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'} truncate`}
+                              style={{ maxWidth: '300px' }}
+                              title={item.title}
+                            >
+                              {(item.title || '').length > 50 
+                                ? `${item.title.substring(0, 50)}...` 
+                                : item.title}
                             </h3>
                             {item.featured && (
                               <Chip 
