@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Mail, Eye, Trash2, X, Calendar, User, MessageSquare } from 'lucide-react';
 import PageHeader from '../../components/UI/PageHeader';
 import Toast from '../../components/UI/Toast';
+import ConfirmDialog from '../../components/UI/ConfirmDialog';
 import { useTheme } from '../../contexts/ThemeContext';
 import { contactService } from '../../services/api.ts';
 import {
@@ -52,6 +53,13 @@ const AdminContactMessages: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
   const [showDetail, setShowDetail] = useState(false);
+  
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    title: '',
+    message: '',
+    onConfirm: () => {}
+  });
 
   useEffect(() => {
     loadMessages();
@@ -86,15 +94,21 @@ const AdminContactMessages: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this message?')) {
-      try {
-        await contactService.delete(id);
-        loadMessages();
-      } catch (err) {
-        setError('Failed to delete message');
-        console.error('Error deleting message:', err);
+    setConfirmDialog({
+      open: true,
+      title: 'Delete Message',
+      message: 'Are you sure you want to delete this message? This action cannot be undone.',
+      onConfirm: async () => {
+        try {
+          await contactService.delete(id);
+          loadMessages();
+        } catch (err) {
+          setError('Failed to delete message');
+          console.error('Error deleting message:', err);
+        }
+        setConfirmDialog({ ...confirmDialog, open: false });
       }
-    }
+    });
   };
 
   const getStatusBadge = (status: string) => {
@@ -485,6 +499,17 @@ const AdminContactMessages: React.FC = () => {
           </>
         )}
       </Dialog>
+      
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type="warning"
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, open: false })}
+        isDarkMode={isDarkMode}
+      />
     </Box>
   );
 };

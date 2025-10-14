@@ -47,6 +47,7 @@ import {
 } from '@mui/material';
 import { validateEmail, validatePhone, validateText, validateURL, hasErrors } from '../../utils/validation';
 import StatusBadge from '../../components/UI/StatusBadge';
+import ConfirmDialog from '../../components/UI/ConfirmDialog';
 
 const AdminContactSettings: React.FC = () => {
   const [contactSettings, setContactSettings] = useState<ContactSetting[]>([]);
@@ -79,6 +80,13 @@ const AdminContactSettings: React.FC = () => {
     open: false,
     message: '',
     severity: 'success'
+  });
+  
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    title: '',
+    message: '',
+    onConfirm: () => {}
   });
 
   const showToast = (message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
@@ -213,38 +221,42 @@ const AdminContactSettings: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this contact setting?')) {
-      return;
-    }
-
-    try {
-      setError(null);
-      setSuccessMessage(null);
-      await contactSettingService.delete(id);
-      setSuccessMessage('Contact settings deleted successfully!');
-      await loadContactSettings();
-      
-      // Auto-dismiss success message
-      setTimeout(() => {
-        setSuccessMessage(null);
-      }, 3000);
-    } catch (err: any) {
-      console.error('Delete error:', err);
-      
-      // Extract proper error message from backend
-      let errorMessage = 'Failed to delete contact settings. Please try again.';
-      
-      if (err?.response?.data?.message) {
-        errorMessage = err.response.data.message;
-      } else if (err?.response?.data?.error) {
-        errorMessage = err.response.data.error;
-      } else if (err?.message) {
-        errorMessage = err.message;
+    setConfirmDialog({
+      open: true,
+      title: 'Delete Contact Setting',
+      message: 'Are you sure you want to delete this contact setting? This action cannot be undone.',
+      onConfirm: async () => {
+        try {
+          setError(null);
+          setSuccessMessage(null);
+          await contactSettingService.delete(id);
+          setSuccessMessage('Contact settings deleted successfully!');
+          await loadContactSettings();
+          
+          // Auto-dismiss success message
+          setTimeout(() => {
+            setSuccessMessage(null);
+          }, 3000);
+        } catch (err: any) {
+          console.error('Delete error:', err);
+          
+          // Extract proper error message from backend
+          let errorMessage = 'Failed to delete contact settings. Please try again.';
+          
+          if (err?.response?.data?.message) {
+            errorMessage = err.response.data.message;
+          } else if (err?.response?.data?.error) {
+            errorMessage = err.response.data.error;
+          } else if (err?.message) {
+            errorMessage = err.message;
+          }
+          
+          setError(errorMessage);
+          showToast(errorMessage, 'error');
+        }
+        setConfirmDialog({ ...confirmDialog, open: false });
       }
-      
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
-    }
+    });
   };
 
   const handleSetActive = async (id: number) => {
@@ -857,6 +869,17 @@ const AdminContactSettings: React.FC = () => {
           {snackbar.message}
         </MuiAlert>
       </Snackbar>
+      
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type="warning"
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, open: false })}
+        isDarkMode={false}
+      />
     </div>
   );
 };

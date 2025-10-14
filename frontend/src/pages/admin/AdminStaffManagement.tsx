@@ -74,6 +74,13 @@ const AdminStaffManagement: React.FC = () => {
     message: '',
     severity: 'success'
   });
+  
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    title: '',
+    message: '',
+    onConfirm: () => {}
+  });
 
   const showToast = (message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
     setSnackbar({ open: true, message, severity });
@@ -166,29 +173,35 @@ const AdminStaffManagement: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this staff member?')) {
-      try {
-        await staffMemberService.delete(id);
-        showToast('Staff member deleted successfully!', 'success');
-        loadStaffMembers();
-      } catch (err: any) {
-        console.error('AdminStaffManagement - Delete error:', err);
-        
-        // Extract proper error message from backend
-        let errorMessage = 'Failed to delete staff member. Please try again.';
-        
-        if (err?.response?.data?.message) {
-          errorMessage = err.response.data.message;
-        } else if (err?.response?.data?.error) {
-          errorMessage = err.response.data.error;
-        } else if (err?.message) {
-          errorMessage = err.message;
+    setConfirmDialog({
+      open: true,
+      title: 'Delete Staff Member',
+      message: 'Are you sure you want to delete this staff member? This action cannot be undone.',
+      onConfirm: async () => {
+        try {
+          await staffMemberService.delete(id);
+          showToast('Staff member deleted successfully!', 'success');
+          loadStaffMembers();
+        } catch (err: any) {
+          console.error('AdminStaffManagement - Delete error:', err);
+          
+          // Extract proper error message from backend
+          let errorMessage = 'Failed to delete staff member. Please try again.';
+          
+          if (err?.response?.data?.message) {
+            errorMessage = err.response.data.message;
+          } else if (err?.response?.data?.error) {
+            errorMessage = err.response.data.error;
+          } else if (err?.message) {
+            errorMessage = err.message;
+          }
+          
+          setError(errorMessage);
+          showToast(errorMessage, 'error');
         }
-        
-        setError(errorMessage);
-        showToast(errorMessage, 'error');
+        setConfirmDialog({ ...confirmDialog, open: false });
       }
-    }
+    });
   };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -875,6 +888,17 @@ const AdminStaffManagement: React.FC = () => {
         message={snackbar.message}
         severity={snackbar.severity}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
+      />
+      
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type="warning"
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, open: false })}
+        isDarkMode={isDarkMode}
       />
     </Box>
   );
