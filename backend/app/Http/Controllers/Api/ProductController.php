@@ -281,7 +281,7 @@ class ProductController extends Controller
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'slug' => 'sometimes|string|max:255|unique:products',
-                'description' => 'nullable|string',
+                'description' => 'nullable|string|max:5000',
                 'content' => 'nullable|string',
                 'category' => 'required|in:tool,book,pot,accessory,suggestion',
                 'subcategory' => 'nullable|string|max:255',
@@ -327,7 +327,31 @@ class ProductController extends Controller
                 'data' => new ProductResource($product),
                 'message' => 'Product created successfully'
             ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed. Please check your input.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle database-specific errors (duplicate entry, etc.)
+            if ($e->getCode() == 23000) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Product with this name or slug already exists.'
+                ], 409);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Database error: ' . $e->getMessage()
+            ], 500);
         } catch (\Exception $e) {
+            \Log::error('ProductController::store failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Error creating product: ' . $e->getMessage()
@@ -451,9 +475,9 @@ class ProductController extends Controller
             $request->merge($data);
             
             $validated = $request->validate([
-                'name' => 'sometimes|required|string|max:255',
+                'name' => 'sometimes|required|string|min:2|max:100',
                 'slug' => 'nullable|string|max:255|unique:products,slug,' . $id,
-                'description' => 'sometimes|required|string',
+                'description' => 'sometimes|required|string|min:10|max:5000',
                 'content' => 'nullable|string',
                 'category' => 'sometimes|required|string|in:tool,book,pot,accessory,suggestion',
                 'subcategory' => 'nullable|string|max:255',
@@ -498,15 +522,41 @@ class ProductController extends Controller
                 'message' => 'Product updated successfully',
                 'data' => new ProductResource($product)
             ]);
-        } catch (\Throwable $e) {
-            // Temporary debug, do not keep in production
+        } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'error_type' => get_class($e),
-                'message' => $e->getMessage(),
+                'message' => 'Validation failed. Please check your input.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Product not found.'
+            ], 404);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle database-specific errors (duplicate entry, etc.)
+            if ($e->getCode() == 23000) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Product with this name or slug already exists.'
+                ], 409);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Database error: ' . $e->getMessage()
+            ], 500);
+        } catch (\Throwable $e) {
+            \Log::error('ProductController::update failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating product: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -524,7 +574,17 @@ class ProductController extends Controller
             'success' => true,
             'message' => 'Product deleted successfully'
         ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Product not found.'
+            ], 404);
         } catch (\Exception $e) {
+            \Log::error('ProductController::destroy failed', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Error deleting product: ' . $e->getMessage()

@@ -59,22 +59,36 @@ class ContactSettingController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'email' => 'nullable|email',
-                'phone' => 'nullable|string|max:20',
-                'address' => 'nullable|string|max:500',
-                'website' => 'nullable|url',
-                'facebook' => 'nullable|url',
-                'instagram' => 'nullable|url',
-                'youtube' => 'nullable|url',
-                'linkedin' => 'nullable|url',
-                'working_hours' => 'nullable|string|max:200',
+                'email' => 'nullable|email|max:254',
+                'phone' => 'nullable|string|min:10|max:20',
+                'address' => 'nullable|string|min:10|max:200',
+                'website' => 'nullable|url|max:500',
+                'facebook' => 'nullable|url|max:500',
+                'instagram' => 'nullable|url|max:500',
+                'youtube' => 'nullable|url|max:500',
+                'linkedin' => 'nullable|url|max:500',
+                'working_hours' => 'nullable|string|min:5|max:100',
                 'is_active' => 'boolean'
+            ], [
+                'email.email' => 'Please enter a valid email address.',
+                'email.max' => 'Email must not exceed 254 characters.',
+                'phone.min' => 'Phone must be at least 10 digits.',
+                'phone.max' => 'Phone must not exceed 20 characters.',
+                'address.min' => 'Address must be at least 10 characters.',
+                'address.max' => 'Address must not exceed 200 characters.',
+                'website.url' => 'Please enter a valid URL for website.',
+                'facebook.url' => 'Please enter a valid URL for Facebook.',
+                'instagram.url' => 'Please enter a valid URL for Instagram.',
+                'youtube.url' => 'Please enter a valid URL for YouTube.',
+                'linkedin.url' => 'Please enter a valid URL for LinkedIn.',
+                'working_hours.min' => 'Working hours must be at least 5 characters.',
+                'working_hours.max' => 'Working hours must not exceed 100 characters.',
             ]);
 
             if ($validator->fails()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Validation failed',
+                    'message' => 'Validation failed. Please check your input.',
                     'errors' => $validator->errors()
                 ], 422);
             }
@@ -165,12 +179,20 @@ class ContactSettingController extends Controller
                 'message' => 'Contact settings updated successfully',
                 'data' => $contactSetting
             ]);
-
-        } catch (\Exception $e) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update contact settings',
+                'message' => 'Contact settings not found.'
+            ], 404);
+        } catch (\Exception $e) {
+            \Log::error('ContactSettingController::update failed', [
+                'id' => $id,
                 'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update contact settings: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -188,12 +210,20 @@ class ContactSettingController extends Controller
                 'success' => true,
                 'message' => 'Contact settings deleted successfully'
             ]);
-
-        } catch (\Exception $e) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete contact settings',
+                'message' => 'Contact settings not found.'
+            ], 404);
+        } catch (\Exception $e) {
+            \Log::error('ContactSettingController::destroy failed', [
+                'id' => $id,
                 'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete contact settings: ' . $e->getMessage()
             ], 500);
         }
     }

@@ -147,9 +147,9 @@ class ArticleController extends Controller
     {
         try {
             $validated = $request->validate([
-                'title' => 'required|string|max:255',
+                'title' => 'required|string|min:3|max:200',
                 'slug' => 'required|string|max:255|unique:articles,slug',
-                'excerpt' => 'nullable|string',
+                'excerpt' => 'nullable|string|max:500',
                 'body' => 'nullable|string', // Make body nullable since content can be used instead
                 'content' => 'nullable|string',
                 'featured_image' => 'nullable|string',
@@ -205,10 +205,28 @@ class ArticleController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Validation failed. Please check your input.',
                 'errors' => $e->errors()
             ], 422);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle duplicate slug
+            if ($e->getCode() == 23000) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Article with this title or slug already exists.'
+                ], 409);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Database error: ' . $e->getMessage()
+            ], 500);
         } catch (\Exception $e) {
+            \Log::error('ArticleController::store failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Error creating article: ' . $e->getMessage()
@@ -222,9 +240,9 @@ class ArticleController extends Controller
             $article = Article::with('tags')->findOrFail($id);
             
             $validated = $request->validate([
-                'title' => 'sometimes|required|string|max:255',
+                'title' => 'sometimes|required|string|min:3|max:200',
                 'slug' => 'sometimes|required|string|max:255|unique:articles,slug,' . $id,
-                'excerpt' => 'nullable|string',
+                'excerpt' => 'nullable|string|max:500',
                 'body' => 'nullable|string',
                 'content' => 'nullable|string',
                 'featured_image' => 'nullable|string',
@@ -270,7 +288,35 @@ class ArticleController extends Controller
                 'message' => 'Article updated successfully',
                 'data' => new ArticleResource($article)
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed. Please check your input.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Article not found.'
+            ], 404);
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->getCode() == 23000) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Article with this title or slug already exists.'
+                ], 409);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Database error: ' . $e->getMessage()
+            ], 500);
         } catch (\Exception $e) {
+            \Log::error('ArticleController::update failed', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Error updating article: ' . $e->getMessage()
@@ -298,7 +344,17 @@ class ArticleController extends Controller
                 'success' => true,
                 'message' => 'Article deleted successfully'
             ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Article not found.'
+            ], 404);
         } catch (\Exception $e) {
+            \Log::error('ArticleController::destroy failed', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Error deleting article: ' . $e->getMessage()

@@ -53,9 +53,16 @@ class HeroSectionController extends Controller
     {
         try {
             $validated = $request->validate([
-                'title' => 'required|string|max:255',
-                'description' => 'required|string',
+                'title' => 'required|string|min:3|max:100',
+                'description' => 'required|string|min:10|max:500',
                 'is_active' => 'boolean',
+            ], [
+                'title.required' => 'Title is required.',
+                'title.min' => 'Title must be at least 3 characters.',
+                'title.max' => 'Title must not exceed 100 characters.',
+                'description.required' => 'Description is required.',
+                'description.min' => 'Description must be at least 10 characters.',
+                'description.max' => 'Description must not exceed 500 characters.',
             ]);
 
             // If setting as active, deactivate others
@@ -65,9 +72,24 @@ class HeroSectionController extends Controller
 
             $heroSection = HeroSection::create($validated);
 
-            return response()->json($heroSection, 201);
-        } catch (\Exception $e) {
             return response()->json([
+                'success' => true,
+                'message' => 'Hero section created successfully',
+                'data' => $heroSection
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed. Please check your input.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('HeroSectionController::store failed', [
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
                 'message' => 'Error creating hero section: ' . $e->getMessage()
             ], 500);
         }
@@ -97,9 +119,14 @@ class HeroSectionController extends Controller
             $heroSection = HeroSection::findOrFail($id);
             
             $validated = $request->validate([
-                'title' => 'sometimes|required|string|max:255',
-                'description' => 'sometimes|required|string',
+                'title' => 'sometimes|required|string|min:3|max:100',
+                'description' => 'sometimes|required|string|min:10|max:500',
                 'is_active' => 'boolean',
+            ], [
+                'title.min' => 'Title must be at least 3 characters.',
+                'title.max' => 'Title must not exceed 100 characters.',
+                'description.min' => 'Description must be at least 10 characters.',
+                'description.max' => 'Description must not exceed 500 characters.',
             ]);
 
             // If setting as active, deactivate others
@@ -111,9 +138,30 @@ class HeroSectionController extends Controller
 
             $heroSection->update($validated);
 
-            return response()->json($heroSection, 200);
-        } catch (\Exception $e) {
             return response()->json([
+                'success' => true,
+                'message' => 'Hero section updated successfully',
+                'data' => $heroSection
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed. Please check your input.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hero section not found.'
+            ], 404);
+        } catch (\Exception $e) {
+            \Log::error('HeroSectionController::update failed', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
                 'message' => 'Error updating hero section: ' . $e->getMessage()
             ], 500);
         }
@@ -128,9 +176,23 @@ class HeroSectionController extends Controller
             $heroSection = HeroSection::findOrFail($id);
             $heroSection->delete();
 
-            return response()->json(null, 204);
-        } catch (\Exception $e) {
             return response()->json([
+                'success' => true,
+                'message' => 'Hero section deleted successfully'
+            ], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hero section not found.'
+            ], 404);
+        } catch (\Exception $e) {
+            \Log::error('HeroSectionController::destroy failed', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
                 'message' => 'Error deleting hero section: ' . $e->getMessage()
             ], 500);
         }

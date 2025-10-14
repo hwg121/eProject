@@ -55,12 +55,24 @@ class StaffMemberController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'role' => 'required|string|max:255',
-                'short_bio' => 'required|string',
+                'name' => 'required|string|min:2|max:100',
+                'role' => 'required|string|min:2|max:50',
+                'short_bio' => 'required|string|min:10|max:1000',
                 'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:3072', // 3MB max
-                'display_order' => 'nullable|integer',
+                'display_order' => 'nullable|integer|min:0|max:1000',
                 'is_active' => 'boolean',
+            ], [
+                'name.required' => 'Staff member name is required.',
+                'name.min' => 'Name must be at least 2 characters.',
+                'name.max' => 'Name must not exceed 100 characters.',
+                'role.required' => 'Role is required.',
+                'role.min' => 'Role must be at least 2 characters.',
+                'role.max' => 'Role must not exceed 50 characters.',
+                'short_bio.required' => 'Bio is required.',
+                'short_bio.min' => 'Bio must be at least 10 characters.',
+                'short_bio.max' => 'Bio must not exceed 1000 characters.',
+                'display_order.min' => 'Display order cannot be negative.',
+                'display_order.max' => 'Display order cannot exceed 1000.',
             ]);
 
             // Upload avatar if provided
@@ -81,9 +93,25 @@ class StaffMemberController extends Controller
 
             $staffMember = StaffMember::create($validated);
 
-            return response()->json($staffMember, 201);
-        } catch (\Exception $e) {
             return response()->json([
+                'success' => true,
+                'message' => 'Staff member created successfully',
+                'data' => $staffMember
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed. Please check your input.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('StaffMemberController::store failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
                 'message' => 'Error creating staff member: ' . $e->getMessage()
             ], 500);
         }
@@ -113,12 +141,21 @@ class StaffMemberController extends Controller
             $staffMember = StaffMember::findOrFail($id);
             
             $validated = $request->validate([
-                'name' => 'sometimes|required|string|max:255',
-                'role' => 'sometimes|required|string|max:255',
-                'short_bio' => 'sometimes|required|string',
+                'name' => 'sometimes|required|string|min:2|max:100',
+                'role' => 'sometimes|required|string|min:2|max:50',
+                'short_bio' => 'sometimes|required|string|min:10|max:1000',
                 'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:3072',
-                'display_order' => 'nullable|integer',
+                'display_order' => 'nullable|integer|min:0|max:1000',
                 'is_active' => 'boolean',
+            ], [
+                'name.min' => 'Name must be at least 2 characters.',
+                'name.max' => 'Name must not exceed 100 characters.',
+                'role.min' => 'Role must be at least 2 characters.',
+                'role.max' => 'Role must not exceed 50 characters.',
+                'short_bio.min' => 'Bio must be at least 10 characters.',
+                'short_bio.max' => 'Bio must not exceed 1000 characters.',
+                'display_order.min' => 'Display order cannot be negative.',
+                'display_order.max' => 'Display order cannot exceed 1000.',
             ]);
 
             // Upload new avatar if provided
@@ -153,9 +190,30 @@ class StaffMemberController extends Controller
 
             $staffMember->update($validated);
 
-            return response()->json($staffMember, 200);
-        } catch (\Exception $e) {
             return response()->json([
+                'success' => true,
+                'message' => 'Staff member updated successfully',
+                'data' => $staffMember
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed. Please check your input.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Staff member not found.'
+            ], 404);
+        } catch (\Exception $e) {
+            \Log::error('StaffMemberController::update failed', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
                 'message' => 'Error updating staff member: ' . $e->getMessage()
             ], 500);
         }
@@ -179,9 +237,18 @@ class StaffMemberController extends Controller
             // Just delete from database
             $staffMember->delete();
 
-            return response()->json(null, 204);
-        } catch (\Exception $e) {
             return response()->json([
+                'success' => true,
+                'message' => 'Staff member deleted successfully'
+            ], 200);
+        } catch (\Exception $e) {
+            \Log::error('StaffMemberController::destroy failed', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
                 'message' => 'Error deleting staff member: ' . $e->getMessage()
             ], 500);
         }

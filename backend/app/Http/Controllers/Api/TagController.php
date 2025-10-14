@@ -254,9 +254,18 @@ class TagController extends Controller
         try {
             // Validation
             $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255|unique:tags,name',
-                'slug' => 'nullable|string|max:255|unique:tags,slug',
+                'name' => 'required|string|min:2|max:255|unique:tags,name',
+                'slug' => 'nullable|string|max:255|unique:tags,slug|regex:/^[a-z0-9-]+$/',
                 'description' => 'nullable|string|max:1000',
+            ], [
+                'name.required' => 'Tag name is required.',
+                'name.min' => 'Tag name must be at least 2 characters.',
+                'name.max' => 'Tag name must not exceed 255 characters.',
+                'name.unique' => 'A tag with this name already exists.',
+                'slug.max' => 'Slug must not exceed 255 characters.',
+                'slug.unique' => 'A tag with this slug already exists.',
+                'slug.regex' => 'Slug can only contain lowercase letters, numbers, and hyphens.',
+                'description.max' => 'Description must not exceed 1000 characters.',
             ]);
 
             if ($validator->fails()) {
@@ -295,6 +304,19 @@ class TagController extends Controller
                 'message' => 'Tag created successfully',
                 'data' => new TagResource($tag)
             ], 201);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle duplicate entry
+            if ($e->getCode() == 23000) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tag with this name or slug already exists.'
+                ], 409);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Database error: ' . $e->getMessage()
+            ], 500);
         } catch (\Exception $e) {
             Log::error('TagController::store failed', [
                 'error' => $e->getMessage(),
@@ -318,9 +340,17 @@ class TagController extends Controller
             
             // Validation
             $validator = Validator::make($request->all(), [
-                'name' => 'sometimes|required|string|max:255|unique:tags,name,' . $id,
-                'slug' => 'sometimes|required|string|max:255|unique:tags,slug,' . $id,
+                'name' => 'sometimes|required|string|min:2|max:255|unique:tags,name,' . $id,
+                'slug' => 'sometimes|required|string|max:255|unique:tags,slug,' . $id . '|regex:/^[a-z0-9-]+$/',
                 'description' => 'nullable|string|max:1000',
+            ], [
+                'name.min' => 'Tag name must be at least 2 characters.',
+                'name.max' => 'Tag name must not exceed 255 characters.',
+                'name.unique' => 'A tag with this name already exists.',
+                'slug.max' => 'Slug must not exceed 255 characters.',
+                'slug.unique' => 'A tag with this slug already exists.',
+                'slug.regex' => 'Slug can only contain lowercase letters, numbers, and hyphens.',
+                'description.max' => 'Description must not exceed 1000 characters.',
             ]);
 
             if ($validator->fails()) {
@@ -363,6 +393,24 @@ class TagController extends Controller
                 'message' => 'Tag updated successfully',
                 'data' => new TagResource($tag)
             ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tag not found.'
+            ], 404);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle duplicate entry
+            if ($e->getCode() == 23000) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tag with this name or slug already exists.'
+                ], 409);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Database error: ' . $e->getMessage()
+            ], 500);
         } catch (\Exception $e) {
             Log::error('TagController::update failed', [
                 'error' => $e->getMessage(),
@@ -405,6 +453,11 @@ class TagController extends Controller
                 'success' => true,
                 'message' => 'Tag deleted successfully'
             ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tag not found.'
+            ], 404);
         } catch (\Exception $e) {
             Log::error('TagController::destroy failed', [
                 'error' => $e->getMessage(),

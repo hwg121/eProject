@@ -53,10 +53,18 @@ class MapSettingController extends Controller
     {
         try {
             $validated = $request->validate([
-                'embed_url' => 'required|string',
-                'location_name' => 'nullable|string|max:255',
-                'address' => 'nullable|string',
+                'embed_url' => 'required|string|min:10|max:5000',
+                'location_name' => 'nullable|string|min:3|max:100',
+                'address' => 'nullable|string|min:5|max:200',
                 'is_active' => 'boolean',
+            ], [
+                'embed_url.required' => 'Map embed code is required.',
+                'embed_url.min' => 'Embed code must be at least 10 characters.',
+                'embed_url.max' => 'Embed code must not exceed 5000 characters.',
+                'location_name.min' => 'Location name must be at least 3 characters.',
+                'location_name.max' => 'Location name must not exceed 100 characters.',
+                'address.min' => 'Address must be at least 5 characters.',
+                'address.max' => 'Address must not exceed 200 characters.',
             ]);
 
             // If setting as active, deactivate others
@@ -66,9 +74,24 @@ class MapSettingController extends Controller
 
             $mapSetting = MapSetting::create($validated);
 
-            return response()->json($mapSetting, 201);
-        } catch (\Exception $e) {
             return response()->json([
+                'success' => true,
+                'message' => 'Map setting created successfully',
+                'data' => $mapSetting
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed. Please check your input.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('MapSettingController::store failed', [
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
                 'message' => 'Error creating map setting: ' . $e->getMessage()
             ], 500);
         }
@@ -98,10 +121,17 @@ class MapSettingController extends Controller
             $mapSetting = MapSetting::findOrFail($id);
             
             $validated = $request->validate([
-                'embed_url' => 'sometimes|required|string',
-                'location_name' => 'nullable|string|max:255',
-                'address' => 'nullable|string',
+                'embed_url' => 'sometimes|required|string|min:10|max:5000',
+                'location_name' => 'nullable|string|min:3|max:100',
+                'address' => 'nullable|string|min:5|max:200',
                 'is_active' => 'boolean',
+            ], [
+                'embed_url.min' => 'Embed code must be at least 10 characters.',
+                'embed_url.max' => 'Embed code must not exceed 5000 characters.',
+                'location_name.min' => 'Location name must be at least 3 characters.',
+                'location_name.max' => 'Location name must not exceed 100 characters.',
+                'address.min' => 'Address must be at least 5 characters.',
+                'address.max' => 'Address must not exceed 200 characters.',
             ]);
 
             // If setting as active, deactivate others
@@ -113,9 +143,30 @@ class MapSettingController extends Controller
 
             $mapSetting->update($validated);
 
-            return response()->json($mapSetting, 200);
-        } catch (\Exception $e) {
             return response()->json([
+                'success' => true,
+                'message' => 'Map setting updated successfully',
+                'data' => $mapSetting
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed. Please check your input.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Map setting not found.'
+            ], 404);
+        } catch (\Exception $e) {
+            \Log::error('MapSettingController::update failed', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
                 'message' => 'Error updating map setting: ' . $e->getMessage()
             ], 500);
         }
@@ -137,9 +188,18 @@ class MapSettingController extends Controller
 
             $mapSetting->delete();
 
-            return response()->json(null, 204);
-        } catch (\Exception $e) {
             return response()->json([
+                'success' => true,
+                'message' => 'Map setting deleted successfully'
+            ], 200);
+        } catch (\Exception $e) {
+            \Log::error('MapSettingController::destroy failed', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
                 'message' => 'Error deleting map setting: ' . $e->getMessage()
             ], 500);
         }
