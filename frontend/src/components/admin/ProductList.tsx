@@ -764,11 +764,11 @@ const ProductList: React.FC<ProductListProps> = ({
                           <div className="flex items-center gap-2">
                             <h3 
                               className={`font-medium text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'} truncate`}
-                              style={{ maxWidth: '300px' }}
+                              style={{ maxWidth: '500px' }}
                               title={product.name || product.title}
                             >
-                              {(product.name || product.title || '').length > 50 
-                                ? `${(product.name || product.title).substring(0, 50)}...` 
+                              {(product.name || product.title || '').length > 100 
+                                ? `${(product.name || product.title).substring(0, 100)}...` 
                                 : (product.name || product.title)}
                             </h3>
                             {product.featured && (
