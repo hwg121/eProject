@@ -100,3 +100,4 @@ echo "1. If no tags data: php artisan db:seed --class=TagSeeder\n";
 echo "2. If table missing: php artisan migrate\n";
 echo "3. Check Laravel logs: tail -f storage/logs/laravel.log\n";
 echo "4. Test API manually: curl -X GET $apiUrl\n";
+

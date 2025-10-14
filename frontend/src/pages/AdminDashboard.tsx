@@ -1133,9 +1133,27 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleProductEditClick = (product: any) => {
-    setEditingProduct(product);
-    setActiveTab('product-edit');
+  const handleProductEditClick = async (product: any) => {
+    try {
+      // Fetch fresh product data from API instead of using cached data
+      console.log('Fetching fresh product data for ID:', product.id);
+      const response = await productService.getById(product.id);
+      console.log('Fresh product data:', response);
+      
+      // Extract data from response
+      const freshProduct = response && typeof response === 'object' && 'data' in response 
+        ? (response as any).data 
+        : response;
+      
+      setEditingProduct(freshProduct);
+      setActiveTab('product-edit');
+    } catch (error) {
+      console.error('Error fetching product data:', error);
+      showToast('Failed to load product data', 'error');
+      // Fallback to cached data if fetch fails
+      setEditingProduct(product);
+      setActiveTab('product-edit');
+    }
   };
 
   const handleProductEditCancel = () => {
