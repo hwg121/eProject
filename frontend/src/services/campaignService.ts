@@ -33,11 +33,18 @@ class CampaignService {
    */
   async getCampaignSettings(): Promise<CampaignSetting[]> {
     try {
-      // apiClient.get() already extracts 'data' from Laravel response
-      const data = await apiClient.get<CampaignSetting[]>(
+      const response = await apiClient.get<CampaignSetting[]>(
         '/admin/campaign-settings'
       );
-      return data;
+      
+      // Handle API response format: {success: true, data: [...]}
+      if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
+        return (response as any).data;
+      } else if (Array.isArray(response)) {
+        return response;
+      } else {
+        return [];
+      }
     } catch (error) {
       console.error('Error fetching campaign settings:', error);
       throw error;
@@ -49,10 +56,16 @@ class CampaignService {
    */
   async getCampaignSetting(metric: string): Promise<CampaignSetting> {
     try {
-      const data = await apiClient.get<CampaignSetting>(
+      const response = await apiClient.get<CampaignSetting>(
         `/admin/campaign-settings/${metric}`
       );
-      return data;
+      
+      // Handle API response format: {success: true, data: {...}}
+      if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
+        return (response as any).data;
+      } else {
+        return response;
+      }
     } catch (error) {
       console.error(`Error fetching campaign setting for ${metric}:`, error);
       throw error;
@@ -64,11 +77,17 @@ class CampaignService {
    */
   async updateCampaignSetting(metric: string, goalValue: number): Promise<CampaignSetting> {
     try {
-      const data = await apiClient.put<CampaignSetting>(
+      const response = await apiClient.put<CampaignSetting>(
         `/admin/campaign-settings/${metric}`,
         { goal_value: goalValue }
       );
-      return data;
+      
+      // Handle API response format: {success: true, data: {...}}
+      if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
+        return (response as any).data;
+      } else {
+        return response;
+      }
     } catch (error) {
       console.error(`Error updating campaign setting for ${metric}:`, error);
       throw error;
@@ -80,10 +99,16 @@ class CampaignService {
    */
   async getStatsOverview(): Promise<CampaignStatsResponse> {
     try {
-      const data = await apiClient.get<CampaignStatsResponse>(
+      const response = await apiClient.get<CampaignStatsResponse>(
         '/admin/stats/overview'
       );
-      return data;
+      
+      // Handle API response format: {success: true, data: {...}}
+      if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
+        return (response as any).data;
+      } else {
+        return response;
+      }
     } catch (error) {
       console.error('Error fetching stats overview:', error);
       throw error;
