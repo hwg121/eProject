@@ -4,6 +4,7 @@ import { Card, TextField, Checkbox, FormControlLabel } from '@mui/material';
 import { useTheme } from '../../contexts/ThemeContext';
 // import PageHeader from '../../components/UI/PageHeader';
 import Toast from '../../components/UI/Toast';
+import ConfirmDialog from '../../components/UI/ConfirmDialog';
 import StatusBadge from '../../components/UI/StatusBadge';
 import { heroSectionService } from '../../services/api';
 import { validateText, hasErrors } from '../../utils/validation';
@@ -43,6 +44,13 @@ const AdminHeroSection: React.FC = () => {
     open: false,
     message: '',
     severity: 'success'
+  });
+  
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    title: '',
+    message: '',
+    onConfirm: () => {}
   });
 
   const showToast = (message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
@@ -125,29 +133,35 @@ const AdminHeroSection: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this hero section?')) {
-      try {
-        await heroSectionService.delete(id);
-        loadHeroSections();
-        showToast('Hero section deleted successfully!', 'success');
-      } catch (err: any) {
-        console.error('Error deleting hero section:', err);
-        
-        // Extract proper error message from backend
-        let errorMessage = 'Failed to delete hero section. Please try again.';
-        
-        if (err?.response?.data?.message) {
-          errorMessage = err.response.data.message;
-        } else if (err?.response?.data?.error) {
-          errorMessage = err.response.data.error;
-        } else if (err?.message) {
-          errorMessage = err.message;
+    setConfirmDialog({
+      open: true,
+      title: 'Delete Hero Section',
+      message: 'Are you sure you want to delete this hero section? This action cannot be undone.',
+      onConfirm: async () => {
+        try {
+          await heroSectionService.delete(id);
+          loadHeroSections();
+          showToast('Hero section deleted successfully!', 'success');
+        } catch (err: any) {
+          console.error('Error deleting hero section:', err);
+          
+          // Extract proper error message from backend
+          let errorMessage = 'Failed to delete hero section. Please try again.';
+          
+          if (err?.response?.data?.message) {
+            errorMessage = err.response.data.message;
+          } else if (err?.response?.data?.error) {
+            errorMessage = err.response.data.error;
+          } else if (err?.message) {
+            errorMessage = err.message;
+          }
+          
+          setError(errorMessage);
+          showToast(errorMessage, 'error');
         }
-        
-        setError(errorMessage);
-        showToast(errorMessage, 'error');
+        setConfirmDialog({ ...confirmDialog, open: false });
       }
-    }
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -412,6 +426,17 @@ const AdminHeroSection: React.FC = () => {
         message={snackbar.message}
         severity={snackbar.severity}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
+      />
+      
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type="warning"
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, open: false })}
+        isDarkMode={isDarkMode}
       />
     </div>
   );

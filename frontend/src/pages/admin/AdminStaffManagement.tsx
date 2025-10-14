@@ -4,6 +4,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import PageHeader from '../../components/UI/PageHeader';
 import StatusBadge from '../../components/UI/StatusBadge';
 import Toast from '../../components/UI/Toast';
+import ConfirmDialog from '../../components/UI/ConfirmDialog';
 import { staffMemberService } from '../../services/api.ts';
 import {
   Table,
