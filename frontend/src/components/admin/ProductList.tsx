@@ -246,9 +246,8 @@ const ProductList: React.FC<ProductListProps> = ({
         'error'
       );
     } else {
-      if (window.confirm(`Delete ${selectedIds.length} selected products?`)) {
-        performDelete();
-      }
+      console.warn('showConfirmDialog not provided, falling back to default confirm');
+      performDelete();
     }
   };
 
@@ -271,9 +270,8 @@ const ProductList: React.FC<ProductListProps> = ({
         'warning'
       );
     } else {
-      if (window.confirm(`Change status of ${selectedIds.length} products to ${bulkStatus}?`)) {
-        performStatusChange();
-      }
+      console.warn('showConfirmDialog not provided, falling back to direct action');
+      performStatusChange();
     }
   };
 

@@ -780,8 +780,21 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleDelete = async (id: string, type: string) => {
-    if (!confirm('Are you sure you want to delete this item?')) return;
+    showConfirmDialog(
+      'Delete Confirmation',
+      'Are you sure you want to delete this item? This action cannot be undone.',
+      async () => {
+        try {
+          await performDelete(id, type);
+        } catch (error) {
+          console.error('Error in delete confirmation:', error);
+        }
+      },
+      'warning'
+    );
+  };
 
+  const performDelete = async (id: string, type: string) => {
     try {
       // Map category to service type
       let serviceType = type.toLowerCase();
@@ -1333,8 +1346,21 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleProductDelete = async (id: string, category?: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
-    
+    showConfirmDialog(
+      'Delete Product',
+      'Are you sure you want to delete this product? This action cannot be undone.',
+      async () => {
+        try {
+          await performProductDelete(id, category);
+        } catch (error) {
+          console.error('Error in product delete confirmation:', error);
+        }
+      },
+      'warning'
+    );
+  };
+
+  const performProductDelete = async (id: string, category?: string) => {
     try {
       // Find the product to get its category
       const product = products.find(p => p.id === id);
@@ -1542,32 +1568,37 @@ Updated: ${product.updatedAt}
   }, [loadData]);
 
   const handleDeleteUser = useCallback(async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
-
-    try {
-      // Delete user
-      await userService.delete(userId);
-      showToast('User deleted successfully!', 'success');
-      
-      // Reload data
-      await loadData();
-    } catch (error: any) {
-      console.error('Error deleting user:', error);
-      
-      // Extract proper error message from backend
-      let errorMessage = 'Failed to delete user. Please try again.';
-      
-      if (error?.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error?.response?.data?.error) {
-        errorMessage = error.response.data.error;
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-      
-      showToast(errorMessage, 'error');
-    }
-  }, []);
+    showConfirmDialog(
+      'Delete User',
+      'Are you sure you want to delete this user? This action cannot be undone.',
+      async () => {
+        try {
+          // Delete user
+          await userService.delete(userId);
+          showToast('User deleted successfully!', 'success');
+          
+          // Reload data
+          await loadData();
+        } catch (error: any) {
+          console.error('Error deleting user:', error);
+          
+          // Extract proper error message from backend
+          let errorMessage = 'Failed to delete user. Please try again.';
+          
+          if (error?.response?.data?.message) {
+            errorMessage = error.response.data.message;
+          } else if (error?.response?.data?.error) {
+            errorMessage = error.response.data.error;
+          } else if (error?.message) {
+            errorMessage = error.message;
+          }
+          
+          showToast(errorMessage, 'error');
+        }
+      },
+      'warning'
+    );
+  }, [loadData, showConfirmDialog, showToast]);
 
   const handleSaveUserEdit = useCallback(async (userData: any) => {
     try {

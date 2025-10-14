@@ -4,6 +4,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import PageHeader from '../../components/UI/PageHeader';
 import Toast from '../../components/UI/Toast';
 import StatusBadge from '../../components/UI/StatusBadge';
+import ConfirmDialog from '../../components/UI/ConfirmDialog';
 import { mapSettingService } from '../../services/api.ts';
 import {
   Card,
@@ -70,6 +71,13 @@ const AdminMapSettings: React.FC = () => {
     open: false,
     message: '',
     severity: 'success'
+  });
+  
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    title: '',
+    message: '',
+    onConfirm: () => {}
   });
 
   const showToast = (message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
@@ -151,29 +159,35 @@ const AdminMapSettings: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this map setting?')) {
-      try {
-        await mapSettingService.delete(id);
-        loadMapSettings();
-        showToast('Map setting deleted successfully!', 'success');
-      } catch (err: any) {
-        console.error('Error deleting map setting:', err);
-        
-        // Extract proper error message from backend
-        let errorMessage = 'Failed to delete map setting. Please try again.';
-        
-        if (err?.response?.data?.message) {
-          errorMessage = err.response.data.message;
-        } else if (err?.response?.data?.error) {
-          errorMessage = err.response.data.error;
-        } else if (err?.message) {
-          errorMessage = err.message;
+    setConfirmDialog({
+      open: true,
+      title: 'Delete Map Setting',
+      message: 'Are you sure you want to delete this map setting? This action cannot be undone.',
+      onConfirm: async () => {
+        try {
+          await mapSettingService.delete(id);
+          loadMapSettings();
+          showToast('Map setting deleted successfully!', 'success');
+        } catch (err: any) {
+          console.error('Error deleting map setting:', err);
+          
+          // Extract proper error message from backend
+          let errorMessage = 'Failed to delete map setting. Please try again.';
+          
+          if (err?.response?.data?.message) {
+            errorMessage = err.response.data.message;
+          } else if (err?.response?.data?.error) {
+            errorMessage = err.response.data.error;
+          } else if (err?.message) {
+            errorMessage = err.message;
+          }
+          
+          setError(errorMessage);
+          showToast(errorMessage, 'error');
         }
-        
-        setError(errorMessage);
-        showToast(errorMessage, 'error');
+        setConfirmDialog({ ...confirmDialog, open: false });
       }
-    }
+    });
   };
 
   const handlePreview = (embedUrl: string) => {
@@ -504,6 +518,17 @@ const AdminMapSettings: React.FC = () => {
         message={snackbar.message}
         severity={snackbar.severity}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
+      />
+      
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type="warning"
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, open: false })}
+        isDarkMode={isDarkMode}
       />
     </div>
   );
