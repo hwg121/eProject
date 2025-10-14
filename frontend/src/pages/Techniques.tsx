@@ -20,12 +20,19 @@ const Techniques: React.FC = () => {
     const loadArticles = async () => {
       try {
         setLoading(true);
-        const data = await publicService.getArticles();
-        console.log('Articles data:', data); // Debug log
+        const response = await publicService.getArticles();
+        
+        // Handle API response format: {success: true, data: [...]}
+        let articlesData: Article[] = [];
+        if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
+          articlesData = (response as any).data;
+        } else if (Array.isArray(response)) {
+          articlesData = response;
+        }
         
         // Only use real API data
-        if (data && data.length > 0) {
-          setArticles(data);
+        if (articlesData && articlesData.length > 0) {
+          setArticles(articlesData);
         } else {
           setError('No articles available');
         }

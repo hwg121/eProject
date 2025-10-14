@@ -74,8 +74,17 @@ const Accessories: React.FC = () => {
     const loadAccessories = async () => {
       try {
         setLoading(true);
-        const data = await publicService.getAccessories();
-        setAccessories(data as Product[]);
+        const response = await publicService.getAccessories();
+        
+        // Handle API response format: {success: true, data: [...]}
+        let accessoriesData: Product[] = [];
+        if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
+          accessoriesData = (response as any).data;
+        } else if (Array.isArray(response)) {
+          accessoriesData = response;
+        }
+        
+        setAccessories(accessoriesData);
       } catch (err) {
         setError('Failed to load accessories');
         console.error('Error loading accessories:', err);

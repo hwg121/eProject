@@ -43,8 +43,17 @@ const EssentialDetail: React.FC = () => {
         
         // Try to fetch from API first
         try {
-          const data = await publicService.getEssentials();
-          const essentialData = findItemBySlug<ApiEssential>(data as ApiEssential[], slug!, 'slug', 'name');
+          const response = await publicService.getEssentials();
+          
+          // Handle API response format: {success: true, data: [...]}
+          let essentialsData: ApiEssential[] = [];
+          if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
+            essentialsData = (response as any).data;
+          } else if (Array.isArray(response)) {
+            essentialsData = response;
+          }
+          
+          const essentialData = findItemBySlug<ApiEssential>(essentialsData, slug!, 'slug', 'name');
           if (essentialData) {
             // Convert ApiTag[] to TagData[] for DetailPage compatibility
             const convertedTags = Array.isArray(essentialData.tags) 

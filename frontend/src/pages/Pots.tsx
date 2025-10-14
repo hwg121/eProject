@@ -76,8 +76,17 @@ const Pots: React.FC = () => {
     const loadPots = async () => {
       try {
         setLoading(true);
-        const data = await publicService.getPots();
-        setPots(data as Product[]);
+        const response = await publicService.getPots();
+        
+        // Handle API response format: {success: true, data: [...]}
+        let potsData: Product[] = [];
+        if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
+          potsData = (response as any).data;
+        } else if (Array.isArray(response)) {
+          potsData = response;
+        }
+        
+        setPots(potsData);
       } catch (err) {
         setError('Failed to load pots');
         console.error('Error loading pots:', err);

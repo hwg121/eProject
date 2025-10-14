@@ -43,8 +43,17 @@ const VideoDetail: React.FC = () => {
         
         // Try to fetch from API first
         try {
-          const data = await publicService.getVideos();
-          const videoData = findItemBySlug<ApiVideo>(data as ApiVideo[], slug!, 'slug', 'title');
+          const response = await publicService.getVideos();
+          
+          // Handle API response format: {success: true, data: [...]}
+          let videosData: ApiVideo[] = [];
+          if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
+            videosData = (response as any).data;
+          } else if (Array.isArray(response)) {
+            videosData = response;
+          }
+          
+          const videoData = findItemBySlug<ApiVideo>(videosData, slug!, 'slug', 'title');
           if (videoData) {
             // Convert ApiTag[] to TagData[] for DetailPage compatibility
             const convertedTags = Array.isArray(videoData.tags) 

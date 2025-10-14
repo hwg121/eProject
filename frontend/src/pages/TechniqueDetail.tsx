@@ -41,8 +41,17 @@ const TechniqueDetail: React.FC = () => {
         
         // Try to fetch from API first
         try {
-          const data = await publicService.getArticles(); // Using articles as techniques
-          const techniqueData = findItemBySlug(data, slug!, 'slug', 'title');
+          const response = await publicService.getArticles(); // Using articles as techniques
+          
+          // Handle API response format: {success: true, data: [...]}
+          let articlesData: ApiArticle[] = [];
+          if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
+            articlesData = (response as any).data;
+          } else if (Array.isArray(response)) {
+            articlesData = response;
+          }
+          
+          const techniqueData = findItemBySlug(articlesData, slug!, 'slug', 'title');
           if (techniqueData) {
             // Convert ApiTag[] to TagData[] for DetailPage compatibility
             const convertedTags = Array.isArray(techniqueData.tags) 

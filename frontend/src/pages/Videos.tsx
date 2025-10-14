@@ -22,12 +22,19 @@ const Videos: React.FC = () => {
     const loadVideos = async () => {
       try {
         setLoading(true);
-        const data = await publicService.getVideos();
-        console.log('Videos data:', data); // Debug log
+        const response = await publicService.getVideos();
+        
+        // Handle API response format: {success: true, data: [...]}
+        let videosData: Video[] = [];
+        if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
+          videosData = (response as any).data;
+        } else if (Array.isArray(response)) {
+          videosData = response;
+        }
         
         // Only use real API data
-        if (data && data.length > 0) {
-          setVideos(data);
+        if (videosData && videosData.length > 0) {
+          setVideos(videosData);
         } else {
           setError('No videos available');
         }

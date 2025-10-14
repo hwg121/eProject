@@ -43,8 +43,17 @@ const ArticleDetail: React.FC = () => {
         
         // Try to fetch from API first
         try {
-          const data = await publicService.getArticles();
-          const articleData = findItemBySlug(data, slug!, 'slug', 'title');
+          const response = await publicService.getArticles();
+          
+          // Handle API response format: {success: true, data: [...]}
+          let articlesData: ApiArticle[] = [];
+          if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
+            articlesData = (response as any).data;
+          } else if (Array.isArray(response)) {
+            articlesData = response;
+          }
+          
+          const articleData = findItemBySlug(articlesData, slug!, 'slug', 'title');
           if (articleData) {
             // Convert ApiTag[] to TagData[] for DetailPage compatibility
             const convertedTags = Array.isArray(articleData.tags) 

@@ -74,8 +74,17 @@ const Books: React.FC = () => {
     const loadBooks = async () => {
       try {
         setLoading(true);
-        const data = await publicService.getBooks();
-        setBooks(data as Product[]);
+        const response = await publicService.getBooks();
+        
+        // Handle API response format: {success: true, data: [...]}
+        let booksData: Product[] = [];
+        if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
+          booksData = (response as any).data;
+        } else if (Array.isArray(response)) {
+          booksData = response;
+        }
+        
+        setBooks(booksData);
       } catch (err) {
         setError('Failed to load books');
         console.error('Error loading books:', err);
