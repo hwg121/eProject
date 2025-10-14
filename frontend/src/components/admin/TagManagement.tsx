@@ -558,7 +558,7 @@ const TagManagement: React.FC<TagManagementProps> = ({ isDarkMode }) => {
             helperText={formErrors.slug || `${formData.slug.length}/255 characters - Only lowercase, numbers, hyphens. Leave empty to auto-generate`}
             inputProps={{ 
               maxLength: 255,
-              pattern: '[a-z0-9-]*'
+              pattern: '[a-z0-9\\-]*'
             }}
             placeholder="e.g., organic-farming"
             sx={textFieldStyles}

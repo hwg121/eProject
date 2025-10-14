@@ -278,7 +278,7 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
             helperText={`${(formData.slug || '').length}/255 characters - Leave empty to auto-generate. Only lowercase, numbers, hyphens allowed`}
             inputProps={{ 
               maxLength: 255,
-              pattern: '[a-z0-9-]*'
+              pattern: '[a-z0-9\\-]*'
             }}
           />
         </div>
@@ -451,7 +451,7 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
                 helperText={`${(formData.isbn || '').length}/17 characters - Format: 978-X-XXXXXX-XX-X`}
                 inputProps={{ 
                   maxLength: 17,
-                  pattern: '[0-9-]*'
+                  pattern: '[0-9\\-]*'
                 }}
                 sx={textFieldStyles}
               />
