@@ -145,14 +145,14 @@ const VideoDetail: React.FC = () => {
       type="video"
       title={video.title}
       description={video.description}
-      content={`
+      content={video.content || `
         <h2>Video Information</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div>
             <h3 class="text-xl font-semibold mb-4">Basic Details</h3>
             <ul class="space-y-2">
               <li><strong>Instructor:</strong> ${video.author}</li>
-              <li><strong>Duration:</strong> ${video.duration}</li>
+              <li><strong>Duration:</strong> ${video.duration || 'N/A'}</li>
               <li><strong>Views:</strong> ${video.views.toLocaleString()}</li>
               <li><strong>Likes:</strong> ${video.likes.toLocaleString()}</li>
             </ul>
@@ -162,22 +162,12 @@ const VideoDetail: React.FC = () => {
             <ul class="space-y-2">
               <li><strong>Published:</strong> ${new Date(video.publishedAt).toLocaleDateString()}</li>
               <li><strong>Category:</strong> Gardening Tutorial</li>
-              <li><strong>Difficulty:</strong> All Levels</li>
-              <li><strong>Language:</strong> English</li>
             </ul>
           </div>
         </div>
         
         <h3 class="text-xl font-semibold mb-4">Video Description</h3>
         <p class="mb-6">${video.description}</p>
-        
-        <h3 class="text-xl font-semibold mb-4">What You'll Learn</h3>
-        <ul class="space-y-2 mb-6">
-          <li class="flex items-center"><span class="text-emerald-600 mr-2">✓</span>Step-by-step gardening techniques</li>
-          <li class="flex items-center"><span class="text-emerald-600 mr-2">✓</span>Visual demonstrations and examples</li>
-          <li class="flex items-center"><span class="text-emerald-600 mr-2">✓</span>Professional tips and tricks</li>
-          <li class="flex items-center"><span class="text-emerald-600 mr-2">✓</span>Common mistakes to avoid</li>
-        </ul>
       `}
       author={video.author}
       publishedAt={video.publishedAt}
