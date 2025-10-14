@@ -126,28 +126,47 @@ const ProductList: React.FC<ProductListProps> = ({
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortBy) {
-      case 'latest':
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      case 'oldest':
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-      case 'title':
-        return (a.name || a.title || '').localeCompare(b.name || b.title || '');
+      case 'latest': {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return isNaN(dateB) ? (isNaN(dateA) ? 0 : 1) : (isNaN(dateA) ? -1 : dateB - dateA);
+      }
+      case 'oldest': {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return isNaN(dateA) ? (isNaN(dateB) ? 0 : 1) : (isNaN(dateB) ? -1 : dateA - dateB);
+      }
+      case 'title': {
+        const titleA = a.name || a.title || '';
+        const titleB = b.name || b.title || '';
+        return titleA.localeCompare(titleB, undefined, { numeric: true, sensitivity: 'base' });
+      }
       case 'views':
         return (b.views || 0) - (a.views || 0);
       case 'likes':
         return (b.likes || 0) - (a.likes || 0);
-      case 'price-low':
-        return (a.price || 0) - (b.price || 0);
-      case 'price-high':
-        return (b.price || 0) - (a.price || 0);
+      case 'price-low': {
+        const priceA = Number(a.price) || 0;
+        const priceB = Number(b.price) || 0;
+        return priceA - priceB;
+      }
+      case 'price-high': {
+        const priceA = Number(a.price) || 0;
+        const priceB = Number(b.price) || 0;
+        return priceB - priceA;
+      }
       case 'archived':
         return a.status === 'archived' ? -1 : b.status === 'archived' ? 1 : 0;
       case 'published':
         return a.status === 'published' ? -1 : b.status === 'published' ? 1 : 0;
       case 'featured':
         return ((b.featured || b.is_featured) ? 1 : 0) - ((a.featured || a.is_featured) ? 1 : 0);
-      case 'rating':
-        return (Number(b.rating) || 0) - (Number(a.rating) || 0);
+      case 'rating': {
+        const ratingA = Number(a.rating) || 0;
+        const ratingB = Number(b.rating) || 0;
+        return ratingB - ratingA;
+      }
+      case 'none':
       default:
         return 0;
     }

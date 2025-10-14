@@ -91,12 +91,18 @@ const ContentList: React.FC<ContentListProps> = ({
 
   const sortedContent = [...filteredContent].sort((a, b) => {
     switch (sortBy) {
-      case 'latest':
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      case 'oldest':
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      case 'latest': {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return isNaN(dateB) ? (isNaN(dateA) ? 0 : 1) : (isNaN(dateA) ? -1 : dateB - dateA);
+      }
+      case 'oldest': {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return isNaN(dateA) ? (isNaN(dateB) ? 0 : 1) : (isNaN(dateB) ? -1 : dateA - dateB);
+      }
       case 'title':
-        return a.title.localeCompare(b.title);
+        return (a.title || '').localeCompare(b.title || '', undefined, { numeric: true, sensitivity: 'base' });
       case 'views':
         return (b.views || 0) - (a.views || 0);
       case 'likes':
@@ -107,8 +113,12 @@ const ContentList: React.FC<ContentListProps> = ({
         return a.status === 'published' ? -1 : b.status === 'published' ? 1 : 0;
       case 'featured':
         return (b.featured ? 1 : 0) - (a.featured ? 1 : 0);
-      case 'rating':
-        return (Number(b.rating) || 0) - (Number(a.rating) || 0);
+      case 'rating': {
+        const ratingA = Number(a.rating) || 0;
+        const ratingB = Number(b.rating) || 0;
+        return ratingB - ratingA;
+      }
+      case 'none':
       default:
         return 0;
     }
