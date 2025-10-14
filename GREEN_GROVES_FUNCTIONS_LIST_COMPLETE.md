@@ -17,7 +17,7 @@
 
 | STT | Function | Function Detail | Level | Recipient | Note | Type |
 | :-- | :----------------------- | :-------------- | :---- | :---------------- | :----------------------- | :-------- |
-| 1 | Build template | Design user website | High | HUYNH NGUYEN HUNG | 16 public pages | Frontend |
+| 1 | Build template | Design user website | High | HUYNH NGUYEN HUNG | 18 public pages (+ Tags pages) | Frontend |
 | 2 | Home page | Hero section, features, statistics | High | HUYNH NGUYEN HUNG | Main landing page | Frontend |
 | 3 | About us | Get list information of about us | Medium | HUYNH NGUYEN HUNG | Staff members, mission | Frontend |
 | 4 | Contact | Contact form & information | Medium | HUYNH NGUYEN HUNG | Contact settings | Frontend |
@@ -31,12 +31,14 @@
 | 12 | Rating System | Content rating (1-5 stars) | Medium | VUONG NGOC GIA BAO | User feedback | Frontend |
 | 13 | View Tracking | Page view counting | Low | VUONG NGOC GIA BAO | Content popularity | Analytics |
 | 14 | Dark Mode | Theme switching | Medium | NGUYEN DUC ANH TAI | User preference | Frontend |
-| 15 | Responsive Design | Mobile optimization | High | NGUYEN DUC ANH TAI | Cross-device support | Frontend |
+| 15 | Responsive Design | Mobile & Admin Dashboard responsive | High | HUYNH NGUYEN HUNG | Cross-device, admin optimized | Frontend |
 | 16 | Content Detail Pages | Individual content pages | High | NGUYEN DUC ANH TAI | Slug-based routing | Frontend |
 | 17 | Related Content | Content recommendations | Medium | NGUYEN DUC ANH TAI | Content discovery | Content |
 | 18 | Loading Spinner | Loading states | Low | NGO PHUC KHANG | User experience | Frontend |
 | 19 | Error Handling | Error message display | Low | NGO PHUC KHANG | User feedback | Frontend |
 | 20 | Lazy Loading | Image lazy loading | Medium | HUYNH NGUYEN HUNG | Performance optimization | Frontend |
+| 21 | Tags System | Tag listing and browsing | High | HUYNH NGUYEN HUNG | TagsList page with search | Frontend |
+| 22 | Tag Archive | Content by tag | High | HUYNH NGUYEN HUNG | TagArchive page with filters | Frontend |
 
 ---
 
@@ -89,6 +91,8 @@
 | 21 | Frontend Testing | Component & integration testing | Medium | NGUYEN DUC ANH TAI | UI quality assurance | Testing |
 | 22 | Domain Management | Domain configuration & SSL | Medium | HUYNH NGUYEN HUNG | Production domain setup | Backend |
 | 23 | Security Middleware | XSS/CSRF/SQL injection protection | High | NGUYEN TRAN TRUNG HIEU | Security implementation | Security |
+| 24 | Tag Management | Tags CRUD operations | High | NGUYEN TRAN TRUNG HIEU + HUYNH NGUYEN HUNG | TagController + TagManagement UI | Backend + Frontend |
+| 25 | Sorting Optimization | ContentList & ProductList sorting | Medium | HUYNH NGUYEN HUNG | NaN handling, localeCompare | Performance |
 
 ---
 
@@ -96,44 +100,51 @@
 
 | Member | Total Hours | Main Functions |
 | :-- | :-- | :-- |
-| **HUYNH NGUYEN HUNG** | 249 | Frontend (212h), Backend (100h), Deployment (50h) |
+| **HUYNH NGUYEN HUNG** | 260 | Frontend (220h), Backend (100h), Deployment (50h), Responsive (10h) |
 | **NGUYEN TRAN TRUNG HIEU** | 135 | Backend (90h), Database (45h) |
-| **NGO PHUC KHANG** | 130 | Content (75h), Reporting (30h), Documentation (15h) |
-| **VUONG NGOC GIA BAO** | 117 | Advanced API (55h), Integrations (20h), Security (18h) |
+| **NGO PHUC KHANG** | 140 | Content (75h), Reporting (40h), Documentation (15h), QA (10h) |
+| **VUONG NGOC GIA BAO** | 117 | Advanced API (55h), Integrations (20h), Security (18h), Tags (9h) |
 | **NGUYEN DUC ANH TAI** | 108 | Frontend Integration (35h), Routing (20h), Testing (40h) |
-| **TOTAL** | **739** | **All functions 100% complete** |
+| **TOTAL** | **760+** | **All functions 100% complete** |
 
 ---
 
 ## Project Statistics
 
-- **Total Functions:** 69 functions
+- **Total Functions:** 67+ functions
 - **Database Tables:** 19+ tables
-- **API Controllers:** 22 controllers
-- **Components:** 49 components (27 admin + 22 UI)
-- **Pages:** 25 pages (16 public + 9 admin)
+- **API Controllers:** 21 controllers
+- **Components:** 54 components (29 admin + 12 UI + 13 common/layout)
+- **Pages:** 27 pages (18 public + 9 admin)
 - **Content Items:** 250+ items
-- **API Endpoints:** 60+ endpoints
-- **Total Work Hours:** 739 hours
+- **API Endpoints:** 65+ endpoints
+- **Total Work Hours:** 760+ hours
 - **Project Duration:** 2 weeks + continuous improvements
 - **Completion Rate:** 100%
 
 ### Function Distribution:
 - **Database:** 3 functions
-- **Guest:** 20 functions
+- **Guest:** 22 functions
 - **Moderator:** 15 functions (additional to guest)
-- **Admin:** 23 functions (additional to moderator)
+- **Admin:** 25 functions (additional to moderator)
 
 ### Recipient Distribution:
-- **HUYNH NGUYEN HUNG:** 19 functions (Frontend, UI/UX, Admin panels)
-- **NGUYEN TRAN TRUNG HIEU:** 11 functions (Backend, Database, Core APIs)
-- **VUONG NGOC GIA BAO:** 8 functions (Advanced features, Analytics, System operations)
-- **NGO PHUC KHANG:** 8 functions (Content, Documentation, Workflow, Image management, Communication)
+- **HUYNH NGUYEN HUNG:** 21 functions (Frontend, UI/UX, Admin panels, Tags, Responsive)
+- **NGUYEN TRAN TRUNG HIEU:** 11 functions (Backend, Database, Core APIs, Tags backend)
+- **VUONG NGOC GIA BAO:** 10 functions (Advanced features, Analytics, System operations)
+- **NGO PHUC KHANG:** 12 functions (Content, Documentation, Workflow, Image management, Communication)
 - **NGUYEN DUC ANH TAI:** 11 functions (Frontend integration, Routing, SEO, Product links, API docs, Testing)
 
 ---
 
 **Created:** 12/10/2025  
+**Last Updated:** 14/10/2025
 **Project:** Green Groves - Garden Content Management System  
 **Team:** 5 members  
 **Status:** Completed Successfully ✅
+
+### Latest Updates (14/10/2025):
+- ✅ Tags System: Full CRUD with UI components
+- ✅ Responsive Optimization: Admin Dashboard fully responsive
+- ✅ Sorting Enhancement: Improved logic for ContentList & ProductList
+- ✅ Updated statistics: 67+ functions, 54 components, 27 pages, 21 controllers

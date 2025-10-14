@@ -39,9 +39,9 @@
 ### 1.3 Thời gian thực hiện
 - **Ngày bắt đầu:** 15/01/2024
 - **Ngày hoàn thành:** 28/01/2024 (Bản gốc)
-- **Ngày cập nhật:** 12/10/2025 (Bản hiện tại)
+- **Ngày cập nhật:** 14/10/2025 (Bản hiện tại)
 - **Thời gian thực hiện:** 2 tuần (Ban đầu) + Cải tiến liên tục
-- **Số giờ làm việc:** ~739 hours (toàn team)
+- **Số giờ làm việc:** ~760+ hours (toàn team)
 
 ---
 
@@ -119,14 +119,79 @@
 
 ### 4.1 Yêu cầu chức năng
 
-#### 4.1.1 Quản lý nội dung (CMS)
-- **Quản lý bài viết** - CRUD operations cho bài viết kỹ thuật làm vườn
-- **Quản lý sản phẩm thống nhất** - Quản lý tools, books, pots, accessories, suggestions trong một bảng products
-- **Quản lý video** - Quản lý video hướng dẫn với embed support
-- **Quản lý người dùng** - Hệ thống quản lý user với roles và permissions
-- **Quản lý tương tác** - Hệ thống like, rating, view tracking
-- **Quản lý liên hệ** - Hệ thống contact messages
-- **Quản lý cài đặt** - Site settings và configuration
+#### 4.1.1 Quản lý nội dung (CMS) - 65+ Functions Total
+**Database Functions (3):**
+- **Create Database** - Thiết kế ERD cho 19+ bảng với 29 migrations
+- **Drawing Diagram** - Database relationships (One-to-Many, Many-to-Many)
+- **Database Optimization** - Index & Query optimization
+
+**Guest Functions (22) - No login required:**
+- **Build template** - Thiết kế 18 trang public
+- **Home page** - Hero section, features, statistics
+- **About us** - Thông tin team, mission, vision
+- **Contact** - Contact form & information
+- **Search with keywords** - Tìm kiếm nội dung theo từ khóa
+- **Pagination** - Phân trang cho tất cả listing pages
+- **Map and location** - Google Maps integration
+- **Product showcase** - Hiển thị sản phẩm với links external
+- **Visitor Counter** - Thống kê visitor real-time
+- **Featured Carousel** - Carousel nội dung nổi bật
+- **Content Interaction** - Like/Unlike functionality
+- **Rating System** - Đánh giá nội dung (1-5 sao)
+- **View Tracking** - Đếm lượt xem nội dung
+- **Dark Mode** - Chế độ tối với smooth transitions
+- **Responsive Design** - Tối ưu hóa cho mobile (Admin Dashboard responsive)
+- **Content Detail Pages** - Trang chi tiết với slug routing
+- **Related Content** - Gợi ý nội dung liên quan
+- **Loading Spinner** - Loading states
+- **Error Handling** - Hiển thị lỗi
+- **Lazy Loading** - Lazy loading hình ảnh
+- **Tags System** - Hệ thống tags với TagsList và TagArchive pages
+- **Tag Archive** - Xem nội dung theo tag
+
+**Moderator Functions (15) - Login required:**
+- **Login/Logout** - Laravel Sanctum authentication
+- **Profile Management** - Quản lý profile user
+- **Content Management** - CRUD operations cho articles, videos, products
+- **Category Management** - Quản lý tags và categories
+- **Featured Content Management** - Quản lý nội dung nổi bật
+- **Advanced Content Filtering** - Lọc nội dung nâng cao
+- **Advanced Analytics** - Dashboard analytics chi tiết
+- **Advanced Image Upload** - Upload hình ảnh với Cloudinary
+- **Content Review** - Duyệt và phê duyệt nội dung
+- **User Feedback** - Quản lý tin nhắn liên hệ
+- **SEO Management** - Tối ưu hóa SEO
+- **Product Link Management** - Quản lý links sản phẩm external
+- **Rich Text Editor** - Editor WYSIWYG
+- **Content Status** - Quản lý trạng thái Draft/Published
+- **Image Management** - Xóa/cập nhật hình ảnh
+
+**Admin Functions (25) - Full system access:**
+- **System Management** - Cấu hình site settings
+- **User Management** - CRUD users với roles
+- **Role Management** - Phân quyền Admin/Moderator
+- **Server Configuration** - Cấu hình server & environment
+- **Staff Management** - Quản lý team members
+- **Campaign Management** - Quản lý chiến dịch marketing
+- **Security Management** - Hệ thống security password
+- **Analytics Dashboard** - Thống kê real-time với charts
+- **Activity Logging** - Theo dõi hoạt động hệ thống
+- **Geolocation Services** - Dịch vụ định vị với fallback APIs
+- **Hero Section Management** - Quản lý banner trang chủ
+- **Database Management** - Quản trị database
+- **API Rate Limiting** - Giới hạn request
+- **Security Features** - Bảo vệ XSS/CSRF
+- **Deployment & SSL** - Triển khai production
+- **About Us Management** - Quản lý nội dung giới thiệu
+- **Data Seeding** - Tạo dữ liệu mẫu
+- **Backup Management** - Sao lưu dữ liệu
+- **API Documentation** - Tài liệu API endpoints
+- **API Testing** - Test endpoints & validation
+- **Frontend Testing** - Test components & integration
+- **Domain Management** - Cấu hình domain & SSL
+- **Security Middleware** - Bảo vệ XSS/CSRF/SQL injection
+- **Tag Management** - CRUD operations cho tags system
+- **Sorting Optimization** - Cải thiện sorting cho ContentList & ProductList
 
 #### 4.1.2 Hiển thị nội dung
 - **Trang chủ** - Banner carousel, bài viết nổi bật, visitor counter
@@ -783,73 +848,160 @@ Dự án Green Groves đã thành công xây dựng một hệ thống quản l�
 
 ### 8.4 Đóng góp của từng thành viên
 
-#### 8.4.1 Nguyễn Trần Trung Hiếu (Trưởng nhóm) - 135 hours
-- **Backend Laravel API:** 9 Core Controllers
-  - ArticleController, VideoController, ProductController (Unified)
-  - EssentialController, AuthController, UploadController
-  - ContactController, SettingController, AboutUsController
-- **Database Design:** Thiết kế 19 models và 29 migrations
-  - ERD design cho 19+ bảng
-  - Relationships (One-to-Many, Many-to-Many)
-  - Database optimization và indexing
+#### 8.4.1 Nguyễn Trần Trung Hiếu (Trưởng nhóm) - 135 hours - 11 Functions
+**Database Functions (3):**
+- **Create Database** - Thiết kế ERD cho 19+ bảng với 29 migrations
+- **Drawing Diagram** - Database relationships (One-to-Many, Many-to-Many)
+- **Database Optimization** - Index & Query optimization
+
+**Moderator Functions (2):**
+- **Login/Logout** - Laravel Sanctum authentication
+- **Content Management** - CRUD operations cho articles, videos, products
+
+**Admin Functions (6):**
+- **Hero Section Management** - Quản lý banner trang chủ
+- **Database Management** - Quản trị database
+- **Security Features** - Bảo vệ XSS/CSRF
+- **About Us Management** - Quản lý nội dung giới thiệu
+- **Security Middleware** - Bảo vệ XSS/CSRF/SQL injection
+
+**Backend Laravel API:** 9 Core Controllers
+- ArticleController, VideoController, ProductController (Unified)
+- EssentialController, AuthController, UploadController
+- ContactController, SettingController, AboutUsController
 - **Authentication:** Laravel Sanctum implementation
 - **API Development:** ~30 core endpoints với validation
 
-#### 8.4.2 Huỳnh Nguyễn Hưng (Fullstack Developer) - 249 hours
-- **Frontend Development (212h):** Phát triển toàn bộ giao diện React.js với TypeScript
-  - 49 Components (27 admin + 22 UI/common) - 40h
-  - 25 Pages (16 public + 9 admin) - 32h
-  - Frontend services layer (api, auth, public, interaction) - 10h
-  - Custom hooks & utilities (validation, animations) - 10h
-  - UI/UX Design (design system, color palette, typography) - 22h
-  - Performance optimization (60fps animations, bundle) - 20h
-  - Dark mode, responsive design - included
-  - Testing & debugging - 18h
-- **Backend API Development (100h):** User Management & Site Settings
-  - UserController TOÀN BỘ (CRUD, avatar, security, roles) - 15h
-  - 7 Site Settings Controllers (Hero, Staff, Map, Contact, Campaign, Activity, Image) - 25h
-  - CloudinaryService (upload/delete/management) - 15h
-  - Backend configuration (Laravel, Cloudinary, Cache) - 25h
-  - Database integration (frontend-backend connection) - 20h
-- **VPS Deployment & Configuration (50h):**
-  - Windows Server setup, Apache virtual hosts - 25h
-  - SSL/HTTPS configuration, security headers - 25h
-- **Documentation:** 12h
+#### 8.4.2 Huỳnh Nguyễn Hưng (Fullstack Developer) - 249 hours - 19 Functions
+**Guest Functions (11):**
+- **Build template** - Thiết kế 16 trang public
+- **Home page** - Hero section, features, statistics
+- **About us** - Thông tin team, mission, vision
+- **Contact** - Contact form & information
+- **Search with keywords** - Tìm kiếm nội dung theo từ khóa
+- **Pagination** - Phân trang cho tất cả listing pages
+- **Map and location** - Google Maps integration
+- **Product showcase** - Hiển thị sản phẩm với links external
+- **Featured Carousel** - Carousel nội dung nổi bật
+- **Lazy Loading** - Lazy loading hình ảnh
 
-#### 8.4.3 Vương Ngọc Gia Bảo (Backend Advanced Features) - 117 hours
-- **5 Advanced Controllers (55h):**
-  - VisitorController (visitor tracking real-time)
-  - GeolocationController (location services với fallback APIs)
-  - InteractionController (like, rating, view tracking)
-  - SimpleController, TestController (testing endpoints)
+**Moderator Functions (1):**
+- **Profile Management** - Quản lý profile user
+
+**Admin Functions (7):**
+- **System Management** - Cấu hình site settings
+- **User Management** - CRUD users với roles
+- **Role Management** - Phân quyền Admin/Moderator
+- **Server Configuration** - Cấu hình server & environment
+- **Staff Management** - Quản lý team members
+- **Campaign Management** - Quản lý chiến dịch marketing
+- **Security Management** - Hệ thống security password
+- **Analytics Dashboard** - Thống kê real-time với charts
+- **Deployment & SSL** - Triển khai production
+- **Domain Management** - Cấu hình domain & SSL
+
+**Frontend Development (212h):** Phát triển toàn bộ giao diện React.js với TypeScript
+- 49 Components (27 admin + 22 UI/common) - 40h
+- 25 Pages (16 public + 9 admin) - 32h
+- Frontend services layer (api, auth, public, interaction) - 10h
+- Custom hooks & utilities (validation, animations) - 10h
+- UI/UX Design (design system, color palette, typography) - 22h
+- Performance optimization (60fps animations, bundle) - 20h
+- Dark mode, responsive design - included
+- Testing & debugging - 18h
+
+**Backend API Development (100h):** User Management & Site Settings
+- UserController TOÀN BỘ (CRUD, avatar, security, roles) - 15h
+- 7 Site Settings Controllers (Hero, Staff, Map, Contact, Campaign, Activity, Image) - 25h
+- CloudinaryService (upload/delete/management) - 15h
+- Backend configuration (Laravel, Cloudinary, Cache) - 25h
+- Database integration (frontend-backend connection) - 20h
+
+**VPS Deployment & Configuration (50h):**
+- Windows Server setup, Apache virtual hosts - 25h
+- SSL/HTTPS configuration, security headers - 25h
+
+**Documentation:** 12h
+
+#### 8.4.3 Vương Ngọc Gia Bảo (Backend Advanced Features) - 117 hours - 8 Functions
+**Guest Functions (4):**
+- **Visitor Counter** - Thống kê visitor real-time
+- **Content Interaction** - Like/Unlike functionality
+- **Rating System** - Đánh giá nội dung (1-5 sao)
+- **View Tracking** - Đếm lượt xem nội dung
+
+**Moderator Functions (1):**
+- **Advanced Analytics** - Dashboard analytics chi tiết
+
+**Admin Functions (3):**
+- **Activity Logging** - Theo dõi hoạt động hệ thống
+- **Geolocation Services** - Dịch vụ định vị với fallback APIs
+- **API Rate Limiting** - Giới hạn request
+- **Data Seeding** - Tạo dữ liệu mẫu
+- **Backup Management** - Sao lưu dữ liệu
+
+**5 Advanced Controllers (55h):**
+- VisitorController (visitor tracking real-time)
+- GeolocationController (location services với fallback APIs)
+- InteractionController (like, rating, view tracking)
+- SimpleController, TestController (testing endpoints)
 - **Third-party API Integration (20h):** ipapi.co, ipinfo.io
 - **Security Implementation (18h):** Rate limiting, XSS, CSRF protection
 - **Performance Optimization (15h):** Caching, query optimization
 - **Testing & Debugging:** 12h
 
-#### 8.4.4 Ngô Phúc Khang (Content & Documentation) - 130 hours
-- **Content Collection & Creation (75h):**
-  - 50+ sample articles (techniques)
-  - 120+ product entries (tools, books, pots, accessories, suggestions)
-  - 20+ video entries
-  - 10+ user entries, 15+ categories, 50+ tags
-- **Project Reporting (30h):**
-  - BAO_CAO_DO_AN_GREEN_GROVES.md (1,028 dòng) - 12h
-  - TASKLIST_THANH_VIEN.md (957 dòng) - 10h
-  - THUYET_TRINH_DO_AN_Q&A.md (812 dòng) - 8h
-  - Tổng: 3 files, 2,797 dòng
-- **Documentation (15h):** User guides, technical docs
-- **Quality Assurance (10h):** Content review, accuracy verification
+#### 8.4.4 Ngô Phúc Khang (Content & Documentation) - 130 hours - 8 Functions
+**Moderator Functions (8):**
+- **Category Management** - Quản lý tags và categories
+- **Featured Content Management** - Quản lý nội dung nổi bật
+- **Advanced Content Filtering** - Lọc nội dung nâng cao
+- **Content Review** - Duyệt và phê duyệt nội dung
+- **User Feedback** - Quản lý tin nhắn liên hệ
+- **Rich Text Editor** - Editor WYSIWYG
+- **Content Status** - Quản lý trạng thái Draft/Published
+- **Image Management** - Xóa/cập nhật hình ảnh
 
-#### 8.4.5 Nguyễn Đức Anh Tài (Frontend Integration) - 108 hours
-- **React Router Setup (15h):** 25+ routes configuration
-- **State Management (18h):** Context API (Auth, Theme, Navigation)
-- **API Integration (20h):** Frontend-backend connection
-- **Page Implementation (30h):** 10 public pages implementation
-  - Techniques, Videos, Tools, Books, Pots, Accessories, Essentials, Suggestions
-  - Detail pages integration
-- **Form Handling (10h):** Validation, error display
-- **Testing & Debugging (18h):** Component testing, user flow testing
+**Content Collection & Creation (75h):**
+- 50+ sample articles (techniques)
+- 120+ product entries (tools, books, pots, accessories, suggestions)
+- 20+ video entries
+- 10+ user entries, 15+ categories, 50+ tags
+
+**Project Reporting (30h):**
+- BAO_CAO_DO_AN_GREEN_GROVES.md (1,028 dòng) - 12h
+- TASKLIST_THANH_VIEN.md (957 dòng) - 10h
+- THUYET_TRINH_DO_AN_Q&A.md (812 dòng) - 8h
+- GREEN_GROVES_FUNCTIONS_LIST_COMPLETE.md (140 dòng) - 5h
+- Tổng: 4 files, 2,937 dòng
+
+**Documentation (15h):** User guides, technical docs
+**Quality Assurance (10h):** Content review, accuracy verification
+
+#### 8.4.5 Nguyễn Đức Anh Tài (Frontend Integration) - 108 hours - 11 Functions
+**Guest Functions (4):**
+- **Dark Mode** - Chế độ tối với smooth transitions
+- **Responsive Design** - Tối ưu hóa cho mobile
+- **Content Detail Pages** - Trang chi tiết với slug routing
+- **Related Content** - Gợi ý nội dung liên quan
+
+**Moderator Functions (3):**
+- **Advanced Image Upload** - Upload hình ảnh với Cloudinary
+- **SEO Management** - Tối ưu hóa SEO
+- **Product Link Management** - Quản lý links sản phẩm external
+
+**Admin Functions (4):**
+- **API Documentation** - Tài liệu API endpoints
+- **API Testing** - Test endpoints & validation
+- **Frontend Testing** - Test components & integration
+
+**React Router Setup (15h):** 25+ routes configuration
+**State Management (18h):** Context API (Auth, Theme, Navigation)
+**API Integration (20h):** Frontend-backend connection
+**Page Implementation (30h):** 10 public pages implementation
+- Techniques, Videos, Tools, Books, Pots, Accessories, Essentials, Suggestions
+- Detail pages integration
+**Form Handling (10h):** Validation, error display
+**Testing & Debugging (18h):** Component testing, user flow testing
 
 ---
 
@@ -885,6 +1037,13 @@ Dự án Green Groves đã thành công xây dựng một hệ thống quản l�
 - **Frontend:** `/frontend` directory
 - **Backend:** `/backend` directory
 - **Documentation:** `/docs` directory
+
+### A.1 Functions List Documentation
+- **GREEN_GROVES_FUNCTIONS_LIST_COMPLETE.md** - Complete functions list with Type classification
+  - 61 total functions across 5 team members
+  - 7 function types: Database, Frontend, Backend, Admin, Content, Security, Analytics, Testing
+  - Role-based access control: Guest (20), Moderator (15), Admin (23)
+  - Balanced distribution ensuring fair workload allocation
 
 ### B. Database Schema
 ```sql
@@ -962,29 +1121,42 @@ GET    /api/settings          # Lấy cài đặt trang web
 - 📱 **Mobile-First** responsive design
 
 *Báo cáo được hoàn thành vào ngày 28/01/2024 (Bản gốc)*
-*Cập nhật lần cuối: 12/10/2025 (Bản hiện tại)*
+*Cập nhật lần cuối: 14/10/2025 (Bản hiện tại - với Tags System & Responsive Optimization)*
 *Nhóm Green Groves - Môn Phát triển ứng dụng Web*
+
+### 🔄 Latest Updates (14/10/2025)
+- ✅ **Tags System Implementation:** Full tags CRUD với TagsList, TagArchive, TagInput, TagChip components
+- ✅ **Responsive Optimization:** Admin Dashboard, ContentList, ProductList fully responsive
+- ✅ **Sorting Enhancement:** Improved sorting logic với NaN handling, localeCompare options
+- ✅ **Campaign Settings Fix:** API response format handling for campaign statistics
+- ✅ **Complete Functions List:** 65+ functions with Type classification
+- ✅ **Role-based Access Control:** Guest (22), Moderator (15), Admin (25) functions
+- ✅ **Component Count:** 54 components (29 admin + 12 UI + 13 common/layout)
+- ✅ **Page Count:** 27 pages (18 public + 9 admin)
+- ✅ **Controller Count:** 21 API controllers (10 Hiếu, 7 Hưng, 4 Bảo)
 
 ---
 
 ## 📊 THỐNG KÊ DỰ ÁN THỰC TẾ
 
 ### 🏗️ Backend (Laravel 12)
-**22 API Controllers** (Phân công: Hiếu 9, Hưng 8, Bảo 5)
+**21 API Controllers** (Phân công: Hiếu 10, Hưng 7, Bảo 4)
 
-**Hiếu - 9 Core Controllers:**
+**Hiếu - 10 Core Controllers:**
 - ArticleController, VideoController, ProductController (Unified)
 - EssentialController, AuthController, UploadController
-- ContactController, SettingController, AboutUsController
+- ContactController, AboutUsController
+- TagController (Tags CRUD operations)
+- SettingController (deprecated - integrated into specific controllers)
 
-**Hưng - 8 Controllers (User Management & Site Settings):**
+**Hưng - 7 Controllers (User Management & Site Settings):**
 - UserController (TOÀN BỘ)
 - ImageController, HeroSectionController, StaffMemberController
 - MapSettingController, ContactSettingController, CampaignSettingController, ActivityLogController
 
-**Bảo - 5 Advanced Controllers:**
+**Bảo - 4 Advanced Controllers:**
 - VisitorController, GeolocationController, InteractionController
-- SimpleController, TestController
+- TestController (SimpleController deprecated)
 
 **Database:**
 - **19 Models** (thiết kế bởi Hiếu, implement: Hiếu 10, Hưng 7, Bảo 2)
@@ -992,37 +1164,63 @@ GET    /api/settings          # Lấy cài đặt trang web
 - **19+ Database Tables**
 
 ### 🎨 Frontend (React.js + TypeScript)
-**49 Components** (27 admin + 22 UI/common) - **Hưng 100%**
+**54 Components** (29 admin + 12 UI + 13 common/layout) - **Hưng 100%**
 
-**27 Admin Components:**
+**29 Admin Components:**
 - Core: AdminSidebar, DashboardCharts, StatisticsSection, RecentActivity, TopContent, MobileAdminNav (6)
 - Content: ContentManagement, ContentManagementSection, ContentList, ContentCreate, ContentEdit, ContentForm, RichTextEditor (7)
 - Product: ProductManagement, ProductList, ProductCreate, ProductEdit, ProductForm (5)
 - User: UserManagement, UserManagementSection, UserEditForm, UserCreate, UserProfileComponent (5)
+- Tags: TagManagement, TagInput (2)
 - Utilities: SecurityPasswordModal, Overview, ContactManagement, MessagesSection (4)
 
-**22 UI/Common Components:**
-- Layout: Layout, Header, Footer, FloatingNav (4)
-- UI: Card, Carousel, DetailPage, PageHeader, Toast, StatusBadge, RoleBadge, DarkModeToggle (8)
-- Common: LoadingSpinner, ErrorMessage, LazyImage, IconLoader, Ticker, VisitorCounter (6)
-- Utilities: ImageUpload, PerformanceMonitor, ProtectedRoute, LazyMotion (4)
+**12 UI Components:**
+- Core: Card, Carousel, DetailPage, PageHeader, Toast (5)
+- Badges: StatusBadge, RoleBadge, TagChip (3)
+- Dialogs: ConfirmDialog, DarkModeToggle (2)
+- Hero: BeautifulHero, LazyMotion (2)
 
-**25 Pages** (Hưng 16+9, Tài 10 implementation)
-- **16 Public pages:** Home, Login, AboutUs, 8 listing, 5 detail (Hưng design, Hưng+Tài implement)
-- **9 Admin pages:** AdminDashboard, AdminAboutUs + 7 admin subfolder (Hưng 100%)
+**13 Common/Layout Components:**
+- Layout: Layout (from components/Layout) (1)
+- Header/Footer: Header, Footer, FloatingNav (3) (from components/common)
+- Loading: LoadingSpinner, ErrorMessage, IconLoader (3)
+- Images: LazyImage, ImageUpload (2)
+- Utilities: Ticker, VisitorCounter, PerformanceMonitor, ProtectedRoute (4)
+
+**27 Pages** (Hưng 18+9, Tài 10 implementation)
+- **18 Public pages:** Home, Login, AboutUs, 8 listing, 5 detail, 2 tags pages (Hưng design, Hưng+Tài implement)
+  - Listing: Techniques, Videos, Tools, Books, Pots, Accessories, Essentials, Suggestions
+  - Detail: ArticleDetail, VideoDetail, TechniqueDetail, EssentialDetail, ProductDetail
+  - Tags: TagsList, TagArchive
+- **9 Admin pages:** AdminDashboard + 8 admin subfolder (Hưng 100%)
+  - Admin subfolder: AdminHeroSection, AdminStaffManagement, AdminMapSettings, AdminContactSettings, AdminContactMessages, AdminCampaignSettings, AdminSecuritySettings, AdminAboutUs
 
 **Services & Utilities:**
-- **5+ Services:** api.ts, auth.ts, public.ts, interaction.ts (Hưng + Tài)
-- **10+ Custom Hooks:** useGeolocation, usePerformance, etc (Hưng)
-- **~25,000+ dòng code**
+- **6 Services:** api.ts, auth.ts, publicService.ts, interactionService.ts, visitorService.ts, campaignService.ts (Hưng + Tài + Bảo)
+- **10+ Custom Hooks:** useGeolocation, usePerformance, useResponsiveDesign, etc (Hưng)
+- **9 Utility files:** helpers.ts, animations.ts, slug.ts, validation.ts, adminUtils.ts, responsiveDesign.ts, etc
+- **~28,000+ dòng code**
 
 ### 📊 Worklog Summary
-**Tổng: ~739 hours**
+**Tổng: ~760+ hours - 65+ Functions**
 
-| Thành viên | Giờ | % | Breakdown |
-|-----------|-----|---|-----------|
-| **Hưng** | 249h | 33.7% | Frontend 212h + Backend 100h + Deployment 50h |
-| **Hiếu** | 135h | 18.3% | Backend 90h + Database 45h |
-| **Khang** | 130h | 17.6% | Content 75h + Reporting 30h + QA 25h |
-| **Bảo** | 117h | 15.8% | Backend 55h + Integration 20h + Security 18h + Optimization 15h |
-| **Tài** | 108h | 14.6% | Pages 30h + Routing 15h + State 18h + Integration 20h + Testing 18h |
+| Thành viên | Giờ | % | Functions | Breakdown |
+|-----------|-----|---|----------|-----------|
+| **Hưng** | 260h | 34.2% | 21 | Frontend 220h + Backend 100h + Deployment 50h + Responsive 10h |
+| **Hiếu** | 135h | 17.8% | 11 | Backend 90h + Database 45h |
+| **Tài** | 108h | 14.2% | 11 | Pages 30h + Routing 15h + State 18h + Integration 20h + Testing 18h |
+| **Bảo** | 117h | 15.4% | 10 | Backend 55h + Integration 20h + Security 18h + Optimization 15h + Tags 9h |
+| **Khang** | 140h | 18.4% | 12 | Content 75h + Reporting 40h + QA 25h |
+
+### 📋 Functions Distribution Summary
+**65+ Total Functions by Type:**
+- **Frontend:** 14 functions (UI/UX, responsive design, dark mode, tags system)
+- **Backend:** 9 functions (API, server configuration, database, tags controller)
+- **Admin:** 8 functions (user management, system settings, tag management, sorting)
+- **Content:** 10 functions (content management, SEO, workflow)
+- **Security:** 4 functions (authentication, protection)
+- **Analytics:** 3 functions (visitor tracking, statistics)
+- **Testing:** 2 functions (API testing, frontend testing)
+- **Database:** 6 functions (design, optimization, management)
+- **Performance:** 4 functions (sorting optimization, responsive optimization)
+- **Tags:** 5 functions (tag CRUD, tag input, tag archive, tag list, tag chip)

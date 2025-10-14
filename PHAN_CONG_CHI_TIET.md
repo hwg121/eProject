@@ -1,11 +1,11 @@
 # PHÂN CÔNG CÔNG VIỆC CHI TIẾT - GREEN GROVES
-## Cập nhật: 12/10/2025
+## Cập nhật: 14/10/2025
 
 ---
 
 ## 📊 TỔNG QUAN PHÂN CÔNG
 
-### Backend Controllers (22 Total)
+### Backend Controllers (21 Total)
 
 | # | Controller | Người làm | Mô tả | Ghi chú |
 |---|-----------|-----------|-------|---------|
@@ -17,8 +17,8 @@
 | 6 | AuthController | **Hiếu** | Authentication với Sanctum | Core |
 | 7 | UploadController | **Hiếu** | File upload cơ bản | Core |
 | 8 | ContactController | **Hiếu** | Contact messages | Core |
-| 9 | SettingController | **Hiếu** | Site settings cơ bản | Core |
-| 10 | AboutUsController | **Hiếu** | About us management | Core |
+| 9 | AboutUsController | **Hiếu** | About us management | Core |
+| 10 | TagController | **Hiếu** | Tags CRUD operations | Core |
 | 11 | ImageController | **Hưng** | Cloudinary image upload | Advanced |
 | 12 | HeroSectionController | **Hưng** | Hero banner management | Advanced |
 | 13 | StaffMemberController | **Hưng** | Team members với reorder | Advanced |
@@ -29,13 +29,12 @@
 | 18 | VisitorController | **Bảo** | Visitor tracking real-time | Special |
 | 19 | GeolocationController | **Bảo** | Location services với fallback | Special |
 | 20 | InteractionController | **Bảo** | User interactions (like, rating, view) | Special |
-| 21 | SimpleController | **Bảo** | Simple testing endpoints | Special |
-| 22 | TestController | **Bảo** | CORS testing | Special |
+| 21 | TestController | **Bảo** | CORS testing | Special |
 
 **Tổng:**
-- **Hiếu:** 10 controllers (45%)
-- **Hưng:** 7 controllers (32%)
-- **Bảo:** 5 controllers (23%)
+- **Hiếu:** 10 controllers (48%)
+- **Hưng:** 7 controllers (33%)
+- **Bảo:** 4 controllers (19%)
 
 ---
 
@@ -85,9 +84,9 @@
 
 ---
 
-## 🎨 FRONTEND COMPONENTS (49 Total)
+## 🎨 FRONTEND COMPONENTS (54 Total)
 
-### Admin Components (27) - **Hưng**
+### Admin Components (29) - **Hưng**
 1. AdminDashboard
 2. AdminSidebar
 3. DashboardCharts
@@ -114,39 +113,46 @@
 24. ContactManagement
 25. MessagesSection
 26. Overview
-27. (Other admin utilities)
+27. TagManagement
+28. TagInput
+29. UserManagement
 
-### UI/Common Components (22) - **Hưng**
-1. Layout
-2. Header
-3. Footer
-4. FloatingNav
-5. Card
-6. Carousel
-7. DetailPage
-8. PageHeader
-9. Toast
-10. StatusBadge
-11. RoleBadge
-12. DarkModeToggle
-13. LoadingSpinner
-14. ErrorMessage
-15. LazyImage
-16. IconLoader
-17. Ticker
-18. VisitorCounter
-19. ImageUpload
-20. PerformanceMonitor
-21. ProtectedRoute
-22. LazyMotion
+### UI Components (12) - **Hưng**
+1. Card
+2. Carousel
+3. DetailPage
+4. PageHeader
+5. Toast
+6. StatusBadge
+7. RoleBadge
+8. TagChip
+9. ConfirmDialog
+10. DarkModeToggle
+11. BeautifulHero
+12. LazyMotion
 
-**Tổng:** Hưng làm 49/49 components (100%)
+### Common/Layout Components (13) - **Hưng**
+1. Layout (from components/Layout)
+2. Header (from components/common)
+3. Footer (from components/common)
+4. FloatingNav (from components/common)
+5. LoadingSpinner
+6. ErrorMessage
+7. IconLoader
+8. LazyImage
+9. ImageUpload
+10. Ticker
+11. VisitorCounter
+12. PerformanceMonitor
+13. ProtectedRoute
+
+**Tổng:** Hưng làm 54/54 components (100%)
 
 ---
 
-## 📄 PAGES (23 Total)
+## 📄 PAGES (27 Total)
 
-### Public Pages (16) - **Hưng + Tài**
+### Public Pages (18) - **Hưng + Tài**
 | Page | Designer | Implementer | Ghi chú |
 |------|----------|-------------|---------|
 | Home | Hưng | Hưng + Tài | Hợp tác |
@@ -162,9 +168,13 @@
 | Suggestions | Hưng | Tài | Listing |
 | ArticleDetail | Hưng | Tài | Detail |
 | VideoDetail | Hưng | Tài | Detail |
-| Product Details | Hưng | Tài | Detail |
+| TechniqueDetail | Hưng | Tài | Detail |
+| EssentialDetail | Hưng | Tài | Detail |
+| ProductDetail | Hưng | Tài | Detail |
+| TagsList | Hưng | Hưng | Tags listing |
+| TagArchive | Hưng | Hưng | Tags archive |
 
-### Admin Pages (7) - **Hưng**
+### Admin Pages (9) - **Hưng**
 1. AdminDashboard (main)
 2. AdminAboutUs
 3. AdminHeroSection
@@ -176,9 +186,9 @@
 9. AdminSecuritySettings
 
 **Tổng:**
-- **Hưng:** 16 pages (70%)
-- **Tài:** 10 pages (43%)
-- **Hợp tác:** 3 pages
+- **Hưng:** 20 pages (74%)
+- **Tài:** 12 pages (44%)
+- **Hợp tác:** 1 page
 
 ---
 
@@ -220,28 +230,28 @@
 
 | Thành viên | Giờ | % | Công việc chính |
 |-----------|-----|---|-----------------|
-| **Huỳnh Nguyễn Hưng** | 237h | 32.6% | 49 components, 23 pages, 7 controllers, deployment |
-| **Nguyễn Trần Trung Hiếu** | 135h | 18.6% | 10 controllers, 29 migrations, 19 models design |
-| **Ngô Phúc Khang** | 130h | 17.9% | 250+ content items, 3 báo cáo (1,700+ dòng) |
-| **Vương Ngọc Gia Bảo** | 117h | 16.1% | 5 controllers, geolocation, security |
-| **Nguyễn Đức Anh Tài** | 108h | 14.9% | 10 pages, routing, integration |
-| **TỔNG** | **727h** | **100%** | **22 controllers, 49 components, 23 pages** |
+| **Huỳnh Nguyễn Hưng** | 260h | 34.2% | 54 components, 20 pages, 7 controllers, deployment, responsive |
+| **Nguyễn Trần Trung Hiếu** | 135h | 17.8% | 10 controllers, 29 migrations, 19 models design |
+| **Ngô Phúc Khang** | 140h | 18.4% | 250+ content items, 3 báo cáo (2,000+ dòng) |
+| **Vương Ngọc Gia Bảo** | 117h | 15.4% | 4 controllers, geolocation, security, tags backend |
+| **Nguyễn Đức Anh Tài** | 108h | 14.2% | 12 pages, routing, integration |
+| **TỔNG** | **760+h** | **100%** | **21 controllers, 54 components, 27 pages** |
 
 ---
 
 ## ✅ PHÂN BỔ CÔNG VIỆC (%)
 
 ### Backend Development (39%)
-- **Hiếu:** 19% (10 controllers, database)
-- **Hưng:** 4% (7 controllers)
-- **Bảo:** 16% (5 controllers, special features)
+- **Hiếu:** 18% (10 controllers, database)
+- **Hưng:** 13% (7 controllers)
+- **Bảo:** 15% (4 controllers, special features)
 
-### Frontend Development (42%)
-- **Hưng:** 28% (49 components, 16 pages)
-- **Tài:** 15% (10 pages, routing)
+### Frontend Development (43%)
+- **Hưng:** 29% (54 components, 20 pages, responsive)
+- **Tài:** 14% (12 pages, routing)
 
-### Deployment & Config (5%)
-- **Hưng:** 5% (VPS, Apache, SSL)
+### Deployment & Config (7%)
+- **Hưng:** 7% (VPS, Apache, SSL)
 
 ### Content & Docs (18%)
 - **Khang:** 18% (250+ items, 3 reports)
@@ -265,7 +275,15 @@
 
 **🌱 Green Groves - Phân công rõ ràng, không conflict! 🌱**
 
-*Cập nhật: 12/10/2025*
+*Cập nhật: 14/10/2025*
+
+### ✨ Latest Updates (14/10/2025):
+- ✅ **Tags System:** TagController (Hiếu) + TagManagement, TagInput, TagsList, TagArchive (Hưng)
+- ✅ **Responsive Optimization:** Admin Dashboard, ContentList, ProductList fully responsive
+- ✅ **Sorting Enhancement:** Improved sorting logic với NaN handling, localeCompare options
+- ✅ **Campaign Settings Fix:** API response format handling
+- ✅ **Updated Counts:** 21 controllers, 54 components, 27 pages, 760+ hours
+
 
 
 
