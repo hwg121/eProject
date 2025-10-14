@@ -240,22 +240,29 @@ const ContentList: React.FC<ContentListProps> = ({
         elevation={2}
         sx={{ 
           mb: 3,
-          borderRadius: 2,
+          borderRadius: { xs: 1, sm: 2 },
           background: isDarkMode ? '#1e293b' : '#ffffff',
-          overflow: 'hidden'
+          overflow: { xs: 'auto', sm: 'hidden' }
         }}
       >
         <Tabs
           value={activeTab}
           onChange={(_, newValue) => setActiveTab(newValue)}
-          variant="fullWidth"
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
           sx={{
             '& .MuiTabs-indicator': {
               backgroundColor: '#10b981',
               height: 3,
             },
             '& .MuiTab-root': {
-              minHeight: 64,
+              minHeight: { xs: 56, sm: 64 },
+              minWidth: { xs: 100, sm: 120 },
+              px: { xs: 1.5, sm: 2 },
+            },
+            '& .MuiTabs-scrollButtons': {
+              color: '#10b981',
             },
           }}
         >
@@ -409,8 +416,8 @@ const ContentList: React.FC<ContentListProps> = ({
       </Box>
 
       {/* Filters */}
-      <Paper elevation={2} sx={{ p: 3, mb: 3, background: isDarkMode ? '#1e293b' : '#ffffff', borderRadius: 2 }}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+      <Paper elevation={2} sx={{ p: { xs: 2, sm: 2.5, md: 3 }, mb: 3, background: isDarkMode ? '#1e293b' : '#ffffff', borderRadius: { xs: 1, sm: 2 } }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: { xs: 1.5, sm: 2 } }}>
           <TextField
             fullWidth
             placeholder="Search content..."
@@ -536,9 +543,25 @@ const ContentList: React.FC<ContentListProps> = ({
         component={Paper} 
         elevation={3}
         sx={{ 
-          borderRadius: 2,
+          borderRadius: { xs: 1, sm: 2 },
           background: isDarkMode ? '#1e293b' : '#ffffff',
-          overflow: 'hidden'
+          overflow: 'auto',
+          maxWidth: '100%',
+          // Responsive scrollbar
+          '&::-webkit-scrollbar': {
+            height: { xs: 6, sm: 8 },
+            width: { xs: 6, sm: 8 },
+          },
+          '&::-webkit-scrollbar-track': {
+            background: isDarkMode ? '#0f172a' : '#f1f5f9',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: '#10b981',
+            borderRadius: 4,
+            '&:hover': {
+              background: '#059669',
+            },
+          },
         }}
       >
         {paginatedContent.length === 0 ? (
@@ -552,10 +575,10 @@ const ContentList: React.FC<ContentListProps> = ({
             </Typography>
           </Box>
         ) : (
-          <Table>
+          <Table sx={{ minWidth: { xs: 800, md: 1000 } }}>
             <TableHead>
               <TableRow sx={{ bgcolor: isDarkMode ? '#0f172a' : '#f8fafc' }}>
-                <TableCell padding="checkbox">
+                <TableCell padding="checkbox" sx={{ width: { xs: 40, sm: 48 } }}>
                   <Checkbox
                     checked={isAllSelected}
                     indeterminate={isSomeSelected}

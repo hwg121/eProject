@@ -1579,8 +1579,9 @@ Updated: ${product.updatedAt}
       </div>
           
       {/* Admin Content */}
-      <div className="relative z-20 flex min-h-screen">
-        <div className="hidden lg:block">
+      <div className="relative z-20 flex flex-col lg:flex-row min-h-screen">
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:block flex-shrink-0">
           <AdminSidebar 
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -1590,9 +1591,11 @@ Updated: ${product.updatedAt}
             userRole={user?.role || 'admin'}
           />
         </div>
-        <div className="flex-1 p-3 sm:p-4 md:p-6">
+        
+        {/* Main Content Area */}
+        <div className="flex-1 w-full min-w-0 p-2 sm:p-3 md:p-4 lg:p-6 xl:p-8">
           {/* Mobile Navigation */}
-          <div className="lg:hidden">
+          <div className="lg:hidden mb-4">
             <MobileAdminNav 
               activeTab={activeTab}
               onTabChange={setActiveTab}
@@ -1601,7 +1604,8 @@ Updated: ${product.updatedAt}
             />
           </div>
           
-          <div className="space-y-3 sm:space-y-4 md:space-y-6 lg:space-y-8">
+          {/* Content Container with responsive spacing */}
+          <div className="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6 xl:space-y-8 max-w-full overflow-hidden">
           {/* Error Message */}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
