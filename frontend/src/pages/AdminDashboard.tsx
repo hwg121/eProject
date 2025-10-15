@@ -1,4 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Shield, AlertTriangle, Loader2
+} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import DarkModeToggle from '../components/ui/DarkModeToggle';
@@ -17,7 +21,9 @@ import {
   Paper,
   Chip,
   ThemeProvider,
-  CssBaseline
+  CssBaseline,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import { createAdminTheme } from '../theme/adminTheme';
 
@@ -72,15 +78,16 @@ const AdminDashboard: React.FC = () => {
   const { isDarkMode } = useTheme();
   const [activeTab, setActiveTab] = useState('overview');
   
-  // Track activeTab changes
+  // Debug: Log activeTab changes
   useEffect(() => {
-    // Tab changed
+    console.log('📍 activeTab changed to:', activeTab);
   }, [activeTab]);
   
   // Listen for edit events from ViewAllContent
   useEffect(() => {
     const handleEditEvent = (event: any) => {
       const { item, actualId, category } = event.detail;
+      console.log('📝 Edit event received:', { item, actualId, category });
       
       // Set editing item and switch to appropriate edit tab
       if (item.type === 'article' || item.type === 'video') {
@@ -142,8 +149,8 @@ const AdminDashboard: React.FC = () => {
   const [currentContentType, setCurrentContentType] = useState('');
   
   // Debug currentContentType changes
-  React.  useEffect(() => {
-    // Content type changed
+  React.useEffect(() => {
+    console.log('currentContentType changed to:', currentContentType);
   }, [currentContentType]);
 
   // Product state
@@ -211,6 +218,7 @@ const AdminDashboard: React.FC = () => {
 
   // Navigation handler for Quick Actions
   const handleSectionChange = (section: string, action?: string) => {
+    console.log('handleSectionChange called with:', section, action);
     if (section === 'content') {
       if (action === 'create-article') {
         setActiveTab('content-create');
@@ -418,6 +426,7 @@ const AdminDashboard: React.FC = () => {
         };
 
       // Load all content data using admin endpoints
+      console.log('AdminDashboard - Starting to load data...');
       const [articlesData, videosData, allProductsData, contactMessagesData, usersData, publicActivitiesData, securityActivitiesData] = await Promise.all([
           loadDataWithFallback(() => articlesService.getAll({ status: 'all' })), // Explicitly request all articles including archived
           loadDataWithFallback(() => videosService.getAll({ status: 'all' })), // Explicitly request all videos including archived
@@ -428,6 +437,21 @@ const AdminDashboard: React.FC = () => {
           loadDataWithFallback(() => activityLogService.getSecurityActivities(20))
       ]);
       
+      console.log('AdminDashboard - Loaded data:', {
+        articles: articlesData?.length || 0,
+        videos: videosData?.length || 0,
+        products: allProductsData?.length || 0,
+        contacts: contactMessagesData?.length || 0,
+        users: usersData?.length || 0
+      });
+      
+      // Debug authentication
+      console.log('AdminDashboard - Auth debug:', {
+        isAuthenticated,
+        user: user ? { id: user.id, role: user.role, name: user.name } : null,
+        token: localStorage.getItem('auth_token') ? 'present' : 'missing'
+      });
+
       // Load visitor statistics
       const visitorStats = await visitorService.getVisitorStatistics();
       
@@ -440,6 +464,30 @@ const AdminDashboard: React.FC = () => {
         // Don't fail the entire load if campaign stats fail
       }
       
+      console.log('AdminDashboard - Loaded products:', allProductsData);
+      
+      // Debug products by status
+      const archivedProducts = allProductsData.filter((p: any) => p.status === 'archived');
+      const publishedProducts = allProductsData.filter((p: any) => p.status === 'published');
+      console.log('AdminDashboard - Products by status:', {
+        total: allProductsData.length,
+        archived: archivedProducts.length,
+        published: publishedProducts.length,
+        archivedSample: archivedProducts.slice(0, 3).map((p: any) => ({ id: p.id, name: p.name, status: p.status })),
+        allProductsSample: allProductsData.slice(0, 3).map((p: any) => ({ id: p.id, name: p.name, status: p.status }))
+      });
+      
+      // Debug specific product with rating
+      if (allProductsData.length > 0) {
+        const firstProduct = allProductsData[0];
+        console.log('AdminDashboard - First product rating debug:', {
+          id: firstProduct.id,
+          name: firstProduct.name,
+          rating: firstProduct.rating,
+          type: typeof firstProduct.rating
+        });
+      }
+
       // Split products by category
       const booksData = allProductsData.filter((product: any) => product.category === 'book');
       const toolsData = allProductsData.filter((product: any) => product.category === 'tool');
@@ -455,7 +503,7 @@ const AdminDashboard: React.FC = () => {
           console.error('Error transforming article:', item, error);
           return null;
         }
-      }).filter(Boolean) : []);
+      }).filter(Boolean) as ContentItem[] : []);
       setVideos(Array.isArray(videosData) ? videosData.map((item: any) => {
         try {
           return transformVideoToContentItem(item);
@@ -463,7 +511,7 @@ const AdminDashboard: React.FC = () => {
           console.error('Error transforming video:', item, error);
           return null;
         }
-      }).filter(Boolean) : []);
+      }).filter(Boolean) as ContentItem[] : []);
       
       // Set products for Product Management (Tools/Pots/Accessories/Suggestions/Books)
       setProducts([
@@ -491,6 +539,19 @@ const AdminDashboard: React.FC = () => {
       const totalSuggestions = Array.isArray(suggestionsData) ? suggestionsData.filter((item: any) => item.status === 'published').length : 0;
       const totalContactMessages = Array.isArray(contactMessagesData) ? contactMessagesData.length : 0;
       const totalUsers = Array.isArray(usersData) ? usersData.length : 0;
+
+      console.log('AdminDashboard - Published content counts:', {
+        articles: totalArticles,
+        videos: totalVideos,
+        books: totalBooks,
+        tools: totalTools,
+        pots: totalPots,
+        accessories: totalAccessories,
+        suggestions: totalSuggestions,
+        'CONTENT ITEMS (Technique + Video)': totalArticles + totalVideos,
+        'PRODUCT ITEMS (Books + Tools + Pots + Accessories + Suggestions)': totalBooks + totalTools + totalPots + totalAccessories + totalSuggestions,
+        'GRAND TOTAL': totalArticles + totalVideos + totalBooks + totalTools + totalPots + totalAccessories + totalSuggestions
+      });
 
       // Calculate total views from published content only
       const publishedArticles = Array.isArray(articlesData) ? articlesData.filter((item: any) => item.status === 'published') : [];
@@ -864,11 +925,13 @@ const AdminDashboard: React.FC = () => {
   // Bulk status change handler
   const handleBulkStatusChange = async (ids: string[], status: string) => {
     try {
+      console.log('handleBulkStatusChange called with:', { ids, status });
       
       const updatePromises = ids.map(id => {
         // Find item in articles, videos, or products
         const item = [...articles, ...videos, ...products].find(i => i.id === id);
         if (!item) {
+          console.log('Item not found for id:', id);
           return Promise.resolve();
         }
 
@@ -878,28 +941,35 @@ const AdminDashboard: React.FC = () => {
         else if (type === 'Video') serviceType = 'videos';
         // For products, use productService directly
         else if (['tool', 'book', 'pot', 'accessory', 'suggestion'].includes(type?.toLowerCase() || '')) {
+          console.log('Updating product:', id, 'to status:', status);
           return productService.update(id, { status });
         }
 
         const updateData = { status };
+        console.log('Updating', serviceType, 'item:', id, 'to status:', status);
 
         switch (serviceType) {
           case 'articles': 
+            console.log('Calling articlesService.update for:', id);
             return articlesService.update(id, updateData).catch(error => {
               console.error('Error updating article:', id, error);
               throw error;
             });
           case 'videos': 
+            console.log('Calling videosService.update for:', id);
             return videosService.update(id, updateData).catch(error => {
               console.error('Error updating video:', id, error);
               throw error;
             });
           default: 
+            console.log('Unknown serviceType:', serviceType, 'for item:', id);
             return Promise.resolve();
         }
       });
 
+      console.log('Executing', updatePromises.length, 'update promises');
       await Promise.all(updatePromises);
+      console.log('All updates completed, reloading data');
       await loadData();
       showToast(`Successfully updated ${ids.length} items to ${status}!`, 'success');
     } catch (error: any) {
@@ -997,9 +1067,11 @@ const AdminDashboard: React.FC = () => {
 
   const handleSave = async (formData: Partial<ContentItem>) => {
     try {
+      console.log('AdminDashboard - handleSave called with:', formData);
       // Priority: formData.category > currentContentType from formData > state currentContentType
       const categoryFromForm = formData.category || (formData as any).currentContentType || currentContentType;
       
+      console.log('AdminDashboard.handleSave - Input:', {
         formDataCategory: formData.category,
         currentContentTypeFromForm: (formData as any).currentContentType,
         stateCurrentContentType: currentContentType,
@@ -1025,6 +1097,7 @@ const AdminDashboard: React.FC = () => {
         serviceType = 'videos';
       }
       
+      console.log('AdminDashboard.handleSave - Normalized serviceType:', serviceType, 'from category:', categoryFromForm);
       
       // Save logic based on currentContentType
       if (editingItem) {
@@ -1057,16 +1130,21 @@ const AdminDashboard: React.FC = () => {
         }
       } else {
         // Create new item
+        console.log('AdminDashboard.handleSave - Creating new item with serviceType:', serviceType);
         
         switch (serviceType) {
           case 'articles':
+            console.log('AdminDashboard.handleSave - Calling articlesService.create with:', formData);
             const articleResult = await articlesService.create(formData);
+            console.log('AdminDashboard.handleSave - articlesService.create result:', articleResult);
             if (!articleResult || (articleResult as any).success === false) {
               throw new Error((articleResult as any).message || 'Failed to create article');
             }
             break;
           case 'videos':
+            console.log('AdminDashboard.handleSave - Calling videosService.create with:', formData);
             const videoResult = await videosService.create(formData);
+            console.log('AdminDashboard.handleSave - videosService.create result:', videoResult);
             if (!videoResult || (videoResult as any).success === false) {
               throw new Error((videoResult as any).message || 'Failed to create video');
             }
@@ -1211,7 +1289,9 @@ const AdminDashboard: React.FC = () => {
   const handleProductEditClick = async (product: any) => {
     try {
       // Fetch fresh product data from API instead of using cached data
+      console.log('Fetching fresh product data for ID:', product.id);
       const response = await productService.getById(product.id);
+      console.log('Fresh product data:', response);
       
       // Extract data from response
       const freshProduct = response && typeof response === 'object' && 'data' in response 
@@ -1252,12 +1332,15 @@ const AdminDashboard: React.FC = () => {
 
   const handleProductEdit = async (updatedProduct: any) => {
     try {
+      console.log('AdminDashboard - Updating product:', updatedProduct);
       
       // Use productService directly instead of category-specific services
       const result = await productService.update(updatedProduct.id, updatedProduct);
+      console.log('AdminDashboard - Update result:', result);
       
       // Reload products data
       await loadData();
+      console.log('AdminDashboard - Data reloaded');
       
       // Reset editing state and go back to list
       setEditingProduct(null);
@@ -1445,7 +1528,7 @@ Updated: ${product.updatedAt}
     if (file && validateAvatarFile(file)) {
       const reader = new FileReader();
       reader.onload = (event) => {
-        setUserProfile(prev => ({
+        setUserProfile((prev: any) => ({
           ...prev,
           avatar: file,
           avatarPreview: event.target?.result as string

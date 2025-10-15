@@ -16,7 +16,7 @@ interface FormData {
   status: 'published' | 'archived';
   description?: string;
   excerpt?: string;
-  tags?: number[];
+  tags?: number[] | { id: number; name: string; slug: string; }[];
   featured_image?: string;
   buyLink?: string;
   borrowLink?: string;
@@ -201,13 +201,6 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
         borrowLink: formData.borrowLink
       } : {})
     };
-    
-      type,
-      processedData,
-      hasContent: !!processedData.content,
-      hasBody: !!processedData.body,
-      category: processedData.category
-    });
     
     // Call parent's onSave - parent will handle success/error messages
     onSave(processedData);
@@ -551,7 +544,7 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
         <div>
           <TagInput
-            value={Array.isArray(formData.tags) ? formData.tags : []}
+            value={Array.isArray(formData.tags) ? formData.tags.map((tag: any) => typeof tag === 'object' && tag.id ? tag.id : tag) : []}
             onChange={(tagIds) => setFormData({ ...formData, tags: tagIds })}
             label="Tags"
             placeholder="Select tags..."
