@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Users, Eye, Globe, Clock, TrendingUp, Wifi, ArrowUpDown } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
-import PageHeader from '../UI/PageHeader';
-import Toast from '../UI/Toast';
+import PageHeader from '../ui/PageHeader';
+import Toast from '../ui/Toast';
 import { visitorService } from '../../services/visitorService';
 import {
   Card,

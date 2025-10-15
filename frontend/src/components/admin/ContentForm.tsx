@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { TextField, MenuItem, Checkbox, FormControlLabel, Typography } from '@mui/material';
-import Toast from '../UI/Toast';
-import ImageUpload from '../ImageUpload';
+import Toast from '../ui/Toast';
+import ImageUpload from '../common/ImageUpload';
 import RichTextEditor from './RichTextEditor';
 import TagInput from './TagInput';
 import { ContentFormProps } from '../../types/admin';

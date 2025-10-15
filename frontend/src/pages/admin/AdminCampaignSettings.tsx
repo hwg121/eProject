@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { Users, Eye, FileText, Star, Save, TrendingUp, ShoppingBag, type LucideIcon } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
-import Toast from '../../components/UI/Toast';
+import Toast from '../../components/ui/Toast';
 import { campaignService, CampaignStatsResponse } from '../../services/campaignService';
 
 interface MetricConfig {

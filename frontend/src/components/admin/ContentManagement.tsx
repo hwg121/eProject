@@ -4,7 +4,7 @@ import {
   Search, Filter, Plus, Edit, Trash2, Eye, 
   ChevronDown, ChevronUp, ChevronLeft, ChevronRight 
 } from 'lucide-react';
-import Card from '../UI/Card';
+import Card from '../ui/Card';
 
 interface ContentItem {
   id: string;

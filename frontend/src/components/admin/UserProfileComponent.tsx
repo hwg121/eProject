@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
-import Toast from '../UI/Toast';
-import ImageUpload from '../ImageUpload';
+import Toast from '../ui/Toast';
+import ImageUpload from '../common/ImageUpload';
 
 interface UserProfileComponentProps {
   profileData: any;

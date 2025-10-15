@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Leaf, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import Card from '../components/UI/Card';
+import Card from '../components/ui/Card';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState(''); // Empty for production

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigation } from '../../contexts/NavigationContext';
-import DarkModeToggle from '../UI/DarkModeToggle';
+import DarkModeToggle from '../ui/DarkModeToggle';
 import useGeolocation from '../../hooks/useGeolocation';
 import { animationConfig, getAnimationConfig, performanceUtils } from '../../utils/animations';
 import { visitorService } from '../../services/visitorService';

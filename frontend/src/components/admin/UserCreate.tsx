@@ -3,9 +3,9 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Save, X, User, Mail, Lock, Shield, UserPlus } from 'lucide-react';
 import { TextField, Select, MenuItem, FormControl, InputLabel, Box, Typography } from '@mui/material';
 import { useTheme } from '../../contexts/ThemeContext';
-import Card from '../UI/Card';
-import Toast from '../UI/Toast';
-import ImageUpload from '../ImageUpload';
+import Card from '../ui/Card';
+import Toast from '../ui/Toast';
+import ImageUpload from '../common/ImageUpload';
 import SecurityPasswordModal from './SecurityPasswordModal';
 
 interface UserCreateProps {

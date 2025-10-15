@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Star, ExternalLink } from 'lucide-react';
-import Card from '../components/UI/Card';
-import PageHeader from '../components/UI/PageHeader';
+import Card from '../components/ui/Card';
+import PageHeader from '../components/ui/PageHeader';
 import { publicService } from '../services/api.ts';
 import { useResponsiveDesign } from '../utils/responsiveDesign';
 

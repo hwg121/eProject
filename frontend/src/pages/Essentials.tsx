@@ -1,7 +1,7 @@
 import React from 'react';
 import { Flower, Droplets, Beaker, Shield, CheckCircle, AlertTriangle, Thermometer, Sun, Wind, Clock } from 'lucide-react';
-import Card from '../components/UI/Card';
-import PageHeader from '../components/UI/PageHeader';
+import Card from '../components/ui/Card';
+import PageHeader from '../components/ui/PageHeader';
 
 const Essentials: React.FC = () => {
   const soilTypes = [

@@ -5,7 +5,7 @@ import {
   ChevronDown, ChevronUp, ChevronLeft, ChevronRight,
   User, Mail, Phone, MapPin, Building, Shield
 } from 'lucide-react';
-import Card from '../UI/Card';
+import Card from '../ui/Card';
 
 interface User {
   id: string;

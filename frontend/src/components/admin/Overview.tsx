@@ -4,7 +4,7 @@ import {
   BarChart3, Users, Star, TrendingUp, Activity, 
   FileText, Heart, MessageSquare, Eye, ThumbsUp 
 } from 'lucide-react';
-import Card from '../UI/Card';
+import Card from '../ui/Card';
 
 interface OverviewProps {
   isDarkMode: boolean;

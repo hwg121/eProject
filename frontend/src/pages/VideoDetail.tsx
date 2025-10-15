@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import DetailPage from '../components/UI/DetailPage';
+import DetailPage from '../components/ui/DetailPage';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { findItemBySlug } from '../utils/slug';
 import { publicService, videosService } from '../services/api';

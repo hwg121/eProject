@@ -25,9 +25,9 @@ import {
   Hash,
 } from 'lucide-react';
 import { tagService } from '../../services/api';
-import Toast from '../UI/Toast';
-import Card from '../UI/Card';
-import ConfirmDialog from '../UI/ConfirmDialog';
+import Toast from '../ui/Toast';
+import Card from '../ui/Card';
+import ConfirmDialog from '../ui/ConfirmDialog';
 
 interface Tag {
   id: number;

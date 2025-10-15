@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Eye, Trash2, X, Calendar, User, MessageSquare } from 'lucide-react';
-import PageHeader from '../../components/UI/PageHeader';
-import Toast from '../../components/UI/Toast';
-import ConfirmDialog from '../../components/UI/ConfirmDialog';
+import PageHeader from '../../components/ui/PageHeader';
+import Toast from '../../components/ui/Toast';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { useTheme } from '../../contexts/ThemeContext';
 import { contactService } from '../../services/api.ts';
 import {

@@ -5,8 +5,8 @@ import {
   Package, Star, DollarSign, Tag, Filter
 } from 'lucide-react';
 import { apiClient } from '../../services/api';
-import StatusBadge from '../UI/StatusBadge';
-import { ViewsChip, RatingChip, EditButton, DeleteButton } from '../UI/ContentIcons';
+import StatusBadge from '../ui/StatusBadge';
+import { ViewsChip, RatingChip, EditButton, DeleteButton } from '../ui/ContentIcons';
 import {
   Box,
   Card,

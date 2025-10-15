@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Users, Mail, Phone, MapPin, Send, AlertCircle, CheckCircle, MessageSquare, User as UserIcon, Sparkles, Heart, Target, Star } from 'lucide-react';
-import Card from '../components/UI/Card';
-// import PageHeader from '../components/UI/PageHeader';
+import Card from '../components/ui/Card';
+// import PageHeader from '../components/ui/PageHeader';
 import { heroSectionService, staffMemberService, mapSettingService, contactService } from '../services/api.ts';
 import { contactSettingService, ContactSetting } from '../services/contactSettingService';
 import { useResponsiveDesign } from '../utils/responsiveDesign';

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Wrench, Clock, Users, ThumbsUp, CheckCircle, Star } from 'lucide-react';
-import DetailPage from '../components/UI/DetailPage';
+import DetailPage from '../components/ui/DetailPage';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { findItemBySlug } from '../utils/slug';
 import { publicService, articlesService } from '../services/api';

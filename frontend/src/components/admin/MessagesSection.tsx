@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { MessageSquare, Trash2 } from 'lucide-react';
-import Card from '../UI/Card';
+import Card from '../ui/Card';
 import { ContactMessage } from '../../types/admin';
 
 interface MessagesSectionProps {

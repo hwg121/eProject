@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { TextField, MenuItem, Checkbox, FormControlLabel } from '@mui/material';
-import Toast from '../UI/Toast';
+import Toast from '../ui/Toast';
 import TagInput from './TagInput';
 import { validateText, validateNumber, validateURL } from '../../utils/validation';
 

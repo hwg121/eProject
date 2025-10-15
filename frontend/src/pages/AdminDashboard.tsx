@@ -5,11 +5,11 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import DarkModeToggle from '../components/UI/DarkModeToggle';
-import Card from '../components/UI/Card';
+import DarkModeToggle from '../components/ui/DarkModeToggle';
+import Card from '../components/ui/Card';
 import AdminSidebar from '../components/admin/AdminSidebar';
-import Toast from '../components/UI/Toast';
-import ConfirmDialog from '../components/UI/ConfirmDialog';
+import Toast from '../components/ui/Toast';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 import DashboardCharts from '../components/admin/DashboardCharts';
 import {
   Avatar,

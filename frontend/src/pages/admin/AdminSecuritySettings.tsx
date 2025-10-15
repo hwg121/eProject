@@ -15,7 +15,7 @@ import {
   IconButton
 } from '@mui/material';
 import { useTheme } from '../../contexts/ThemeContext';
-import Toast from '../../components/UI/Toast';
+import Toast from '../../components/ui/Toast';
 import { apiClient } from '../../services/api';
 import { validateRequired, validatePassword, hasErrors } from '../../utils/validation';
 

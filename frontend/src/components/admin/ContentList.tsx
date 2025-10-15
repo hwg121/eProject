@@ -4,8 +4,8 @@ import {
   FileText, Star
 } from 'lucide-react';
 import { ContentItem } from '../../types/admin';
-import StatusBadge from '../UI/StatusBadge';
-import { ViewsChip, LikesChip, RatingChip, ViewButton, EditButton, DeleteButton } from '../UI/ContentIcons';
+import StatusBadge from '../ui/StatusBadge';
+import { ViewsChip, LikesChip, RatingChip, ViewButton, EditButton, DeleteButton } from '../ui/ContentIcons';
 import {
   Box,
   Card,

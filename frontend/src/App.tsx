@@ -4,8 +4,8 @@ import { Suspense, lazy } from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { NavigationProvider } from './contexts/NavigationContext';
-import Layout from './components/Layout/Layout';
-import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/layout/Layout';
+import ProtectedRoute from './components/common/ProtectedRoute';
 import LoadingSpinner from './components/common/LoadingSpinner';
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home'));

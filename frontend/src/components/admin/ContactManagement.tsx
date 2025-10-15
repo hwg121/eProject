@@ -5,7 +5,7 @@ import {
   ChevronDown, ChevronUp, ChevronLeft, ChevronRight,
   Mail, Phone, MapPin, Clock, CheckCircle, XCircle
 } from 'lucide-react';
-import Card from '../UI/Card';
+import Card from '../ui/Card';
 
 interface ContactMessage {
   id: string;

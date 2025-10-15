@@ -7,11 +7,11 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useDebounce } from '../../hooks/useDebounce';
-import PageHeader from '../UI/PageHeader';
-import StatusBadge from '../UI/StatusBadge';
-import Toast from '../UI/Toast';
-import ConfirmDialog from '../UI/ConfirmDialog';
-import { ViewsChip, LikesChip, RatingChip, EditButton, DeleteButton } from '../UI/ContentIcons';
+import PageHeader from '../ui/PageHeader';
+import StatusBadge from '../ui/StatusBadge';
+import Toast from '../ui/Toast';
+import ConfirmDialog from '../ui/ConfirmDialog';
+import { ViewsChip, LikesChip, RatingChip, EditButton, DeleteButton } from '../ui/ContentIcons';
 import { articlesService, videosService, productService } from '../../services/api';
 import {
   Card,

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Save, X, FileText, Package, Video, Book, Lightbulb } from 'lucide-react';
-import Card from '../UI/Card';
+import Card from '../ui/Card';
 import ContentForm from './ContentForm';
 import { ContentItem } from '../../types/admin';
 

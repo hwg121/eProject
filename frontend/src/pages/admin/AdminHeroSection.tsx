@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
 import { Card, TextField, Checkbox, FormControlLabel } from '@mui/material';
 import { useTheme } from '../../contexts/ThemeContext';
-// import PageHeader from '../../components/UI/PageHeader';
-import Toast from '../../components/UI/Toast';
-import ConfirmDialog from '../../components/UI/ConfirmDialog';
-import StatusBadge from '../../components/UI/StatusBadge';
+// import PageHeader from '../../components/ui/PageHeader';
+import Toast from '../../components/ui/Toast';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import StatusBadge from '../../components/ui/StatusBadge';
 import { heroSectionService } from '../../services/api';
 import { validateText, hasErrors } from '../../utils/validation';
 

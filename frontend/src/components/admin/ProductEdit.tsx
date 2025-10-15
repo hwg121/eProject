@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Save, X } from 'lucide-react';
-import Card from '../UI/Card';
+import Card from '../ui/Card';
 import ProductForm from './ProductForm';
 
 interface Product {

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { apiClient } from '../../services/api';
-import ImageUpload from '../ImageUpload';
+import ImageUpload from '../common/ImageUpload';
 import SecurityPasswordModal from './SecurityPasswordModal';
-import StatusBadge from '../UI/StatusBadge';
-import Toast from '../UI/Toast';
+import StatusBadge from '../ui/StatusBadge';
+import Toast from '../ui/Toast';
 import {
   Box,
   Card,

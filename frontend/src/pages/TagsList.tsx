@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Hash, Search, FileText, Video, Package, TrendingUp } from 'lucide-react';
-import Card from '../components/UI/Card';
-import PageHeader from '../components/UI/PageHeader';
-import TagChip from '../components/UI/TagChip';
+import Card from '../components/ui/Card';
+import PageHeader from '../components/ui/PageHeader';
+import TagChip from '../components/ui/TagChip';
 import { tagService } from '../services/api';
 import { useResponsiveDesign } from '../utils/responsiveDesign';
 

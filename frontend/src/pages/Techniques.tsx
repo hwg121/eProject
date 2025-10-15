@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Lightbulb, User, Calendar, ArrowRight, Star } from 'lucide-react';
-import Card from '../components/UI/Card';
-import PageHeader from '../components/UI/PageHeader';
-import Carousel from '../components/UI/Carousel';
+import Card from '../components/ui/Card';
+import PageHeader from '../components/ui/PageHeader';
+import Carousel from '../components/ui/Carousel';
 import { publicService } from '../services/api.ts';
 import { generateSlug } from '../utils/slug';
 import { useResponsiveDesign } from '../utils/responsiveDesign';
