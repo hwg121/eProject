@@ -2047,6 +2047,16 @@ Updated: ${product.updatedAt}
                           setArticles(articlesData as any);
                           setVideos(videosData as any);
                           setUsers(usersData as any);
+                        } else if (activeTab === 'view-all') {
+                          // Reload all content for analytics
+                          const [articlesData, videosData, productsData] = await Promise.all([
+                            articlesService.getAll({ per_page: 100 }),
+                            videosService.getAll({ per_page: 100 }),
+                            productService.getAll({ per_page: 100 })
+                          ]);
+                          setArticles(articlesData as any);
+                          setVideos(videosData as any);
+                          setProducts(productsData as any);
                         } else if (activeTab === 'articles' || activeTab === 'techniques') {
                           const data = await articlesService.getAll();
                           setArticles(data as any);
@@ -2056,8 +2066,16 @@ Updated: ${product.updatedAt}
                         } else if (activeTab === 'users' || activeTab === 'user-list') {
                           const data = await userService.getAll();
                           setUsers(data as any);
+                        } else if (activeTab.includes('product') || activeTab === 'tools' || activeTab === 'books' || activeTab === 'pots' || activeTab === 'accessories' || activeTab === 'suggestions') {
+                          // Reload products for product-related tabs
+                          const data = await productService.getAll();
+                          setProducts(data as any);
+                        } else if (activeTab === 'tags') {
+                          // Just show toast, tag management handles its own reload
+                          showToast('Tag data refreshed!', 'success');
+                          return; // Exit early to show toast
                         } else {
-                          // For other tabs, reload the relevant data
+                          // For other tabs that don't have API data, just reload page
                           window.location.reload();
                         }
                         showToast('Data refreshed successfully!', 'success');
