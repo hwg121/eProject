@@ -40,6 +40,24 @@ class ProductResource extends JsonResource
             'createdAt' => $this->created_at, // Frontend camelCase
             'updatedAt' => $this->updated_at, // Frontend camelCase
             
+            // Book specific fields
+            'author' => $this->author ?? '',
+            'pages' => $this->pages ?? null,
+            'published_year' => $this->published_year ?? null,
+            
+            // Pot specific fields
+            'drainage_holes' => (bool) ($this->drainage_holes ?? false),
+            
+            // Accessory specific fields
+            'is_waterproof' => (bool) ($this->is_waterproof ?? false),
+            'is_durable' => (bool) ($this->is_durable ?? false),
+            
+            // Suggestion specific fields
+            'difficulty_level' => $this->difficulty_level ?? '',
+            'season' => $this->season ?? '',
+            'plant_type' => $this->plant_type ?? '',
+            'estimated_time' => $this->estimated_time ?? '',
+            
             // Tags relationship
             'tags' => TagResource::collection($this->whenLoaded('tags')),
         ];
