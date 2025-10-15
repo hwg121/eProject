@@ -91,12 +91,6 @@ export const validatePassword = (
   // Character validation
   if (password.includes(' ')) return 'Password cannot contain spaces';
   
-  // Optional: Add strength requirements
-  // const hasUpperCase = /[A-Z]/.test(password);
-  // const hasLowerCase = /[a-z]/.test(password);
-  // const hasNumbers = /\d/.test(password);
-  // const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-  
   return null;
 };
 

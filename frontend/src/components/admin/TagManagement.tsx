@@ -86,21 +86,12 @@ const TagManagement: React.FC<TagManagementProps> = ({ isDarkMode }) => {
     try {
       setLoading(true);
       
-      console.log('🔍 [TagManagement] Step 1: Starting fetch tags...');
-      console.log('🔍 [TagManagement] Search query:', searchQuery);
-      
       const response = await tagService.getAllAdmin({
         search: searchQuery,
         sortBy: 'name',
         sortOrder: 'asc',
         per_page: 100,
       });
-      
-      console.log('🔍 [TagManagement] Step 2: API Response received:', response);
-      console.log('🔍 [TagManagement] Response type:', typeof response);
-      console.log('🔍 [TagManagement] Response is array?', Array.isArray(response));
-      console.log('🔍 [TagManagement] Response.success:', response?.success);
-      console.log('🔍 [TagManagement] Response.data:', response?.data);
       
       // Handle both formats: 
       // 1. Full Laravel response: {success: true, data: [...]}
@@ -109,27 +100,18 @@ const TagManagement: React.FC<TagManagementProps> = ({ isDarkMode }) => {
       
       if (Array.isArray(response)) {
         // Case 2: Response is already unwrapped array
-        console.log('🔍 [TagManagement] Step 3a: Response is direct array. Count:', response.length);
         tagsData = response;
       } else if (response && response.success && response.data) {
         // Case 1: Full Laravel response
-        console.log('🔍 [TagManagement] Step 3b: Laravel format response. Count:', response.data.length);
         tagsData = response.data;
       } else if (response && Array.isArray(response.data)) {
         // Case 3: Has data property but no success
-        console.log('🔍 [TagManagement] Step 3c: Has data property. Count:', response.data.length);
         tagsData = response.data;
       }
       
       if (tagsData && Array.isArray(tagsData)) {
-        console.log('🔍 [TagManagement] Step 4: Setting tags. Count:', tagsData.length);
-        console.log('🔍 [TagManagement] First tag:', tagsData[0]);
         setTags(tagsData);
       } else {
-        console.warn('🔍 [TagManagement] Step 4: Could not extract tags data');
-        console.warn('🔍 [TagManagement] Response type:', typeof response);
-        console.warn('🔍 [TagManagement] Full response:', response);
-        console.warn('🔍 [TagManagement] Response keys:', Object.keys(response || {}));
         showToast('No tags data received from server', 'warning');
       }
     } catch (error: any) {
@@ -154,7 +136,6 @@ const TagManagement: React.FC<TagManagementProps> = ({ isDarkMode }) => {
       showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
-      console.log('🔍 [TagManagement] Step 4: Loading complete');
     }
   };
 

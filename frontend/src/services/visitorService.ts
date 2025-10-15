@@ -266,7 +266,6 @@ class VisitorService {
         }
       } catch (apiError) {
         // Fallback to local count if API fails
-        console.warn('Could not track visitor on server, using local count:', apiError);
       }
       
     } catch (error) {
@@ -328,7 +327,6 @@ class VisitorService {
       
       if (response.ok) {
         const data = await response.json();
-        console.log('Visitor stats API response:', data); // Debug log
         
         if (data.success) {
           return {
@@ -347,7 +345,6 @@ class VisitorService {
       const sessions = this.getActiveSessions();
       const uniqueSessions = this.getUniqueSessions(sessions);
       
-      console.log('Using fallback visitor stats:', {
         totalVisitors: uniqueSessions.length,
         onlineUsers: sessions.length
       });

@@ -189,7 +189,6 @@ const ContentList: React.FC<ContentListProps> = ({
         'error'
       );
     } else {
-      console.warn('showConfirmDialog not provided, falling back to default confirm');
       performDelete();
     }
   };
@@ -213,7 +212,6 @@ const ContentList: React.FC<ContentListProps> = ({
         'warning'
       );
     } else {
-      console.warn('showConfirmDialog not provided, falling back to direct action');
       performStatusChange();
     }
   };

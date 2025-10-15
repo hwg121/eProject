@@ -127,7 +127,6 @@ const DetailPage: React.FC<DetailPageProps> = ({
       
       const tagSlug = typeof firstTag === 'object' ? firstTag.slug : firstTag.toLowerCase().replace(/\s+/g, '-');
       
-      console.log('🔍 [DetailPage] Loading related content for tag:', tagSlug);
       
       const response = await tagService.getContents(tagSlug);
       
@@ -137,10 +136,8 @@ const DetailPage: React.FC<DetailPageProps> = ({
           .filter((item: any) => item && item.id && item.id !== contentId)
           .slice(0, 3);
         
-        console.log('🔍 [DetailPage] Found related content:', relatedItems.length);
         setTagBasedRelatedContent(relatedItems);
       } else {
-        console.log('🔍 [DetailPage] No related content found for tag:', tagSlug);
         setTagBasedRelatedContent([]);
       }
     } catch (error) {
@@ -383,17 +380,12 @@ const DetailPage: React.FC<DetailPageProps> = ({
                     <div className="flex flex-wrap items-center gap-2">
                       <Tag className="h-4 w-4 text-white/80" />
                       {tags.map((tag, index) => {
-                        // DEBUG: Log tag structure
-                        console.log('🔍 [DetailPage] Tag at index', index, ':', tag);
-                        console.log('🔍 [DetailPage] Tag type:', typeof tag);
-                        console.log('🔍 [DetailPage] Tag keys:', tag ? Object.keys(tag) : 'null');
+
                         
                         // Handle both Tag objects and strings
                         const isTagObject = typeof tag === 'object' && tag !== null && 'id' in tag;
-                        console.log('🔍 [DetailPage] Is tag object:', isTagObject);
                         
                         if (isTagObject) {
-                          console.log('🔍 [DetailPage] Rendering TagChip with:', {
                             id: tag.id,
                             name: tag.name,
                             slug: tag.slug
@@ -409,7 +401,6 @@ const DetailPage: React.FC<DetailPageProps> = ({
                           );
                         }
                         // Fallback for string tags (old format)
-                        console.log('🔍 [DetailPage] Rendering string tag:', tag);
                         return (
                           <span
                             key={index}

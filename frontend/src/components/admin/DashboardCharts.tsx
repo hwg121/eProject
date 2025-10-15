@@ -131,7 +131,6 @@ const DashboardCharts: React.FC<DashboardChartsProps> = ({ stats, onNavigate }) 
             const strokeDasharray = `${(percentage / 100) * circumference} ${circumference}`;
             const strokeDashoffset = -(cumulativePercentage / 100) * circumference;
             
-            console.log(`${item.type}: ${percentage.toFixed(1)}%, cumulative: ${cumulativePercentage.toFixed(1)}%, dashOffset: ${strokeDashoffset.toFixed(1)}`);
             
             return (
               <g key={item.type}>
@@ -166,11 +165,9 @@ const DashboardCharts: React.FC<DashboardChartsProps> = ({ stats, onNavigate }) 
                       strokeWidth: hoveredSegment === item.type ? '12' : '10'
                     }}
                     onClick={() => {
-                      console.log(`Segment clicked: ${item.type}`);
                       onNavigate && onNavigate(item.navigate);
                     }}
                     onMouseEnter={() => {
-                      console.log(`Hovering: ${item.type}`);
                       setHoveredSegment(item.type);
                     }}
                     onMouseLeave={() => setHoveredSegment(null)}

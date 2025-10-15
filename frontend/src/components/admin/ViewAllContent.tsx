@@ -183,7 +183,6 @@ const ViewAllContent: React.FC = () => {
       setContent(allContent);
       
       // Log success for debugging
-      console.log('✅ ViewAllContent loaded:', {
         articles: articlesResponse.success ? articlesResponse.data?.length : 0,
         videos: videosResponse.success ? videosResponse.data?.length : 0,
         products: productsResponse.success ? productsResponse.data?.length : 0,

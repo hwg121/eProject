@@ -235,7 +235,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
       tags: Array.isArray(formData.tags) ? formData.tags : [],
       rating: (() => {
         const ratingValue = parseFloat(formData.rating as any) || 0;
-        console.log('Frontend - Rating Debug:', {
           original: formData.rating,
           parsed: ratingValue,
           type: typeof formData.rating

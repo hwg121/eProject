@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
 import { Suspense, lazy } from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
@@ -31,16 +30,6 @@ const TagArchive = lazy(() => import('./pages/TagArchive'));
 
 // Admin pages
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
-// TODO: Create these admin pages when needed
-// const AdminTools = lazy(() => import('./pages/admin/AdminTools'));
-// const AdminEssentials = lazy(() => import('./pages/admin/AdminEssentials'));
-// const AdminPots = lazy(() => import('./pages/admin/AdminPots'));
-// const AdminAccessories = lazy(() => import('./pages/admin/AdminAccessories'));
-// const AdminAbout = lazy(() => import('./pages/admin/AdminAbout'));
-// const AdminArticles = lazy(() => import('./pages/admin/AdminArticles'));
-// const AdminVideos = lazy(() => import('./pages/admin/AdminVideos'));
-// const AdminBooks = lazy(() => import('./pages/admin/AdminBooks'));
-// const AdminSuggestions = lazy(() => import('./pages/admin/AdminSuggestions'));
 
 function App() {
   return (
@@ -57,52 +46,6 @@ function App() {
                   <AdminDashboard />
                 </ProtectedRoute>
               } />
-              {/* TODO: Uncomment these routes when admin pages are created */}
-              {/* <Route path="/admin/tools" element={
-                <ProtectedRoute requireAdmin={true}>
-                  <AdminTools />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/essentials" element={
-                <ProtectedRoute requireAdmin={true}>
-                  <AdminEssentials />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/pots" element={
-                <ProtectedRoute requireAdmin={true}>
-                  <AdminPots />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/accessories" element={
-                <ProtectedRoute requireAdmin={true}>
-                  <AdminAccessories />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/about" element={
-                <ProtectedRoute requireAdmin={true}>
-                  <AdminAbout />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/articles" element={
-                <ProtectedRoute requireAdmin={true}>
-                  <AdminArticles />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/videos" element={
-                <ProtectedRoute requireAdmin={true}>
-                  <AdminVideos />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/books" element={
-                <ProtectedRoute requireAdmin={true}>
-                  <AdminBooks />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/suggestions" element={
-                <ProtectedRoute requireAdmin={true}>
-                  <AdminSuggestions />
-                </ProtectedRoute>
-              } /> */}
               
               {/* Regular Routes - With Layout */}
               <Route path="/*" element={

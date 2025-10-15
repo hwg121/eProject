@@ -18,9 +18,7 @@ class ApiClient {
 
   // Public methods for HTTP verbs
   async get<T = unknown>(endpoint: string): Promise<T> {
-    console.log('🔍 [ApiClient.get] Called with endpoint:', endpoint);
     const result = await this.request<T>(endpoint, { method: 'GET' });
-    console.log('🔍 [ApiClient.get] Result:', result);
     return result;
   }
 
@@ -88,24 +86,8 @@ class ApiClient {
       body: processedBody,
     };
 
-    // Debug logging
-    console.log('API Request:', {
-      url,
-      method: config.method || 'GET',
-      isProtected: isProtectedEndpoint,
-      hasToken: !!this.token,
-      headers: config.headers
-    });
-
     try {
       const response = await fetch(url, config);
-      
-      console.log('API Response:', {
-        url,
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok
-      });
       
       // Handle different response status codes
       if (!response.ok) {
@@ -1332,8 +1314,6 @@ export const productService = {
     return apiClient.createProduct(formData);
   },
   update: async (id: string, data: Record<string, unknown>) => {
-    console.log('productService.update - Input:', { id, data });
-    
     // Get API base URL and token
     const apiBaseUrl = API_BASE_URL;
     const token = localStorage.getItem('auth_token');
@@ -1376,12 +1356,10 @@ export const productService = {
       }
       
       const result = await response.json();
-      console.log('productService.update - File upload result:', result);
       return result;
     } else {
       // Use JSON PUT for simple data updates to /admin/products/{id}
       const url = `${apiBaseUrl}/admin/products/${id}`;
-      console.log('productService.update - API URL:', url);
       
       const response = await fetch(url, {
         method: 'PUT',
@@ -1400,7 +1378,6 @@ export const productService = {
       }
       
       const result = await response.json();
-      console.log('productService.update - JSON update result:', result);
       return result;
     }
   },
@@ -1578,8 +1555,6 @@ export const tagService = {
   
   // Admin
   getAllAdmin: async (params?: { search?: string; sortBy?: string; sortOrder?: string; per_page?: number }) => {
-    console.log('🔍 [API Service] Step 1: getAllAdmin called with params:', params);
-    
     const queryParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -1590,13 +1565,8 @@ export const tagService = {
     }
     const url = queryParams.toString() ? `/admin/tags?${queryParams}` : '/admin/tags';
     
-    console.log('🔍 [API Service] Step 2: Calling URL:', url);
-    console.log('🔍 [API Service] Full URL:', `${apiClient['baseURL']}${url}`);
-    
     try {
       const result = await apiClient.get(url);
-      console.log('🔍 [API Service] Step 3: Raw result from apiClient.get:', result);
-      console.log('🔍 [API Service] Result type:', typeof result);
       return result;
     } catch (error) {
       console.error('🔍 [API Service] Step ERROR in getAllAdmin:', error);

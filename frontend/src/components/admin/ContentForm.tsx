@@ -163,7 +163,6 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
     
     // Check if there are any errors
     if (hasErrors(newErrors)) {
-      console.log('ContentForm - Validation errors:', newErrors);
       setErrors(newErrors);
       showToast('Please fix validation errors', 'error');
       return;
@@ -203,7 +202,6 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
       } : {})
     };
     
-    console.log('ContentForm - Submitting data:', {
       type,
       processedData,
       hasContent: !!processedData.content,

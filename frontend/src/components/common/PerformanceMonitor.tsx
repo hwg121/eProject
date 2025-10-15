@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useCallback } from 'react';
-// import { getCacheStats } from '../services/api.ts';
 
 interface PerformanceMetrics {
   renderTime: number;

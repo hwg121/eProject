@@ -247,7 +247,6 @@ const ProductList: React.FC<ProductListProps> = ({
         'error'
       );
     } else {
-      console.warn('showConfirmDialog not provided, falling back to default confirm');
       performDelete();
     }
   };
@@ -271,7 +270,6 @@ const ProductList: React.FC<ProductListProps> = ({
         'warning'
       );
     } else {
-      console.warn('showConfirmDialog not provided, falling back to direct action');
       performStatusChange();
     }
   };

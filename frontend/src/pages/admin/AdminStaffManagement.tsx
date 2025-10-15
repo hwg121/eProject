@@ -301,7 +301,6 @@ const AdminStaffManagement: React.FC = () => {
       display_order: idx + 1
     }));
     
-    console.log('Reorder request (moveUp):', orders);
     try {
       await staffMemberService.reorder(orders);
       setSnackbar({ open: true, message: 'Staff order updated successfully', severity: 'success' });
@@ -322,7 +321,6 @@ const AdminStaffManagement: React.FC = () => {
       display_order: idx + 1
     }));
     
-    console.log('Reorder request (moveDown):', orders);
     try {
       await staffMemberService.reorder(orders);
       setSnackbar({ open: true, message: 'Staff order updated successfully', severity: 'success' });

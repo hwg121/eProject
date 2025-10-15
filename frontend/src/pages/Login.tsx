@@ -43,10 +43,8 @@ const Login: React.FC = () => {
     
     try {
       const result = await login(email, password);
-      console.log('Login result:', result); // Debug log
       
       if (result.success) {
-        console.log('Login successful, navigating to admin...'); // Debug log
         navigate('/admin');
       } else {
         setError(result.error || 'Invalid credentials. Please use: admin@greengroves.com / password123');

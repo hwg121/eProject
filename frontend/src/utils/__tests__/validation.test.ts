@@ -256,4 +256,3 @@ describe('Helper functions', () => {
   });
 });
 
-console.log('✅ All validation tests passed!');
