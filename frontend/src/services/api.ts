@@ -203,15 +203,8 @@ class ApiClient {
       });
     }
     
-    return this.request<{
-      data: unknown[];
-      meta: {
-        current_page: number;
-        last_page: number;
-        per_page: number;
-        total: number;
-      };
-    }>(`/admin/articles?${queryParams}`);
+    const response: any = await this.request<unknown>(`/admin/articles?${queryParams}`);
+    return response.data || [];
   }
 
   async getArticle(id: string) {
@@ -257,15 +250,8 @@ class ApiClient {
       });
     }
     
-    return this.request<{
-      data: unknown[];
-      meta: {
-        current_page: number;
-        last_page: number;
-        per_page: number;
-        total: number;
-      };
-    }>(`/admin/videos?${queryParams}`);
+    const response: any = await this.request<unknown>(`/admin/videos?${queryParams}`);
+    return response.data || [];
   }
 
   async getVideo(id: string) {
@@ -561,15 +547,8 @@ class ApiClient {
       });
     }
     
-    return this.request<{
-      data: unknown[];
-      meta: {
-        current_page: number;
-        last_page: number;
-        per_page: number;
-        total: number;
-      };
-    }>(`/users?${queryParams}`);
+    const response: any = await this.request<unknown>(`/admin/users?${queryParams}`);
+    return response.data || [];
   }
 
   async getUserById(id: string) {
