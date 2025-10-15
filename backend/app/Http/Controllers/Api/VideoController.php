@@ -7,6 +7,7 @@ use App\Models\Video;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Log;
 
 class VideoController extends Controller
 {
@@ -111,7 +112,7 @@ class VideoController extends Controller
                 'data' => new \App\Http\Resources\VideoResource($video)
             ]);
         } catch (\Exception $e) {
-            \Log::error('VideoController::show failed', [
+            Log::error('VideoController::show failed', [
                 'id' => $id,
                 'error' => $e->getMessage(),
                 'user_id' => auth()->id(),
@@ -249,7 +250,7 @@ class VideoController extends Controller
                 'message' => 'Database error: ' . $e->getMessage()
             ], 500);
         } catch (\Exception $e) {
-            \Log::error('VideoController::store failed', [
+            Log::error('VideoController::store failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'request' => $request->all(),
@@ -266,7 +267,7 @@ class VideoController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            \Log::info('VideoController::update called', [
+            Log::info('VideoController::update called', [
                 'id' => $id,
                 'request_data' => $request->all(),
                 'user_id' => auth()->id()
@@ -278,7 +279,7 @@ class VideoController extends Controller
             }
             
             $video = Video::with('tags')->findOrFail($id);
-            \Log::info('VideoController::update - Video found', [
+            Log::info('VideoController::update - Video found', [
                 'video_id' => $video->id,
                 'current_status' => $video->status,
                 'title' => $video->title
@@ -381,7 +382,7 @@ class VideoController extends Controller
             $video->refresh();
             $video->load('tags');
             
-            \Log::info('VideoController::update - Video updated', [
+            Log::info('VideoController::update - Video updated', [
                 'video_id' => $video->id,
                 'new_status' => $video->status,
                 'updated_fields' => array_keys($validated)
@@ -428,7 +429,7 @@ class VideoController extends Controller
                 'message' => 'Database error: ' . $e->getMessage()
             ], 500);
         } catch (\Exception $e) {
-            \Log::error('VideoController::update failed', [
+            Log::error('VideoController::update failed', [
                 'id' => $id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
