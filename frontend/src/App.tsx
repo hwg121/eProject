@@ -6,6 +6,7 @@ import { NavigationProvider } from './contexts/NavigationContext';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import LoadingSpinner from './components/common/LoadingSpinner';
+import { motion, AnimatePresence } from 'framer-motion';
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home'));
 const Techniques = lazy(() => import('./pages/Techniques'));

@@ -426,7 +426,8 @@ class ApiClient {
 
   async getPublicTools() {
     try {
-      return await this.request<unknown[]>('/products?category=tool');
+      const response: any = await this.request<unknown>('/products?category=tool');
+      return response.data || [];
     } catch (error) {
       console.error('Error fetching tools:', error);
       throw error;
@@ -435,7 +436,8 @@ class ApiClient {
 
   async getPublicBooks() {
     try {
-      return await this.request<unknown[]>('/products?category=book');
+      const response: any = await this.request<unknown>('/products?category=book');
+      return response.data || [];
     } catch (error) {
       console.error('Error fetching books:', error);
       throw error;
@@ -444,7 +446,8 @@ class ApiClient {
 
   async getPublicEssentials() {
     try {
-      return await this.request<unknown[]>('/essentials');
+      const response: any = await this.request<unknown>('/essentials');
+      return response.data || [];
     } catch (error) {
       console.error('Error fetching essentials:', error);
       throw error;
@@ -453,7 +456,8 @@ class ApiClient {
 
   async getPublicPots() {
     try {
-      return await this.request<unknown[]>('/products?category=pot');
+      const response: any = await this.request<unknown>('/products?category=pot');
+      return response.data || [];
     } catch (error) {
       console.error('Error fetching pots:', error);
       throw error;
@@ -462,7 +466,8 @@ class ApiClient {
 
   async getPublicAccessories() {
     try {
-      return await this.request<unknown[]>('/products?category=accessory');
+      const response: any = await this.request<unknown>('/products?category=accessory');
+      return response.data || [];
     } catch (error) {
       console.error('Error fetching accessories:', error);
       throw error;
@@ -471,7 +476,8 @@ class ApiClient {
 
   async getPublicSuggestions() {
     try {
-      return await this.request<unknown[]>('/products?category=suggestion');
+      const response: any = await this.request<unknown>('/products?category=suggestion');
+      return response.data || [];
     } catch (error) {
       console.error('Error fetching suggestions:', error);
       throw error;

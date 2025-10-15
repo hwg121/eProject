@@ -44,10 +44,11 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     // Extract URL from response object - check both 'url' and 'secure_url'
     if (response && typeof response === 'object' && 'success' in response && response.success && 'data' in response && response.data && typeof response.data === 'object') {
       // Check for 'url' first, then 'secure_url' as fallback
-      if ('url' in response.data) {
-        return response.data.url as string;
-      } else if ('secure_url' in response.data) {
-        return response.data.secure_url as string;
+      const data = response.data as any;
+      if ('url' in data) {
+        return data.url as string;
+      } else if ('secure_url' in data) {
+        return data.secure_url as string;
       }
     }
     
@@ -87,8 +88,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       // Update with Cloudinary URL and notify parent
       // Ensure we're passing a string, not an object
       const imageUrl = typeof cloudinaryUrl === 'string' ? cloudinaryUrl : 
-                      (cloudinaryUrl && typeof cloudinaryUrl === 'object' && cloudinaryUrl.url) ? cloudinaryUrl.url :
-                      (cloudinaryUrl && typeof cloudinaryUrl === 'object' && cloudinaryUrl.secure_url) ? cloudinaryUrl.secure_url :
+                      (cloudinaryUrl && typeof cloudinaryUrl === 'object' && (cloudinaryUrl as any).url) ? (cloudinaryUrl as any).url :
+                      (cloudinaryUrl && typeof cloudinaryUrl === 'object' && (cloudinaryUrl as any).secure_url) ? (cloudinaryUrl as any).secure_url :
                       cloudinaryUrl;
       
       onChange(imageUrl);
