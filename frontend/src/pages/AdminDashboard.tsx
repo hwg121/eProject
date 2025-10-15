@@ -2034,10 +2034,13 @@ Updated: ${product.updatedAt}
                   {/* Reload Current Page Data Button */}
                   <IconButton
                     onClick={async () => {
+                      console.log('🔄 Reload button clicked, current activeTab:', activeTab);
+                      const currentTab = activeTab; // Save current tab
                       setLoading(true);
                       try {
+                        console.log('🔄 Starting reload for tab:', currentTab);
                         // Reload data based on current active tab
-                        if (activeTab === 'overview') {
+                        if (currentTab === 'overview') {
                           // Reload all overview data
                           const [articlesData, videosData, usersData] = await Promise.all([
                             articlesService.getAll(),
@@ -2047,7 +2050,7 @@ Updated: ${product.updatedAt}
                           setArticles(articlesData as any);
                           setVideos(videosData as any);
                           setUsers(usersData as any);
-                        } else if (activeTab === 'view-all') {
+                        } else if (currentTab === 'view-all') {
                           // Reload all content for analytics
                           const [articlesData, videosData, productsData] = await Promise.all([
                             articlesService.getAll({ per_page: 100 }),
@@ -2057,16 +2060,16 @@ Updated: ${product.updatedAt}
                           setArticles(articlesData as any);
                           setVideos(videosData as any);
                           setProducts(productsData as any);
-                        } else if (activeTab === 'articles' || activeTab === 'techniques') {
+                        } else if (currentTab === 'articles' || currentTab === 'techniques') {
                           const data = await articlesService.getAll();
                           setArticles(data as any);
-                        } else if (activeTab === 'videos') {
+                        } else if (currentTab === 'videos') {
                           const data = await videosService.getAll();
                           setVideos(data as any);
-                        } else if (activeTab === 'users' || activeTab === 'user-list') {
+                        } else if (currentTab === 'users' || currentTab === 'user-list') {
                           const data = await userService.getAll();
                           setUsers(data as any);
-                        } else if (activeTab.includes('product') || activeTab === 'tools' || activeTab === 'books' || activeTab === 'pots' || activeTab === 'accessories' || activeTab === 'suggestions') {
+                        } else if (currentTab.includes('product') || currentTab === 'tools' || currentTab === 'books' || currentTab === 'pots' || currentTab === 'accessories' || currentTab === 'suggestions') {
                           // Reload products for product-related tabs
                           const data = await productService.getAll();
                           setProducts(data as any);
@@ -2094,7 +2097,7 @@ Updated: ${product.updatedAt}
                       },
                       transition: 'all 0.4s',
                     }}
-                    title="Reload Current Page Data"
+                    title="Reload Admin Dashboard"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
