@@ -656,7 +656,8 @@ class ApiClient {
   }
 
   async getProduct(id: string) {
-    return this.request<unknown>(`/admin/products/${id}`); // Use admin route for authenticated access
+    const response: any = await this.request<unknown>(`/admin/products/${id}`);
+    return response.data || response; // Extract data if present
   }
 
   async createProduct(data: FormData) {

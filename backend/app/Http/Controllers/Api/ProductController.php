@@ -107,7 +107,16 @@ class ProductController extends Controller
     public function show($id)
     {
         try {
-            $product = Product::with('tags')->published()->findOrFail($id);
+            // Check if user is authenticated admin/moderator
+            $isAdmin = auth()->check() && in_array(auth()->user()->role, ['admin', 'moderator']);
+            
+            if ($isAdmin) {
+                // Admin can view any product (including archived)
+                $product = Product::with('tags')->findOrFail($id);
+            } else {
+                // Public can only view published products
+                $product = Product::with('tags')->published()->findOrFail($id);
+            }
             
             // Use atomic increment to prevent race conditions
             Product::where('id', $id)->increment('views');
