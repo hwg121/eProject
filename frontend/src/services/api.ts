@@ -651,15 +651,8 @@ class ApiClient {
       });
     }
     
-    return this.request<{
-      data: unknown[];
-      meta: {
-        current_page: number;
-        last_page: number;
-        per_page: number;
-        total: number;
-      };
-    }>(`/admin/products?${queryParams}`); // Use admin route for authenticated access
+    const response: any = await this.request<unknown>(`/admin/products?${queryParams}`);
+    return response.data || [];
   }
 
   async getProduct(id: string) {
