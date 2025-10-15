@@ -24,6 +24,7 @@ export interface CampaignStatsResponse {
   visitors: CampaignStatOverview;
   views: CampaignStatOverview;
   content: CampaignStatOverview;
+  products: CampaignStatOverview;
   rating: CampaignStatOverview;
 }
 

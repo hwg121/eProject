@@ -12,7 +12,7 @@ import {
   Avatar,
   CircularProgress
 } from '@mui/material';
-import { Users, Eye, FileText, Star, Save, TrendingUp, type LucideIcon } from 'lucide-react';
+import { Users, Eye, FileText, Star, Save, TrendingUp, ShoppingBag, type LucideIcon } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import Toast from '../../components/UI/Toast';
 import { campaignService, CampaignStatsResponse } from '../../services/campaignService';
@@ -61,10 +61,18 @@ const AdminCampaignSettings: React.FC = () => {
     },
     content: {
       name: 'content',
-      label: 'Content',
+      label: 'Content Items',
       icon: FileText,
       bgGradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
       color: '#f093fb',
+      unit: 'items'
+    },
+    products: {
+      name: 'products',
+      label: 'Product Items',
+      icon: ShoppingBag,
+      bgGradient: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
+      color: '#06b6d4',
       unit: 'items'
     },
     rating: {
@@ -312,8 +320,8 @@ const AdminCampaignSettings: React.FC = () => {
           gridTemplateColumns: { 
             xs: '1fr', 
             sm: 'repeat(2, 1fr)',
-            md: 'repeat(2, 1fr)',
-            lg: 'repeat(4, 1fr)' 
+            md: 'repeat(3, 1fr)',
+            lg: 'repeat(5, 1fr)' 
           },
           gap: { xs: 1.5, sm: 2 }, 
           mb: { xs: 2, sm: 3 } 

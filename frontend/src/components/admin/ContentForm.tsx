@@ -313,7 +313,7 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
             fullWidth
             select
             size="small"
-            label="Category"
+            label="Type"
             value={formData.category}
             onChange={(e) => {
               setFormData({ ...formData, category: e.target.value });
@@ -323,7 +323,7 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
             helperText={
               errors.category || 
               (type === 'Technique' || type === 'Video' || type === 'technique' || type === 'video' 
-                ? 'Category is automatically set based on content type' 
+                ? 'Type is automatically set based on content' 
                 : '')
             }
             disabled={type === 'Technique' || type === 'Video' || type === 'technique' || type === 'video'} // Lock for Technique and Video

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Eye, FileText, Star } from 'lucide-react';
+import { Users, Eye, FileText, Star, ShoppingBag } from 'lucide-react';
 import { AdminStats } from '../../types/admin';
 import { CampaignStatsResponse } from '../../services/campaignService';
 import { 
@@ -20,7 +20,7 @@ interface StatisticsSectionProps {
   stats: AdminStats;
   isDarkMode: boolean;
   campaignStats?: CampaignStatsResponse | null;
-  onCardClick?: () => void;
+  onCardClick?: (tab: string) => void;
 }
 
 const StatisticsSection: React.FC<StatisticsSectionProps> = ({ stats, isDarkMode, campaignStats, onCardClick }) => {
@@ -33,7 +33,8 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({ stats, isDarkMode
       color: '#667eea',
       change: campaignStats?.visitors?.growth ?? stats.visitorGrowth ?? stats.monthlyGrowth,
       subtitle: 'Website Visitors',
-      progress: campaignStats?.visitors?.progress ?? 85
+      progress: campaignStats?.visitors?.progress ?? 85,
+      targetTab: 'visitors'
     },
     { 
       label: 'Total Views', 
@@ -43,17 +44,30 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({ stats, isDarkMode
       color: '#10b981',
       change: campaignStats?.views?.growth ?? stats.weeklyGrowth,
       subtitle: 'Page Views',
-      progress: campaignStats?.views?.progress ?? 85
+      progress: campaignStats?.views?.progress ?? 85,
+      targetTab: 'view-all'
     },
     { 
       label: 'Content Items', 
-      value: campaignStats?.content?.current_value ?? (stats.totalArticles + stats.totalVideos + stats.totalBooks + stats.totalSuggestions + (stats.totalTools || 0) + (stats.totalPots || 0) + (stats.totalAccessories || 0)), 
+      value: campaignStats?.content?.current_value ?? (stats.totalArticles + stats.totalVideos), 
       icon: FileText, 
       bgGradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
       color: '#f093fb',
       change: campaignStats?.content?.growth ?? stats.monthlyGrowth,
-      subtitle: 'All Content & Products',
-      progress: campaignStats?.content?.progress ?? 60
+      subtitle: 'Technique & Video',
+      progress: campaignStats?.content?.progress ?? 60,
+      targetTab: 'content-list'
+    },
+    { 
+      label: 'Product Items', 
+      value: campaignStats?.products?.current_value ?? (stats.totalBooks + stats.totalSuggestions + (stats.totalTools || 0) + (stats.totalPots || 0) + (stats.totalAccessories || 0)), 
+      icon: ShoppingBag, 
+      bgGradient: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
+      color: '#06b6d4',
+      change: campaignStats?.products?.growth ?? stats.weeklyGrowth ?? 0,
+      subtitle: 'All Products',
+      progress: campaignStats?.products?.progress ?? 70,
+      targetTab: 'product-list'
     },
     { 
       label: 'Avg Rating', 
@@ -63,7 +77,8 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({ stats, isDarkMode
       color: '#ffa726',
       change: campaignStats?.rating?.growth ?? (stats.avgRating - 4.0),
       subtitle: 'Customer Rating',
-      progress: campaignStats?.rating?.progress ?? (stats.avgRating / 5) * 100
+      progress: campaignStats?.rating?.progress ?? (stats.avgRating / 5) * 100,
+      targetTab: 'view-all'
     }
   ];
 
@@ -73,7 +88,8 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({ stats, isDarkMode
       gridTemplateColumns: { 
         xs: '1fr', 
         sm: 'repeat(2, 1fr)', 
-        lg: 'repeat(4, 1fr)' 
+        md: 'repeat(3, 1fr)',
+        lg: 'repeat(5, 1fr)' 
       }, 
       gap: 3,
       mb: 4,
@@ -89,7 +105,7 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({ stats, isDarkMode
           timeout={500 + index * 200}
         >
           <Card
-            onClick={onCardClick}
+            onClick={() => onCardClick && onCardClick(stat.targetTab)}
             sx={{
               position: 'relative !important',
               overflow: 'visible !important',
@@ -98,14 +114,14 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({ stats, isDarkMode
                 : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)'} !important`,
               border: '1px solid !important',
               borderColor: `${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'} !important`,
-              cursor: `${onCardClick ? 'pointer' : 'default'} !important`,
+              cursor: 'pointer !important',
               transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important',
               borderRadius: '16px !important',
               boxShadow: `0 8px 32px ${stat.color}20 !important`,
-              '&:hover': onCardClick ? {
+              '&:hover': {
                 transform: 'translateY(-16px) scale(1.03) !important',
                 boxShadow: `0 24px 80px ${stat.color}60 !important`,
-              } : {},
+              },
               '&::before': {
                 content: '""',
                 position: 'absolute',
@@ -119,20 +135,20 @@ const StatisticsSection: React.FC<StatisticsSectionProps> = ({ stats, isDarkMode
               }
             }}
           >
-            <CardContent sx={{ p: 3 }}>
+            <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 } }}>
               {/* Icon with animated gradient background */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                 <Zoom in={true} timeout={700 + index * 200}>
                   <Avatar
                     sx={{
-                      width: 72,
-                      height: 72,
+                      width: { xs: 56, sm: 64, md: 72 },
+                      height: { xs: 56, sm: 64, md: 72 },
                       background: `${stat.bgGradient} !important`,
                       boxShadow: `0 12px 32px ${stat.color}60 !important`,
                       border: '3px solid rgba(255,255,255,0.2)',
                     }}
                   >
-                    <stat.icon className="h-8 w-8" style={{ color: 'white', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }} />
+                    <stat.icon className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8" style={{ color: 'white', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }} />
                   </Avatar>
                 </Zoom>
                 

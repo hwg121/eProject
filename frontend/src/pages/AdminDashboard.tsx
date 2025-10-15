@@ -38,6 +38,8 @@ import ContentForm from '../components/admin/ContentForm';
 import ProductManagement from '../components/admin/ProductManagement';
 import MobileAdminNav from '../components/admin/MobileAdminNav';
 import TagManagement from '../components/admin/TagManagement';
+import VisitorList from '../components/admin/VisitorList';
+import ViewAllContent from '../components/admin/ViewAllContent';
 import { ContentItem } from '../types/admin';
 
 // Import Site Settings components
@@ -80,6 +82,31 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     console.log('📍 activeTab changed to:', activeTab);
   }, [activeTab]);
+  
+  // Listen for edit events from ViewAllContent
+  useEffect(() => {
+    const handleEditEvent = (event: any) => {
+      const { item, actualId, category } = event.detail;
+      console.log('📝 Edit event received:', { item, actualId, category });
+      
+      // Set editing item and switch to appropriate edit tab
+      if (item.type === 'article' || item.type === 'video') {
+        setEditingItem({ ...item, id: actualId, category });
+        setActiveTab('content-edit');
+      } else {
+        // For products
+        setEditingProduct({ ...item, id: actualId, category });
+        setActiveTab('product-edit');
+      }
+    };
+    
+    window.addEventListener('viewall-edit', handleEditEvent);
+    
+    return () => {
+      window.removeEventListener('viewall-edit', handleEditEvent);
+    };
+  }, []);
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('latest');
@@ -521,8 +548,8 @@ const AdminDashboard: React.FC = () => {
         pots: totalPots,
         accessories: totalAccessories,
         suggestions: totalSuggestions,
-        'CONTENT TOTAL (A+V)': totalArticles + totalVideos,
-        'PRODUCT TOTAL (B+T+P+Ac+S)': totalBooks + totalTools + totalPots + totalAccessories + totalSuggestions,
+        'CONTENT ITEMS (Technique + Video)': totalArticles + totalVideos,
+        'PRODUCT ITEMS (Books + Tools + Pots + Accessories + Suggestions)': totalBooks + totalTools + totalPots + totalAccessories + totalSuggestions,
         'GRAND TOTAL': totalArticles + totalVideos + totalBooks + totalTools + totalPots + totalAccessories + totalSuggestions
       });
 
@@ -1944,6 +1971,8 @@ Updated: ${product.updatedAt}
                     }}
                   >
                     {activeTab === 'overview' ? 'Dashboard Overview' : 
+                     activeTab === 'visitors' ? 'Visitor Analytics' :
+                     activeTab === 'view-all' ? 'Content Analytics' :
                      activeTab === 'content-list' ? 'All Content List' :
                      activeTab === 'content-details' ? 'Content Details' :
                      activeTab === 'content-create' ? 'Create Content' :
@@ -2072,7 +2101,7 @@ Updated: ${product.updatedAt}
           stats={stats} 
           isDarkMode={isDarkMode} 
           campaignStats={campaignStats}
-          onCardClick={user?.role === 'admin' ? () => setActiveTab('campaign-settings') : undefined}
+          onCardClick={(tab: string) => setActiveTab(tab)}
         />
       )}
 
@@ -2104,6 +2133,16 @@ Updated: ${product.updatedAt}
             onItemClick={handleTopContentClick}
           />
         </div>
+      )}
+
+      {/* Visitor List */}
+      {activeTab === 'visitors' && (
+        <VisitorList />
+      )}
+
+      {/* View All Content */}
+      {activeTab === 'view-all' && (
+        <ViewAllContent />
       )}
 
       {/* User Management - Profile for all, List/Create for admin only */}

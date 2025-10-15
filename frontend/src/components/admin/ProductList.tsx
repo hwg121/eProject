@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { apiClient } from '../../services/api';
 import StatusBadge from '../UI/StatusBadge';
+import { ViewsChip, RatingChip, EditButton, DeleteButton } from '../UI/ContentIcons';
 import {
   Box,
   Card,
@@ -821,17 +822,7 @@ const ProductList: React.FC<ProductListProps> = ({
                     />
                   </TableCell>
                   <TableCell>
-                    <Chip
-                      icon={<VisibilityIcon sx={{ fontSize: 14, color: '#3b82f6 !important' }} />}
-                      label={product.views || 0}
-                      size="small"
-                      sx={{
-                        bgcolor: isDarkMode ? '#374151' : '#e5e7eb',
-                        color: isDarkMode ? '#d1d5db' : '#6b7280',
-                        fontWeight: 600,
-                        fontSize: '0.75rem',
-                      }}
-                    />
+                    <ViewsChip value={product.views || 0} isDarkMode={isDarkMode} />
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2" fontWeight={600} sx={{ color: isDarkMode ? '#f1f5f9' : '#1e293b' }}>
@@ -839,20 +830,7 @@ const ProductList: React.FC<ProductListProps> = ({
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Chip
-                      icon={<Star className="w-3 h-3 text-yellow-500 fill-current" />}
-                      label={product.rating || 0}
-                      size="small"
-                      sx={{
-                        bgcolor: isDarkMode ? '#374151' : '#fef3c7',
-                        color: isDarkMode ? '#d1d5db' : '#92400e',
-                        fontWeight: 600,
-                        fontSize: '0.75rem',
-                        '& .MuiChip-icon': {
-                          color: '#fbbf24',
-                        }
-                      }}
-                    />
+                    <RatingChip value={product.rating || 0} isDarkMode={isDarkMode} />
                   </TableCell>
                   <TableCell align="center">
                     <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
@@ -880,30 +858,8 @@ const ProductList: React.FC<ProductListProps> = ({
                           <VisibilityIcon sx={{ fontSize: 18 }} />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title="Edit Product">
-                        <IconButton
-                          onClick={() => onEdit(product)}
-                          size="small"
-                          sx={{
-                            color: '#3b82f6',
-                            '&:hover': { bgcolor: '#dbeafe' }
-                          }}
-                        >
-                          <EditIcon sx={{ fontSize: 18 }} />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete Product">
-                        <IconButton
-                          onClick={() => onDelete(product.id)}
-                          size="small"
-                          sx={{
-                            color: '#ef4444',
-                            '&:hover': { bgcolor: '#fee2e2' }
-                          }}
-                        >
-                          <DeleteIcon sx={{ fontSize: 18 }} />
-                        </IconButton>
-                      </Tooltip>
+                      <EditButton tooltip="Edit Product" onClick={() => onEdit(product)} />
+                      <DeleteButton tooltip="Delete Product" onClick={() => onDelete(product.id)} />
                     </Box>
                   </TableCell>
                 </TableRow>

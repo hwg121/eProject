@@ -319,6 +319,7 @@ class VisitorService {
     onlineUsers: number;
     activeSessions: number;
     uniqueSessions: number;
+    avgVisitsPerVisitor?: number;
   }> {
     try {
       // Call backend API to get real visitor stats
@@ -334,7 +335,8 @@ class VisitorService {
             totalVisitors: data.total_visitors || 0,
             onlineUsers: data.online_users || 0,
             activeSessions: data.online_users || 0,
-            uniqueSessions: data.today_visitors || 0
+            uniqueSessions: data.today_visitors || 0,
+            avgVisitsPerVisitor: data.avg_visits_per_visitor || 0
           };
         }
       } else {
@@ -354,7 +356,8 @@ class VisitorService {
         totalVisitors: uniqueSessions.length,
         onlineUsers: sessions.length,
         activeSessions: sessions.length,
-        uniqueSessions: uniqueSessions.length
+        uniqueSessions: uniqueSessions.length,
+        avgVisitsPerVisitor: 0
       };
     } catch (error) {
       console.error('Error getting visitor statistics:', error);
@@ -363,8 +366,38 @@ class VisitorService {
         totalVisitors: 1, // Show at least 1 instead of 0
         onlineUsers: 1,
         activeSessions: 1,
-        uniqueSessions: 1
+        uniqueSessions: 1,
+        avgVisitsPerVisitor: 0
       };
+    }
+  }
+
+  // Get list of visitors (admin only)
+  async getVisitorsList(params?: { per_page?: number; page?: number }): Promise<any> {
+    try {
+      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'https://greengroves.blog/api';
+      const queryParams = new URLSearchParams();
+      
+      if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+      if (params?.page) queryParams.append('page', params.page.toString());
+      
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${apiUrl}/visitors?${queryParams.toString()}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        return data;
+      }
+      
+      throw new Error('Failed to fetch visitors list');
+    } catch (error) {
+      console.error('Error getting visitors list:', error);
+      throw error;
     }
   }
 

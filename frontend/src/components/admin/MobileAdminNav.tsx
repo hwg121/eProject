@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  BarChart3, Users, Package, FileText, Settings,
+  BarChart3, Users, Package, FileText, Settings, Hash,
   ChevronRight, ChevronDown, Shield
 } from 'lucide-react';
 
@@ -45,7 +45,11 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
       icon: BarChart3,
       emoji: '📊',
       color: 'from-emerald-500 to-green-600',
-      description: 'Dashboard Overview'
+      description: 'Dashboard Overview',
+      children: [
+        { id: 'visitors', label: 'Visitors' },
+        { id: 'view-all', label: 'Content Analytics' }
+      ]
     },
     {
       id: 'content',
@@ -53,11 +57,11 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
       icon: FileText,
       emoji: '📝',
       color: 'from-emerald-500 to-green-600',
-      description: 'Content Management',
+      description: 'Manage all content',
       children: [
-        { id: 'articles', label: 'Articles' },
-        { id: 'videos', label: 'Videos' },
-        { id: 'techniques', label: 'Techniques' }
+        { id: 'content-list', label: 'List' },
+        { id: 'content-create', label: 'Create' },
+        { id: 'content-edit', label: 'Edit' }
       ]
     },
     {
@@ -66,13 +70,20 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
       icon: Package,
       emoji: '📦',
       color: 'from-emerald-500 to-green-600',
-      description: 'Product Management',
+      description: 'Manage all products',
       children: [
-        { id: 'tools', label: 'Tools' },
-        { id: 'pots', label: 'Pots' },
-        { id: 'accessories', label: 'Accessories' },
-        { id: 'books', label: 'Books' }
+        { id: 'product-list', label: 'List' },
+        { id: 'product-create', label: 'Create' },
+        { id: 'product-edit', label: 'Edit' }
       ]
+    },
+    {
+      id: 'tags',
+      label: 'Tag Management',
+      icon: Hash,
+      emoji: '🏷️',
+      color: 'from-emerald-500 to-green-600',
+      description: 'Manage tags for content'
     },
     {
       id: 'users',
@@ -80,11 +91,12 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
       icon: Users,
       emoji: '👥',
       color: 'from-emerald-500 to-green-600',
-      description: 'User Management',
+      description: 'Manage all users',
       children: [
-        { id: 'user-list', label: 'User List' },
-        { id: 'user-create', label: 'Create User' },
-        { id: 'user-roles', label: 'User Roles' }
+        { id: 'user-profile', label: 'Profile' },
+        { id: 'user-list', label: 'List', adminOnly: true },
+        { id: 'user-create', label: 'Create', adminOnly: true },
+        { id: 'user-edit', label: 'Edit', adminOnly: true }
       ]
     },
     {
@@ -93,7 +105,7 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
       icon: Settings,
       emoji: '⚙️',
       color: 'from-purple-500 to-indigo-600',
-      description: 'Site Settings',
+      description: 'Manage site settings',
       children: [
         { id: 'hero-section', label: 'Hero Section', adminOnly: true },
         { id: 'staff-management', label: 'Staff Members', adminOnly: true },

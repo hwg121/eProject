@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { ContentItem } from '../../types/admin';
 import StatusBadge from '../UI/StatusBadge';
+import { ViewsChip, LikesChip, RatingChip, ViewButton, EditButton, DeleteButton } from '../UI/ContentIcons';
 import {
   Box,
   Card,
@@ -682,49 +683,13 @@ const ContentList: React.FC<ContentListProps> = ({
                       />
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        icon={<VisibilityIcon sx={{ fontSize: 14, color: '#3b82f6 !important' }} />}
-                        label={item.views || 0}
-                        size="small"
-                        sx={{
-                          bgcolor: isDarkMode ? '#374151' : '#e5e7eb',
-                          color: isDarkMode ? '#d1d5db' : '#6b7280',
-                          fontWeight: 600,
-                          fontSize: '0.75rem',
-                        }}
-                      />
+                      <ViewsChip value={item.views || 0} isDarkMode={isDarkMode} />
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        icon={<FavoriteIcon sx={{ fontSize: 16, color: '#ec4899' }} />}
-                        label={item.likes || 0}
-                        size="small"
-                        sx={{
-                          bgcolor: isDarkMode ? '#374151' : '#e2e8f0',
-                          color: isDarkMode ? '#d1d5db' : '#475569',
-                          fontWeight: 600,
-                          fontSize: '0.75rem',
-                          '& .MuiChip-icon': {
-                            color: '#ec4899',
-                          }
-                        }}
-                      />
+                      <LikesChip value={item.likes || 0} isDarkMode={isDarkMode} />
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        icon={<Star className="w-3 h-3 text-yellow-500 fill-current" />}
-                        label={item.rating || 0}
-                        size="small"
-                        sx={{
-                          bgcolor: isDarkMode ? '#374151' : '#fef3c7',
-                          color: isDarkMode ? '#d1d5db' : '#92400e',
-                          fontWeight: 600,
-                          fontSize: '0.75rem',
-                          '& .MuiChip-icon': {
-                            color: '#fbbf24',
-                          }
-                        }}
-                      />
+                      <RatingChip value={item.rating || 0} isDarkMode={isDarkMode} />
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b' }}>
@@ -738,42 +703,9 @@ const ContentList: React.FC<ContentListProps> = ({
                     </TableCell>
                     <TableCell align="center">
                       <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
-                        <Tooltip title="View">
-                          <IconButton
-                          onClick={() => onView(item)}
-                            size="small"
-                            sx={{
-                              color: '#6b7280',
-                              '&:hover': { bgcolor: isDarkMode ? '#374151' : '#e5e7eb' }
-                            }}
-                          >
-                            <VisibilityIcon sx={{ fontSize: 18 }} />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Edit">
-                          <IconButton
-                          onClick={() => onEdit(item)}
-                            size="small"
-                            sx={{
-                              color: '#3b82f6',
-                              '&:hover': { bgcolor: '#dbeafe' }
-                            }}
-                          >
-                            <EditIcon sx={{ fontSize: 18 }} />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton
-                          onClick={() => onDelete(item.id, item.category)}
-                            size="small"
-                            sx={{
-                              color: '#ef4444',
-                              '&:hover': { bgcolor: '#fee2e2' }
-                            }}
-                          >
-                            <DeleteIcon sx={{ fontSize: 18 }} />
-                          </IconButton>
-                        </Tooltip>
+                        <ViewButton tooltip="View" onClick={() => onView(item)} />
+                        <EditButton tooltip="Edit" onClick={() => onEdit(item)} />
+                        <DeleteButton tooltip="Delete" onClick={() => onDelete(item.id, item.category)} />
                       </Box>
                     </TableCell>
                   </TableRow>

@@ -68,7 +68,11 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       label: 'Overview',
       icon: BarChart3,
       color: 'from-emerald-500 to-green-600',
-      description: 'Dashboard overview'
+      description: 'Dashboard overview',
+      children: [
+        { id: 'visitors', label: 'Visitors', icon: null },
+        { id: 'view-all', label: 'Content Analytics', icon: null }
+      ]
     },
     {
       id: 'content',
@@ -83,13 +87,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       ]
     },
     {
-      id: 'tags',
-      label: 'Tag Management',
-      icon: Hash,
-      color: 'from-emerald-500 to-green-600',
-      description: 'Manage tags for content'
-    },
-    {
       id: 'products',
       label: 'Product Management',
       icon: Package,
@@ -100,6 +97,13 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
         { id: 'product-create', label: 'Create', icon: null },
         { id: 'product-edit', label: 'Edit', icon: null }
       ]
+    },
+    {
+      id: 'tags',
+      label: 'Tag Management',
+      icon: Hash,
+      color: 'from-emerald-500 to-green-600',
+      description: 'Manage tags for content'
     },
     {
       id: 'users',
@@ -256,7 +260,18 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                   arrow
                 >
                   <motion.button
-                    onClick={() => item.children ? toggleSection(item.id) : handleItemClick(item.id)}
+                    onClick={() => {
+                      if (item.children) {
+                        // If we're currently in a child tab, go back to parent
+                        if (item.children.some(child => activeTab === child.id)) {
+                          handleItemClick(item.id);
+                        } else {
+                          toggleSection(item.id);
+                        }
+                      } else {
+                        handleItemClick(item.id);
+                      }
+                    }}
                     className={`group relative w-full flex items-center ${
                       isCollapsed ? 'justify-center px-2' : 'justify-between px-3'
                     } py-3 rounded-lg font-medium transition-all duration-300 ${
