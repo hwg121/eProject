@@ -127,9 +127,8 @@ const DetailPage: React.FC<DetailPageProps> = ({
       
       const tagSlug = typeof firstTag === 'object' ? firstTag.slug : firstTag.toLowerCase().replace(/\s+/g, '-');
       
-      console.log('🔍 [DetailPage] Loading related content for tag:', tagSlug);
       
-      const response = await tagService.getContents(tagSlug);
+      const response = await tagService.getContents(tagSlug) as any;
       
       if (response && response.success && response.data && Array.isArray(response.data)) {
         // Filter out current content and limit to 3 items
@@ -137,10 +136,8 @@ const DetailPage: React.FC<DetailPageProps> = ({
           .filter((item: any) => item && item.id && item.id !== contentId)
           .slice(0, 3);
         
-        console.log('🔍 [DetailPage] Found related content:', relatedItems.length);
         setTagBasedRelatedContent(relatedItems);
       } else {
-        console.log('🔍 [DetailPage] No related content found for tag:', tagSlug);
         setTagBasedRelatedContent([]);
       }
     } catch (error) {
@@ -237,8 +234,9 @@ const DetailPage: React.FC<DetailPageProps> = ({
       // Don't update state if API call failed
     }
   };
-  const getTypeIcon = () => {
-    switch (type) {
+  const getTypeIcon = (itemType?: string) => {
+    const typeToUse = itemType || type;
+    switch (typeToUse) {
       case 'article': return <BookOpen className="h-6 w-6" />;
       case 'video': return <Play className="h-6 w-6" />;
       case 'book': return <BookOpen className="h-6 w-6" />;
@@ -264,6 +262,23 @@ const DetailPage: React.FC<DetailPageProps> = ({
       case 'technique': return 'from-indigo-500 to-blue-500';
       case 'suggestion': return 'from-emerald-500 to-green-500';
       default: return 'from-gray-500 to-gray-600';
+    }
+  };
+
+  const getContentUrl = (item: any) => {
+    const itemType = item.type || item.category;
+    const itemSlug = item.slug;
+    switch (itemType) {
+      case 'article':
+      case 'technique': return `/techniques/${itemSlug}`;
+      case 'video': return `/videos/${itemSlug}`;
+      case 'book': return `/books/${itemSlug}`;
+      case 'tool': return `/tools/${itemSlug}`;
+      case 'pot': return `/pots/${itemSlug}`;
+      case 'accessory': return `/accessories/${itemSlug}`;
+      case 'essential': return `/essentials/${itemSlug}`;
+      case 'suggestion': return `/suggestions/${itemSlug}`;
+      default: return `/${itemSlug}`;
     }
   };
 
@@ -383,21 +398,10 @@ const DetailPage: React.FC<DetailPageProps> = ({
                     <div className="flex flex-wrap items-center gap-2">
                       <Tag className="h-4 w-4 text-white/80" />
                       {tags.map((tag, index) => {
-                        // DEBUG: Log tag structure
-                        console.log('🔍 [DetailPage] Tag at index', index, ':', tag);
-                        console.log('🔍 [DetailPage] Tag type:', typeof tag);
-                        console.log('🔍 [DetailPage] Tag keys:', tag ? Object.keys(tag) : 'null');
-                        
                         // Handle both Tag objects and strings
                         const isTagObject = typeof tag === 'object' && tag !== null && 'id' in tag;
-                        console.log('🔍 [DetailPage] Is tag object:', isTagObject);
                         
                         if (isTagObject) {
-                          console.log('🔍 [DetailPage] Rendering TagChip with:', {
-                            id: tag.id,
-                            name: tag.name,
-                            slug: tag.slug
-                          });
                           return (
                             <TagChip
                               key={tag.id}
@@ -409,7 +413,6 @@ const DetailPage: React.FC<DetailPageProps> = ({
                           );
                         }
                         // Fallback for string tags (old format)
-                        console.log('🔍 [DetailPage] Rendering string tag:', tag);
                         return (
                           <span
                             key={index}
@@ -942,8 +945,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
                                 {images.map((image, index) => (
                                   <div
                                     key={index}
-                                    whileHover={{ scale: 1.05 }}
-                                    className="relative group cursor-pointer"
+                                    className="relative group cursor-pointer hover:scale-105 transition-transform duration-300"
                                   >
                                     <img
                                       src={image}
