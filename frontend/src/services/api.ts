@@ -408,7 +408,8 @@ class ApiClient {
   // Public API endpoints (for frontend pages)
   async getPublicArticles() {
     try {
-      return await this.request<unknown[]>('/articles');
+      const response: any = await this.request<unknown>('/articles');
+      return response.data || [];
     } catch (error) {
       console.error('Error fetching articles:', error);
       throw error;
@@ -417,7 +418,8 @@ class ApiClient {
 
   async getPublicVideos() {
     try {
-      return await this.request<unknown[]>('/videos');
+      const response: any = await this.request<unknown>('/videos');
+      return response.data || [];
     } catch (error) {
       console.error('Error fetching videos:', error);
       throw error;
