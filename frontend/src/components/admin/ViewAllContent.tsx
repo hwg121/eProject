@@ -182,13 +182,6 @@ const ViewAllContent: React.FC = () => {
 
       setContent(allContent);
       
-      // Log success for debugging
-        articles: articlesResponse.success ? articlesResponse.data?.length : 0,
-        videos: videosResponse.success ? videosResponse.data?.length : 0,
-        products: productsResponse.success ? productsResponse.data?.length : 0,
-        total: allContent.length
-      });
-      
     } catch (error: any) {
       console.error('❌ Error loading content:', error);
       let errorMessage = 'Failed to load content';

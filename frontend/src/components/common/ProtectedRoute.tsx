@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { Loader2, Shield, AlertCircle } from 'lucide-react';
 import Card from '../ui/Card';

@@ -345,10 +345,6 @@ class VisitorService {
       const sessions = this.getActiveSessions();
       const uniqueSessions = this.getUniqueSessions(sessions);
       
-        totalVisitors: uniqueSessions.length,
-        onlineUsers: sessions.length
-      });
-      
       return {
         totalVisitors: uniqueSessions.length,
         onlineUsers: sessions.length,

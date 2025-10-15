@@ -234,11 +234,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       // Tags should be array of tag IDs
       tags: Array.isArray(formData.tags) ? formData.tags : [],
       rating: (() => {
-        const ratingValue = parseFloat(formData.rating as any) || 0;
-          original: formData.rating,
-          parsed: ratingValue,
-          type: typeof formData.rating
-        });
+          const ratingValue = parseFloat(formData.rating as any) || 0;
         return ratingValue;
       })(),
       // Fix price: parseFloat can return 0, which is valid

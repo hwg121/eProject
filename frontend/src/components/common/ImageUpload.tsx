@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { apiClient } from '../services/api';
+import { apiClient } from '../../services/api';
 
 interface ImageUploadProps {
   value?: string;
