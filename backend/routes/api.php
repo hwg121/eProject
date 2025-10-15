@@ -101,6 +101,7 @@ Route::middleware(['cors'])->group(function () {
     // Visitor Counter
     Route::post('/visitor-counter', [VisitorController::class, 'increment']);
     Route::get('/visitor-stats', [VisitorController::class, 'getStats']);
+    Route::get('/visitors', [VisitorController::class, 'index'])->middleware('auth:sanctum'); // Admin only
 
 
     // Geolocation

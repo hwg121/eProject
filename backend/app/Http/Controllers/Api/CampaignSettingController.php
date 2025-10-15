@@ -216,11 +216,15 @@ class CampaignSettingController extends Controller
                     return (float) ($articleViews + $videoViews + $productViews);
 
                 case 'content':
-                    // Total content items (only published)
+                    // Total content items (Technique & Video only - matching Statistics Overview)
                     $articles = Schema::hasTable('articles') ? Article::where('status', 'published')->count() : 0;
                     $videos = Schema::hasTable('videos') ? Video::where('status', 'published')->count() : 0;
+                    return (float) ($articles + $videos);
+
+                case 'products':
+                    // Total product items (all product categories)
                     $products = Schema::hasTable('products') ? Product::where('status', 'published')->count() : 0;
-                    return (float) ($articles + $videos + $products);
+                    return (float) $products;
 
                 case 'rating':
                     // Average rating across all published content with rating >= 1

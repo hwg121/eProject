@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\VisitorStat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class VisitorController extends Controller
 {
@@ -84,16 +86,101 @@ class VisitorController extends Controller
                 ->distinct('ip_hash')
                 ->count();
             
+            // Average visits per visitor (total records / unique IPs)
+            $totalRecords = VisitorStat::count();
+            $avgVisitsPerVisitor = $totalVisitors > 0 
+                ? round($totalRecords / $totalVisitors, 1) 
+                : 0;
+            
             return response()->json([
                 'success' => true,
                 'total_visitors' => $totalVisitors,
                 'today_visitors' => $todayVisitors,
-                'online_users' => $onlineUsers
+                'online_users' => $onlineUsers,
+                'avg_visits_per_visitor' => $avgVisitsPerVisitor
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error fetching visitor stats'
+            ], 500);
+        }
+    }
+    
+    public function index(Request $request)
+    {
+        try {
+            $perPage = min($request->get('per_page', 50), 100);
+            $today = now()->format('Y-m-d');
+            $fiveMinutesAgo = now()->subMinutes(5);
+            
+            // OPTIMIZED: Use raw SQL for better performance
+            // Get latest visit for each unique IP with visit counts
+            $sql = "
+                SELECT 
+                    vs.*,
+                    (SELECT COUNT(*) FROM visitor_stats WHERE ip_hash = vs.ip_hash) as visit_count
+                FROM visitor_stats vs
+                WHERE vs.id IN (
+                    SELECT MAX(id) 
+                    FROM visitor_stats 
+                    GROUP BY ip_hash
+                )
+                ORDER BY vs.viewed_at DESC
+            ";
+            
+            // Get total count for pagination
+            $totalSql = "SELECT COUNT(DISTINCT ip_hash) as total FROM visitor_stats";
+            $totalResult = DB::selectOne($totalSql);
+            $total = $totalResult->total ?? 0;
+            
+            // Calculate pagination
+            $currentPage = $request->get('page', 1);
+            $offset = ($currentPage - 1) * $perPage;
+            $lastPage = ceil($total / $perPage);
+            
+            // Execute query with pagination
+            $results = DB::select($sql . " LIMIT ? OFFSET ?", [$perPage, $offset]);
+            
+            // Transform data
+            $transformedData = collect($results)->map(function ($visitor) use ($today, $fiveMinutesAgo) {
+                $meta = json_decode($visitor->meta_json, true) ?? [];
+                $viewedAt = \Carbon\Carbon::parse($visitor->viewed_at);
+                $isOnline = $viewedAt >= $fiveMinutesAgo;
+                $isToday = $viewedAt->format('Y-m-d') === $today;
+                
+                return [
+                    'id' => $visitor->ip_hash,
+                    'ip_hash' => substr($visitor->ip_hash, 0, 12) . '...', // Shortened for privacy
+                    'page' => $visitor->page ?? '/',
+                    'user_agent' => $meta['user_agent'] ?? 'Unknown',
+                    'referer' => $meta['referer'] ?? 'Direct',
+                    'last_visit' => $viewedAt->toIso8601String(),
+                    'visit_count' => $visitor->visit_count ?? 1,
+                    'is_online' => $isOnline,
+                    'is_today' => $isToday
+                ];
+            });
+            
+            return response()->json([
+                'success' => true,
+                'data' => $transformedData,
+                'meta' => [
+                    'current_page' => (int) $currentPage,
+                    'last_page' => (int) $lastPage,
+                    'per_page' => $perPage,
+                    'total' => $total
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('VisitorController::index failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching visitors: ' . $e->getMessage()
             ], 500);
         }
     }

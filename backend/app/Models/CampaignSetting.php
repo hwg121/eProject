@@ -52,7 +52,7 @@ class CampaignSetting extends Model
      */
     public static function getMetricNames(): array
     {
-        return ['visitors', 'views', 'content', 'rating'];
+        return ['visitors', 'views', 'content', 'products', 'rating'];
     }
 }
 

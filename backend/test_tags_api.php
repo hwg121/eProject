@@ -101,3 +101,4 @@ echo "2. If table missing: php artisan migrate\n";
 echo "3. Check Laravel logs: tail -f storage/logs/laravel.log\n";
 echo "4. Test API manually: curl -X GET $apiUrl\n";
 
+
