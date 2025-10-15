@@ -117,9 +117,9 @@ const ViewAllContent: React.FC = () => {
 
       let allContent: ContentItem[] = [];
 
-      // Transform articles
-      if (articlesResponse.success && Array.isArray(articlesResponse.data)) {
-        const articles = articlesResponse.data.map((article: any) => ({
+      // Transform articles - services now return arrays directly
+      if (Array.isArray(articlesResponse)) {
+        const articles = articlesResponse.map((article: any) => ({
           id: `article_${article.id}`,
           title: article.title || 'Untitled Article',
           slug: article.slug,
@@ -137,9 +137,9 @@ const ViewAllContent: React.FC = () => {
         allContent = [...allContent, ...articles];
       }
 
-      // Transform videos
-      if (videosResponse.success && Array.isArray(videosResponse.data)) {
-        const videos = videosResponse.data.map((video: any) => ({
+      // Transform videos - services now return arrays directly
+      if (Array.isArray(videosResponse)) {
+        const videos = videosResponse.map((video: any) => ({
           id: `video_${video.id}`,
           title: video.title || 'Untitled Video',
           slug: video.slug,
@@ -157,9 +157,9 @@ const ViewAllContent: React.FC = () => {
         allContent = [...allContent, ...videos];
       }
 
-      // Transform products
-      if (productsResponse.success && Array.isArray(productsResponse.data)) {
-        const products = productsResponse.data.map((product: any) => ({
+      // Transform products - services now return arrays directly
+      if (Array.isArray(productsResponse)) {
+        const products = productsResponse.map((product: any) => ({
           id: `product_${product.id}`,
           title: product.name || product.title || 'Untitled Product',
           slug: product.slug,
