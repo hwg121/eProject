@@ -2013,6 +2013,76 @@ Updated: ${product.updatedAt}
                 </Box>
 
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                  {/* Home Button */}
+                  <IconButton
+                    onClick={() => window.location.href = '/'}
+                    sx={{
+                      bgcolor: isDarkMode ? '#1e293b' : '#f8fafc',
+                      '&:hover': {
+                        bgcolor: isDarkMode ? '#334155' : '#e2e8f0',
+                        transform: 'scale(1.05)',
+                      },
+                      transition: 'all 0.2s',
+                    }}
+                    title="Go to Homepage"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                  </IconButton>
+
+                  {/* Reload Current Page Data Button */}
+                  <IconButton
+                    onClick={async () => {
+                      setLoading(true);
+                      try {
+                        // Reload data based on current active tab
+                        if (activeTab === 'overview') {
+                          // Reload all overview data
+                          const [articlesData, videosData, usersData] = await Promise.all([
+                            articlesService.getAll(),
+                            videosService.getAll(),
+                            userService.getAll()
+                          ]);
+                          setArticles(articlesData as any);
+                          setVideos(videosData as any);
+                          setUsers(usersData as any);
+                        } else if (activeTab === 'articles' || activeTab === 'techniques') {
+                          const data = await articlesService.getAll();
+                          setArticles(data as any);
+                        } else if (activeTab === 'videos') {
+                          const data = await videosService.getAll();
+                          setVideos(data as any);
+                        } else if (activeTab === 'users' || activeTab === 'user-list') {
+                          const data = await userService.getAll();
+                          setUsers(data as any);
+                        } else {
+                          // For other tabs, reload the relevant data
+                          window.location.reload();
+                        }
+                        showToast('Data refreshed successfully!', 'success');
+                      } catch (error) {
+                        console.error('Error refreshing data:', error);
+                        showToast('Failed to refresh data', 'error');
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                    sx={{
+                      bgcolor: isDarkMode ? '#1e293b' : '#f8fafc',
+                      '&:hover': {
+                        bgcolor: isDarkMode ? '#334155' : '#e2e8f0',
+                        transform: 'rotate(180deg)',
+                      },
+                      transition: 'all 0.4s',
+                    }}
+                    title="Reload Current Page Data"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </IconButton>
+
                   {/* Dark Mode Toggle */}
                   <DarkModeToggle />
 
