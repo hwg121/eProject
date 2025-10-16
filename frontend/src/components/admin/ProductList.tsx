@@ -825,6 +825,9 @@ const ProductList: React.FC<ProductListProps> = ({
                     />
                   </TableCell>
                   <TableCell>
+                    <div style={{fontSize: '10px', color: '#666', marginBottom: '2px'}}>
+                      Debug: {product.status} (type: {typeof product.status})
+                    </div>
                     <StatusBadge 
                       status={product.status as 'draft' | 'pending' | 'published' | 'archived'}
                       size="small"

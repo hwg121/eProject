@@ -844,7 +844,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             </label>
             <select
               id="status"
-              value={formData.status || 'pending'}
+              value={formData.status || 'published'}
               onChange={(e) => setFormData({ 
                 ...formData, 
                 status: e.target.value as ContentStatus,
