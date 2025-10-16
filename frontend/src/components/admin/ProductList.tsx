@@ -59,7 +59,7 @@ interface Product {
   slug?: string;
   category: 'tool' | 'book' | 'pot' | 'accessory' | 'suggestion';
   subcategory?: string;
-  status: 'published' | 'archived';
+  status: 'draft' | 'pending' | 'published' | 'archived';
   description: string;
   image?: string;
   link?: string;
@@ -827,7 +827,7 @@ const ProductList: React.FC<ProductListProps> = ({
                   </TableCell>
                   <TableCell>
                     <StatusBadge 
-                      status={product.status as 'published' | 'archived'}
+                      status={product.status as 'draft' | 'pending' | 'published' | 'archived'}
                       size="small"
                     />
                   </TableCell>

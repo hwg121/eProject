@@ -688,7 +688,7 @@ const ContentList: React.FC<ContentListProps> = ({
                     </TableCell>
                     <TableCell>
                       <StatusBadge 
-                        status={item.status as 'published' | 'archived'}
+                        status={item.status as 'draft' | 'pending' | 'published' | 'archived'}
                         size="small"
                       />
                     </TableCell>
