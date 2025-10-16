@@ -378,7 +378,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
               User Details
             </Typography>
             
-            <form id="user-edit-form" onSubmit={handleSubmit}>
+            <form id="user-edit-form" onSubmit={handleSubmit} noValidate>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
                 <TextField
                   fullWidth

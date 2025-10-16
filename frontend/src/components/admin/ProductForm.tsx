@@ -4,7 +4,7 @@ import { TextField, MenuItem, Checkbox, FormControlLabel, Typography } from '@mu
 import Toast from '../ui/Toast';
 import TagInput from './TagInput';
 import ImageUpload from '../common/ImageUpload';
-import { validateText, validateNumber, validateURL } from '../../utils/validation';
+import { validateText, validateNumber, validateURL, hasErrors } from '../../utils/validation';
 
 interface Product {
   id?: string;
@@ -131,15 +131,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   });
 
   // Validation error states
-  const [nameError, setNameError] = useState('');
-  const [descriptionError, setDescriptionError] = useState('');
-  const [priceError, setPriceError] = useState('');
-  const [brandError, setBrandError] = useState('');
-  const [authorError, setAuthorError] = useState('');
-  const [linkError, setLinkError] = useState('');
-  const [ratingError, setRatingError] = useState('');
-  const [pagesError, setPagesError] = useState('');
-  const [yearError, setYearError] = useState('');
+  const [errors, setErrors] = useState<{[key: string]: string | null}>({});
   
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -157,15 +149,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
   // Clear all validation errors
   const clearAllErrors = () => {
-    setNameError('');
-    setDescriptionError('');
-    setPriceError('');
-    setBrandError('');
-    setAuthorError('');
-    setLinkError('');
-    setRatingError('');
-    setPagesError('');
-    setYearError('');
+    setErrors({});
   };
   
   // MUI TextField styles (matching Campaign Settings)
@@ -209,22 +193,69 @@ const ProductForm: React.FC<ProductFormProps> = ({
     e.preventDefault();
     
     // Validation
+    const newErrors: {[key: string]: string | null} = {};
+    
+    // Required field validations
     if (!formData.name && !formData.title) {
-      setNameError('Product name is required');
-      showToast('Product name is required', 'error');
-      return;
+      newErrors.name = 'Product name is required';
     }
     
     if (!formData.description) {
-      setDescriptionError('Product description is required');
-      showToast('Product description is required', 'error');
-      return;
+      newErrors.description = 'Product description is required';
     }
     
     if (!formData.category) {
-      showToast('Product category is required', 'error');
+      newErrors.category = 'Product category is required';
+    }
+    
+    // Field length validations
+    if (formData.name && formData.name.length > 100) {
+      newErrors.name = 'Product name must not exceed 100 characters';
+    }
+    
+    if (formData.description && formData.description.length > 5000) {
+      newErrors.description = 'Product description must not exceed 5000 characters';
+    }
+    
+    if (formData.brand && formData.brand.length > 50) {
+      newErrors.brand = 'Brand must not exceed 50 characters';
+    }
+    
+    if (formData.author && formData.author.length > 100) {
+      newErrors.author = 'Author name must not exceed 100 characters';
+    }
+    
+    // Number validations
+    if (formData.price !== undefined && formData.price !== null) {
+      newErrors.price = validateNumber(formData.price, 0, 999999, 'Price', false);
+    }
+    
+    if (formData.rating !== undefined && formData.rating !== null) {
+      newErrors.rating = validateNumber(formData.rating, 0, 5, 'Rating', false);
+    }
+    
+    if (formData.pages !== undefined && formData.pages !== null) {
+      newErrors.pages = validateNumber(formData.pages, 1, 10000, 'Pages', false);
+    }
+    
+    if (formData.published_year !== undefined && formData.published_year !== null) {
+      newErrors.published_year = validateNumber(formData.published_year, 1900, 2100, 'Published Year', false);
+    }
+    
+    // URL validations
+    if (formData.link) {
+      newErrors.link = validateURL(formData.link, false);
+    }
+    
+    // Check if there are any errors
+    if (hasErrors(newErrors)) {
+      setErrors(newErrors);
+      showToast('Please fix validation errors', 'error');
       return;
     }
+    
+    // Clear errors if validation passes
+    setErrors({});
     
     const processedData: Partial<Product> = {
       ...formData,
@@ -283,14 +314,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
             onChange={(e) => {
               const value = e.target.value;
               if (value.length > 100) {
-                setNameError('Name must not exceed 100 characters');
+                setErrors({ ...errors, name: 'Name must not exceed 100 characters' });
                 return;
               }
               setFormData({ ...formData, title: value, name: value });
-              setNameError('');
+              setErrors({ ...errors, name: null });
             }}
-            error={!!nameError}
-            helperText={nameError || `${(formData.title || formData.name || '').length}/100 characters (min 2)`}
+            error={!!errors.name}
+            helperText={errors.name || `${(formData.title || formData.name || '').length}/100 characters (min 2)`}
             inputProps={{ maxLength: 100 }}
             sx={textFieldStyles}
           />
@@ -343,23 +374,23 @@ const ProductForm: React.FC<ProductFormProps> = ({
               const value = e.target.value;
               if (value === '') {
                 setFormData({ ...formData, price: null });
-                setPriceError('');
+                setErrors({ ...errors, price: null });
                 return;
               }
               const numValue = parseFloat(value);
               if (numValue < 0) {
-                setPriceError('Price cannot be negative');
+                setErrors({ ...errors, price: 'Price cannot be negative' });
                 return;
               }
               if (numValue > 999999) {
-                setPriceError('Price cannot exceed $999,999');
+                setErrors({ ...errors, price: 'Price cannot exceed $999,999' });
                 return;
               }
               setFormData({ ...formData, price: numValue });
-              setPriceError('');
+              setErrors({ ...errors, price: null });
             }}
-            error={!!priceError}
-            helperText={priceError || 'Enter price between $0 - $999,999'}
+            error={!!errors.price}
+            helperText={errors.price || 'Enter price between $0 - $999,999'}
             inputProps={{ min: 0, max: 999999, step: 0.01 }}
             placeholder="0.00"
             sx={textFieldStyles}
@@ -375,14 +406,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
             onChange={(e) => {
               const value = e.target.value;
               if (value.length > 50) {
-                setBrandError('Brand must not exceed 50 characters');
+                setErrors({ ...errors, brand: 'Brand must not exceed 50 characters' });
                 return;
               }
               setFormData({ ...formData, brand: value });
-              setBrandError('');
+              setErrors({ ...errors, brand: null });
             }}
-            error={!!brandError}
-            helperText={brandError || `${(formData.brand || '').length}/50 characters`}
+            error={!!errors.brand}
+            helperText={errors.brand || `${(formData.brand || '').length}/50 characters`}
             inputProps={{ maxLength: 50 }}
             placeholder="Product brand"
             sx={textFieldStyles}
@@ -454,23 +485,23 @@ const ProductForm: React.FC<ProductFormProps> = ({
               const value = e.target.value;
               if (value === '') {
                 setFormData({ ...formData, rating: 0 });
-                setRatingError('');
+                setErrors({ ...errors, rating: null });
                 return;
               }
               const numValue = parseFloat(value);
               if (numValue < 0) {
-                setRatingError('Rating cannot be negative');
+                setErrors({ ...errors, rating: 'Rating cannot be negative' });
                 return;
               }
               if (numValue > 5) {
-                setRatingError('Rating cannot exceed 5');
+                setErrors({ ...errors, rating: 'Rating cannot exceed 5' });
                 return;
               }
               setFormData({ ...formData, rating: numValue });
-              setRatingError('');
+              setErrors({ ...errors, rating: null });
             }}
-            error={!!ratingError}
-            helperText={ratingError || 'Enter rating between 0.0 - 5.0'}
+            error={!!errors.rating}
+            helperText={errors.rating || 'Enter rating between 0.0 - 5.0'}
             inputProps={{ min: 0, max: 5, step: 0.1 }}
             sx={textFieldStyles}
           />
@@ -488,14 +519,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
             onChange={(e) => {
               const value = e.target.value;
               if (value.length > 5000) {
-                setDescriptionError('Description must not exceed 5000 characters');
+                setErrors({ ...errors, description: 'Description must not exceed 5000 characters' });
                 return;
               }
               setFormData({ ...formData, description: value });
-              setDescriptionError('');
+              setErrors({ ...errors, description: null });
             }}
-            error={!!descriptionError}
-            helperText={descriptionError || `${(formData.description || '').length}/5000 characters (min 10)`}
+            error={!!errors.description}
+            helperText={errors.description || `${(formData.description || '').length}/5000 characters (min 10)`}
             inputProps={{ maxLength: 5000 }}
             placeholder="Short product description..."
             sx={textFieldStyles}
@@ -530,14 +561,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
               onChange={(e) => {
                 const value = e.target.value;
                 if (value.length > 100) {
-                  setAuthorError('Author name must not exceed 100 characters');
+                  setErrors({ ...errors, author: 'Author name must not exceed 100 characters' });
                   return;
                 }
                 setFormData({ ...formData, author: value });
-                setAuthorError('');
+                setErrors({ ...errors, author: null });
               }}
-              error={!!authorError}
-              helperText={authorError || `${(formData.author || '').length}/100 characters (min 2)`}
+              error={!!errors.author}
+              helperText={errors.author || `${(formData.author || '').length}/100 characters (min 2)`}
               inputProps={{ maxLength: 100 }}
               placeholder="Author name"
               sx={textFieldStyles}
@@ -554,23 +585,23 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 const value = e.target.value;
                 if (value === '') {
                   setFormData({ ...formData, pages: undefined });
-                  setPagesError('');
+                  setErrors({ ...errors, pages: null });
                   return;
                 }
                 const numValue = parseInt(value);
                 if (numValue < 1) {
-                  setPagesError('Pages must be at least 1');
+                  setErrors({ ...errors, pages: 'Pages must be at least 1' });
                   return;
                 }
                 if (numValue > 10000) {
-                  setPagesError('Pages cannot exceed 10,000');
+                  setErrors({ ...errors, pages: 'Pages cannot exceed 10,000' });
                   return;
                 }
                 setFormData({ ...formData, pages: numValue });
-                setPagesError('');
+                setErrors({ ...errors, pages: null });
               }}
-              error={!!pagesError}
-              helperText={pagesError || 'Enter number of pages (1 - 10,000)'}
+              error={!!errors.pages}
+              helperText={errors.pages || 'Enter number of pages (1 - 10,000)'}
               inputProps={{ min: 1, max: 10000, step: 1 }}
               placeholder="Number of pages"
               sx={textFieldStyles}
@@ -587,23 +618,23 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 const value = e.target.value;
                 if (value === '') {
                   setFormData({ ...formData, published_year: new Date().getFullYear() });
-                  setYearError('');
+                  setErrors({ ...errors, published_year: null });
                   return;
                 }
                 const numValue = parseInt(value);
                 if (numValue < 1900) {
-                  setYearError('Year must be 1900 or later');
+                  setErrors({ ...errors, published_year: 'Year must be 1900 or later' });
                   return;
                 }
                 if (numValue > 2100) {
-                  setYearError('Year cannot exceed 2100');
+                  setErrors({ ...errors, published_year: 'Year cannot exceed 2100' });
                   return;
                 }
                 setFormData({ ...formData, published_year: numValue });
-                setYearError('');
+                setErrors({ ...errors, published_year: null });
               }}
-              error={!!yearError}
-              helperText={yearError || 'Enter year (1900 - 2100)'}
+              error={!!errors.published_year}
+              helperText={errors.published_year || 'Enter year (1900 - 2100)'}
               inputProps={{ min: 1900, max: 2100, step: 1 }}
               placeholder={new Date().getFullYear().toString()}
               sx={textFieldStyles}
@@ -754,10 +785,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
           value={formData.link || ''}
           onChange={(e) => {
             setFormData({ ...formData, link: e.target.value });
-            setLinkError('');
+            setErrors({ ...errors, link: null });
           }}
-          error={!!linkError}
-          helperText={linkError}
+          error={!!errors.link}
+          helperText={errors.link}
           placeholder="https://example.com or any text reference"
           sx={textFieldStyles}
         />
