@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Box, CircularProgress, Typography, Alert, Button } from '@mui/material';
-import { Refresh } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import ProductList from './ProductList';
 import { productService } from '../../services/api';
 import useInfiniteScroll, { useScrollTrigger } from '../../hooks/useInfiniteScroll';
@@ -106,7 +106,7 @@ const ProductListWithInfiniteScroll: React.FC<ProductListWithInfiniteScrollProps
         </Alert>
         <Button
           variant="contained"
-          startIcon={<Refresh className="w-4 h-4" />}
+          startIcon={<RefreshCw className="w-4 h-4" />}
           onClick={refresh}
           sx={{
             bgcolor: '#10b981',

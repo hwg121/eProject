@@ -86,7 +86,9 @@ export function useInfiniteScroll<T = unknown>(
         per_page: perPage,
       };
 
+      console.log('🔍 useInfiniteScroll: Fetching page', page, 'with params:', params);
       const response = await apiFunction(params);
+      console.log('📦 useInfiniteScroll: Raw API response:', response);
       
       // Handle different response formats
       let items: T[] = [];
@@ -96,9 +98,16 @@ export function useInfiniteScroll<T = unknown>(
         if ('data' in response && Array.isArray(response.data)) {
           items = response.data;
           metadata = response.meta || null;
+          console.log('✅ useInfiniteScroll: Found data array with', items.length, 'items');
+          console.log('📊 useInfiniteScroll: First item structure:', items[0] ? Object.keys(items[0]) : 'No items');
         } else if (Array.isArray(response)) {
           items = response;
+          console.log('✅ useInfiniteScroll: Response is direct array with', items.length, 'items');
+        } else {
+          console.error('❌ useInfiniteScroll: Unexpected response format:', response);
         }
+      } else {
+        console.error('❌ useInfiniteScroll: Response is not an object:', response);
       }
 
       setMeta(metadata);

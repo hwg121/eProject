@@ -14,6 +14,27 @@ class ProductResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // Debug logging
+        \Log::info('ProductResource::toArray', [
+            'product_id' => $this->id,
+            'product_type' => get_class($this->resource),
+            'is_null' => is_null($this->resource),
+            'is_string' => is_string($this->resource),
+            'is_array' => is_array($this->resource),
+            'is_object' => is_object($this->resource),
+        ]);
+        
+        // Safety check
+        if (is_null($this->resource)) {
+            \Log::error('ProductResource: resource is null');
+            return [];
+        }
+        
+        if (is_string($this->resource)) {
+            \Log::error('ProductResource: resource is string', ['resource' => $this->resource]);
+            return [];
+        }
+        
         return [
             'id' => $this->id,
             'name' => $this->name,
