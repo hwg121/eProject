@@ -73,6 +73,25 @@ import { contactService, userService, articlesService, videosService, booksServi
 import { visitorService } from '../services/visitorService';
 import { campaignService, CampaignStatsResponse } from '../services/campaignService';
 
+// Helper function to transform products based on category
+const transformProductByCategory = (product: any): ContentItem => {
+  switch (product.category) {
+    case 'tool':
+      return transformToolToContentItem(product);
+    case 'book':
+      return transformBookToContentItem(product);
+    case 'pot':
+      return transformPotToContentItem(product);
+    case 'accessory':
+      return transformAccessoryToContentItem(product);
+    case 'suggestion':
+      return transformSuggestionToContentItem(product);
+    default:
+      console.warn('Unknown product category:', product.category);
+      return transformToolToContentItem(product); // Fallback
+  }
+};
+
 const AdminDashboard: React.FC = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const { isDarkMode } = useTheme();
@@ -2059,7 +2078,8 @@ Updated: ${product.updatedAt}
                           ]);
                           setArticles(articlesData as any);
                           setVideos(videosData as any);
-                          setProducts(productsData as any);
+                          // Transform products based on their category
+                          setProducts(Array.isArray(productsData) ? productsData.map(transformProductByCategory) : []);
                         } else if (currentTab === 'articles' || currentTab === 'techniques') {
                           const data = await articlesService.getAll();
                           setArticles(data as any);
@@ -2072,7 +2092,8 @@ Updated: ${product.updatedAt}
                         } else if (currentTab.includes('product') || currentTab === 'tools' || currentTab === 'books' || currentTab === 'pots' || currentTab === 'accessories' || currentTab === 'suggestions') {
                           // Reload products for product-related tabs
                           const data = await productService.getAll();
-                          setProducts(data as any);
+                          // Transform products based on their category
+                          setProducts(Array.isArray(data) ? data.map(transformProductByCategory) : []);
                         } else if (activeTab === 'tags') {
                           // Just show toast, tag management handles its own reload
                           showToast('Tag data refreshed!', 'success');

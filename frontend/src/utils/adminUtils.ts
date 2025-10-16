@@ -45,11 +45,12 @@ export const transformVideoToContentItem = (video: any): ContentItem & { embedUr
 
 export const transformBookToContentItem = (book: any): ContentItem => ({
   id: book.id.toString(),
-  title: book.title,
+  name: book.name || book.title,
+  title: book.title || book.name,
   author: book.author || 'Unknown Author',
   category: 'book',
   subcategory: book.subcategory || '',
-  status: 'published',
+  status: book.status || 'published',
   price: book.price,
   rating: book.rating || 4.5,
   featured: book.is_featured || false,
@@ -57,13 +58,15 @@ export const transformBookToContentItem = (book: any): ContentItem => ({
   updatedAt: book.updatedAt || book.updated_at || new Date().toISOString(),
   description: book.description,
   tags: book.tags || [],
+  image: book.image || '/image.png',
   imageUrl: book.image || '/image.png',
   featured_image: book.image || ''
 });
 
 export const transformToolToContentItem = (tool: any): ContentItem => ({
   id: tool.id.toString(),
-  title: tool.name,
+  name: tool.name || tool.title,
+  title: tool.title || tool.name,
   category: 'tool',
   subcategory: tool.subcategory || '',
   status: tool.status || 'published',
@@ -85,6 +88,7 @@ export const transformToolToContentItem = (tool: any): ContentItem => ({
   content: tool.content,
   tags: tool.tags || [],
   cover: tool.cover,
+  image: tool.image || '/image.png',
   imageUrl: tool.image || '/image.png'
 });
 
@@ -114,7 +118,8 @@ export const transformEssentialToContentItem = (essential: any): ContentItem => 
 
 export const transformPotToContentItem = (pot: any): ContentItem => ({
   id: pot.id.toString(),
-  title: pot.name,
+  name: pot.name || pot.title,
+  title: pot.title || pot.name,
   category: 'pot',
   subcategory: pot.subcategory || '',
   status: pot.status || 'published',
@@ -136,12 +141,14 @@ export const transformPotToContentItem = (pot: any): ContentItem => ({
   content: pot.content,
   tags: pot.tags || [],
   cover: pot.cover,
+  image: pot.image || '/image.png',
   imageUrl: pot.image || '/image.png'
 });
 
 export const transformAccessoryToContentItem = (accessory: any): ContentItem => ({
   id: accessory.id.toString(),
-  title: accessory.name,
+  name: accessory.name || accessory.title,
+  title: accessory.title || accessory.name,
   category: 'accessory',
   subcategory: accessory.subcategory || '',
   status: accessory.status || 'published',
@@ -156,29 +163,32 @@ export const transformAccessoryToContentItem = (accessory: any): ContentItem => 
   isDurable: accessory.is_durable || false,
   views: accessory.views || 0,
   likes: accessory.likes || 0,
-  rating: accessory.rating || 4.5,
+  rating: accessory.rating || 0,
   createdAt: accessory.createdAt || accessory.created_at || new Date().toISOString(),
   updatedAt: accessory.updatedAt || accessory.updated_at || new Date().toISOString(),
   description: accessory.description,
   content: accessory.content,
   tags: accessory.tags || [],
   cover: accessory.cover,
+  image: accessory.image || '/image.png',
   imageUrl: accessory.image || '/image.png'
 });
 
 export const transformSuggestionToContentItem = (suggestion: any): ContentItem => ({
   id: suggestion.id.toString(),
-  title: suggestion.title,
+  name: suggestion.name || suggestion.title,
+  title: suggestion.title || suggestion.name,
   category: 'suggestion',
   subcategory: suggestion.subcategory || '',
-  status: 'published',
+  status: suggestion.status || 'published',
   price: suggestion.price,
-  rating: suggestion.rating || 4.5,
+  rating: suggestion.rating || 0,
   views: suggestion.views || 0,
   likes: suggestion.likes || 0,
   createdAt: suggestion.createdAt || suggestion.created_at || new Date().toISOString(),
   updatedAt: suggestion.updatedAt || suggestion.updated_at || new Date().toISOString(),
   description: suggestion.description,
+  image: suggestion.image || '/image.png',
   imageUrl: suggestion.image || '/image.png',
   featured_image: suggestion.image || '',
   featured: suggestion.is_featured || false,
