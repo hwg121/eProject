@@ -222,14 +222,14 @@ const ViewAllContent: React.FC = () => {
     // Use category if available, otherwise use type
     const key = category || type;
     switch (key) {
-      case 'article': return { bg: '#3b82f6', text: '#ffffff' }; // Blue - Articles/Techniques
-      case 'video': return { bg: '#ef4444', text: '#ffffff' }; // Red - Videos
-      case 'Book': return { bg: '#8b5cf6', text: '#ffffff' }; // Purple - Books
-      case 'Tool': return { bg: '#f97316', text: '#ffffff' }; // Orange - Tools
-      case 'Pot': return { bg: '#10b981', text: '#ffffff' }; // Green - Pots
-      case 'Accessory': return { bg: '#06b6d4', text: '#ffffff' }; // Cyan - Accessories
-      case 'Suggestion': return { bg: '#14b8a6', text: '#ffffff' }; // Teal - Suggestions
-      default: return { bg: '#6b7280', text: '#ffffff' }; // Gray - Default
+      case 'article': return { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', text: '#ffffff' }; // Purple gradient - Articles/Techniques
+      case 'video': return { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', text: '#ffffff' }; // Pink gradient - Videos
+      case 'Book': return { bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', text: '#ffffff' }; // Blue gradient - Books
+      case 'Tool': return { bg: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', text: '#ffffff' }; // Orange-Yellow gradient - Tools
+      case 'Pot': return { bg: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)', text: '#ffffff' }; // Teal-Purple gradient - Pots
+      case 'Accessory': return { bg: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)', text: '#1f2937' }; // Light pastel - Accessories
+      case 'Suggestion': return { bg: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)', text: '#1f2937' }; // Peach gradient - Suggestions
+      default: return { bg: 'linear-gradient(135deg, #e0e7ff 0%, #cffafe 100%)', text: '#1f2937' }; // Light gradient - Default
     }
   };
 
@@ -869,7 +869,7 @@ const ViewAllContent: React.FC = () => {
                               sx={{
                                 width: 48,
                                 height: 48,
-                                bgcolor: typeColors.bg,
+                                background: typeColors.bg,
                                 color: typeColors.text
                               }}
                             >
@@ -891,9 +891,10 @@ const ViewAllContent: React.FC = () => {
                             label={item.category}
                             size="small"
                             sx={{
-                              bgcolor: typeColors.bg,
+                              background: typeColors.bg,
                               color: typeColors.text,
-                              fontWeight: 600
+                              fontWeight: 600,
+                              border: 'none'
                             }}
                           />
                         </TableCell>
