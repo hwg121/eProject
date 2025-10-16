@@ -21,6 +21,20 @@ export default defineConfig({
         }
       },
     },
+    // Plugin to inject favicon links
+    {
+      name: 'inject-favicon',
+      transformIndexHtml(html) {
+        return html.replace(
+          '<link rel="icon" type="image/svg+xml" href="/vite.svg" />',
+          `<link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/logo192.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/logo192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/logo512.png" />`
+        );
+      },
+    },
   ],
   optimizeDeps: {
     exclude: ['lucide-react'],
@@ -39,6 +53,8 @@ export default defineConfig({
     cssCodeSplit: true,
     reportCompressedSize: false,
     chunkSizeWarningLimit: 1000,
+    // Copy public files including favicon
+    copyPublicDir: true,
     terserOptions: {
       compress: {
         drop_console: true,
