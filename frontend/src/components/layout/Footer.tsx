@@ -51,7 +51,7 @@ const Footer: React.FC = () => {
               Your trusted companion for all things gardening. Growing knowledge, nurturing nature, creating beautiful spaces.
             </p>
             
-            {/* Social media icons */}
+            {/* Social media icons 
             <div className="flex space-x-4 mt-6">
               {[
                 { url: contactSettings?.facebook, icon: Facebook, color: 'hover:bg-blue-600' },
@@ -73,7 +73,7 @@ const Footer: React.FC = () => {
                 </motion.a>
               ))}
             </div>
-          </div>
+          </div>*/}
           
           <div>
             <h3 className="text-xl font-bold mb-6 text-emerald-300">Quick Links</h3>
