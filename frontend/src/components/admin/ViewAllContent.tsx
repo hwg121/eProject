@@ -73,6 +73,7 @@ const ViewAllContent: React.FC = () => {
   const [sortField, setSortField] = useState<SortField>('views');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [bulkStatus, setBulkStatus] = useState<string>('');
   
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
@@ -337,10 +338,12 @@ const ViewAllContent: React.FC = () => {
   };
 
   // Bulk Actions
-  const handleBulkPublish = () => {
+  const handleBulkStatusChange = () => {
+    if (selectedItems.length === 0 || !bulkStatus) return;
+    
     showConfirmDialog(
-      'Publish Items',
-      `Are you sure you want to publish ${selectedItems.length} selected item(s)?`,
+      'Change Status',
+      `Are you sure you want to change the status of ${selectedItems.length} item(s) to "${bulkStatus}"?`,
       async () => {
         try {
           const selectedContent = content.filter(item => selectedItems.includes(item.id));
@@ -356,53 +359,18 @@ const ViewAllContent: React.FC = () => {
               const actualId = item.id.replace(/^(article|video|product)_/, '');
               const service = getServiceForType(type);
               if (service) {
-                await service.update(actualId, { status: 'published' });
+                await service.update(actualId, { status: bulkStatus });
               }
             }
           }
 
-          showToast(`Successfully published ${selectedItems.length} item(s)`, 'success');
+          showToast(`Successfully updated ${selectedItems.length} item(s) to ${bulkStatus}`, 'success');
           setSelectedItems([]);
+          setBulkStatus('');
           await loadAllContent();
         } catch (error) {
-          console.error('Bulk publish error:', error);
-          showToast('Failed to publish some items', 'error');
-        }
-      },
-      'info'
-    );
-  };
-
-  const handleBulkArchive = () => {
-    showConfirmDialog(
-      'Archive Items',
-      `Are you sure you want to archive ${selectedItems.length} selected item(s)?`,
-      async () => {
-        try {
-          const selectedContent = content.filter(item => selectedItems.includes(item.id));
-          const itemsByType = selectedContent.reduce((acc, item) => {
-            const type = item.type || item.category;
-            if (!acc[type]) acc[type] = [];
-            acc[type].push(item);
-            return acc;
-          }, {} as Record<string, ContentItem[]>);
-
-          for (const [type, items] of Object.entries(itemsByType)) {
-            for (const item of items) {
-              const actualId = item.id.replace(/^(article|video|product)_/, '');
-              const service = getServiceForType(type);
-              if (service) {
-                await service.update(actualId, { status: 'archived' });
-              }
-            }
-          }
-
-          showToast(`Successfully archived ${selectedItems.length} item(s)`, 'success');
-          setSelectedItems([]);
-          await loadAllContent();
-        } catch (error) {
-          console.error('Bulk archive error:', error);
-          showToast('Failed to archive some items', 'error');
+          console.error('Bulk status change error:', error);
+          showToast('Failed to update some items', 'error');
         }
       },
       'warning'
@@ -410,6 +378,8 @@ const ViewAllContent: React.FC = () => {
   };
 
   const handleBulkDelete = () => {
+    if (selectedItems.length === 0) return;
+    
     showConfirmDialog(
       'Delete Items',
       `Are you sure you want to delete ${selectedItems.length} selected item(s)? This action cannot be undone.`,
@@ -912,92 +882,67 @@ const ViewAllContent: React.FC = () => {
 
       {/* Bulk Actions Bar */}
       {selectedItems.length > 0 && (
-        <Box sx={{ 
-          mt: 3, 
-          p: 2, 
-          bgcolor: isDarkMode ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.05)',
-          borderRadius: 2,
-          border: '1px solid',
-          borderColor: isDarkMode ? 'rgba(16, 185, 129, 0.3)' : 'rgba(16, 185, 129, 0.2)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 2,
-          flexWrap: 'wrap'
-        }}>
-          <Typography variant="body2" sx={{ fontWeight: 600, color: '#10b981' }}>
-            {selectedItems.length} item{selectedItems.length > 1 ? 's' : ''} selected
+        <Paper 
+          elevation={3}
+          sx={{ 
+            mt: 3, 
+            p: 2, 
+            background: isDarkMode ? '#1e293b' : '#ffffff',
+            borderRadius: 2,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            flexWrap: 'wrap'
+          }}
+        >
+          <Typography variant="body2" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b', fontWeight: 600 }}>
+            {selectedItems.length} item(s) selected
           </Typography>
           
-          {/* Bulk Actions */}
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', flex: 1 }}>
-            <Button
-              variant="contained"
-              size="small"
-              onClick={handleBulkPublish}
-              sx={{ 
-                bgcolor: '#10b981',
-                color: 'white',
-                '&:hover': {
-                  bgcolor: '#059669',
-                },
-                textTransform: 'none',
-                fontWeight: 600
-              }}
-            >
-              Publish Selected
-            </Button>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+            <FormControl size="small" sx={{ minWidth: 150 }}>
+              <InputLabel>Change Status</InputLabel>
+              <Select
+                value={bulkStatus}
+                onChange={(e) => setBulkStatus(e.target.value)}
+                label="Change Status"
+                sx={{
+                  bgcolor: isDarkMode ? '#0f172a' : '#f8fafc',
+                }}
+              >
+                <MenuItem value="published">Published</MenuItem>
+                <MenuItem value="archived">Archived</MenuItem>
+              </Select>
+            </FormControl>
             
             <Button
               variant="contained"
               size="small"
-              onClick={handleBulkArchive}
-              sx={{ 
-                bgcolor: '#f59e0b',
-                color: 'white',
-                '&:hover': {
-                  bgcolor: '#d97706',
-                },
-                textTransform: 'none',
-                fontWeight: 600
+              onClick={handleBulkStatusChange}
+              disabled={!bulkStatus}
+              sx={{
+                bgcolor: '#10b981',
+                '&:hover': { bgcolor: '#059669' },
+                textTransform: 'none'
               }}
             >
-              Archive Selected
+              Apply Status
             </Button>
             
             <Button
               variant="contained"
               size="small"
               onClick={handleBulkDelete}
-              sx={{ 
+              sx={{
                 bgcolor: '#ef4444',
-                color: 'white',
-                '&:hover': {
-                  bgcolor: '#dc2626',
-                },
-                textTransform: 'none',
-                fontWeight: 600
+                '&:hover': { bgcolor: '#dc2626' },
+                textTransform: 'none'
               }}
             >
               Delete Selected
             </Button>
           </Box>
-          
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => setSelectedItems([])}
-            sx={{ 
-              borderColor: '#10b981',
-              color: '#10b981',
-              '&:hover': {
-                borderColor: '#059669',
-                bgcolor: 'rgba(16, 185, 129, 0.1)'
-              }
-            }}
-          >
-            Clear Selection
-          </Button>
-        </Box>
+        </Paper>
       )}
 
       {toast.show && (
