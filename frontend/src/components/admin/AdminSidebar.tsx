@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BarChart3, Users, Package, MessageSquare,
   Menu, X, ChevronRight,
-  FileText, Settings, Target, Hash
+  FileText, Settings, Target, Hash, CheckCircle
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { 
@@ -45,6 +45,7 @@ interface AdminSidebarProps {
     totalBooks: number;
     totalSuggestions: number;
     totalContactMessages: number;
+    pendingCount?: number;
   };
   isCollapsed: boolean;
   onToggle: () => void;
@@ -97,6 +98,15 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
         { id: 'product-create', label: 'Create', icon: null },
         { id: 'product-edit', label: 'Edit', icon: null }
       ]
+    },
+    {
+      id: 'approvals',
+      label: 'Approval Management',
+      icon: CheckCircle,
+      color: 'from-orange-500 to-amber-600',
+      description: 'Review pending content',
+      count: stats.pendingCount || 0,
+      adminOnly: true
     },
     {
       id: 'tags',

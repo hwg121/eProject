@@ -9,9 +9,12 @@ use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
+use App\Http\Controllers\Traits\AuthorizesContent;
 
 class ArticleController extends Controller
 {
+    use AuthorizesContent;
+
     /**
      * Display a listing of articles.
      */
@@ -32,11 +35,13 @@ class ArticleController extends Controller
                 ]);
             }
 
-            $query = Article::query()->with(['tags', 'author']);
+            $query = Article::query()->with(['tags', 'author', 'creator', 'updater']);
 
             // Filter by status
             // Check if user is authenticated admin/moderator
-            $isAdmin = auth()->check() && in_array(auth()->user()->role, ['admin', 'moderator']);
+            $user = auth()->user();
+            $isAdmin = $user && $user->role === 'admin';
+            $isModerator = $user && $user->role === 'moderator';
             
             if ($isAdmin) {
                 // Admin can see all, but if status param provided, filter by it
@@ -44,6 +49,14 @@ class ArticleController extends Controller
                     $query->where('status', $request->status);
                 }
                 // If no status param or status=all, show all articles for admin
+            } else if ($isModerator) {
+                // Moderator only sees their own content
+                $query->where('author_id', $user->id);
+                
+                // Filter by status if provided
+                if ($request->has('status') && $request->status !== 'all') {
+                    $query->where('status', $request->status);
+                }
             } else {
                 // Public access: only show published articles
                 $query->where('status', 'published');
@@ -111,14 +124,21 @@ class ArticleController extends Controller
     {
         try {
             // Check if user is authenticated admin/moderator
-            $isAdmin = auth()->check() && in_array(auth()->user()->role, ['admin', 'moderator']);
+            $user = auth()->user();
+            $isAdmin = $user && $user->role === 'admin';
+            $isModerator = $user && $user->role === 'moderator';
             
             if ($isAdmin) {
                 // Admin can view any article
-                $article = Article::with(['tags', 'author'])->findOrFail($id);
+                $article = Article::with(['tags', 'author', 'creator', 'updater'])->findOrFail($id);
+            } else if ($isModerator) {
+                // Moderator can view their own articles (any status)
+                $article = Article::with(['tags', 'author', 'creator', 'updater'])
+                    ->where('author_id', $user->id)
+                    ->findOrFail($id);
             } else {
                 // Public can only view published articles
-                $article = Article::with(['tags', 'author'])->where('status', 'published')->findOrFail($id);
+                $article = Article::with(['tags', 'author', 'creator', 'updater'])->where('status', 'published')->findOrFail($id);
             }
             
             // Use atomic increment to prevent race conditions
@@ -146,6 +166,26 @@ class ArticleController extends Controller
     public function store(Request $request)
     {
         try {
+            $data = $request->all();
+            
+            // Set default status based on role
+            if (!isset($data['status']) || !$this->canSetStatus($data['status'])) {
+                $data['status'] = $this->getDefaultStatus();
+            }
+            
+            // Admin can set author_id, moderator cannot
+            if (auth()->user()->role === 'admin') {
+                // Admin can specify author_id from request, default to self
+                if (!isset($data['author_id'])) {
+                    $data['author_id'] = auth()->id();
+                }
+            } else {
+                // Moderator: force author to self
+                $data['author_id'] = auth()->id();
+            }
+            
+            $request->merge($data);
+            
             $validated = $request->validate([
                 'title' => 'required|string|min:3|max:200',
                 'slug' => 'required|string|max:255|unique:articles,slug',
@@ -154,10 +194,10 @@ class ArticleController extends Controller
                 'content' => 'nullable|string',
                 'featured_image' => 'nullable|string',
                 'cover' => 'nullable|string',
-                'status' => 'required|in:published,archived',
+                'status' => 'required|in:draft,pending,published,archived',
                 'category' => 'nullable|string|max:100', // Accept category as string like Video
                 'category_id' => 'nullable|exists:categories,id',
-                'author_id' => 'nullable|exists:users,id',
+                'author_id' => auth()->user()->role === 'admin' ? 'nullable|exists:users,id' : 'nullable',
                 'published_at' => 'nullable|date',
                 'views' => 'nullable|integer',
                 'likes' => 'nullable|integer',
@@ -181,6 +221,9 @@ class ArticleController extends Controller
                 // Load tags relationship to return in response
                 $article->load('tags');
             }
+            
+            // Load relationships for response
+            $article->load(['author', 'creator', 'updater']);
             
             \Log::info('ArticleController::store - Article created:', [
                 'id' => $article->id,
@@ -237,7 +280,61 @@ class ArticleController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $article = Article::with(['tags', 'author'])->findOrFail($id);
+            $article = Article::with(['tags', 'author', 'creator', 'updater'])->findOrFail($id);
+            
+            // Authorization check - moderator can only modify their own content
+            if (!$this->canModifyContent($article)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. You can only modify your own content.'
+                ], 403);
+            }
+            
+            $data = $request->all();
+            $user = auth()->user();
+            
+            // Detect if this is a STATUS-ONLY change (quick action)
+            $providedFields = array_keys($data);
+            $isStatusOnly = count($providedFields) === 1 && isset($data['status']);
+            
+            // Detect if content was actually changed
+            $contentFields = ['title', 'slug', 'excerpt', 'body', 'content', 'featured_image', 
+                             'cover', 'category', 'category_id'];
+            $isContentChanged = false;
+            foreach ($contentFields as $field) {
+                if (isset($data[$field]) && $data[$field] != $article->$field) {
+                    $isContentChanged = true;
+                    break;
+                }
+            }
+            
+            // Moderator logic for status validation
+            if ($user->role === 'moderator') {
+                $currentStatus = $article->status;
+                $newStatus = $data['status'] ?? $currentStatus;
+                
+                if ($isStatusOnly) {
+                    // Quick status change - use transition rules
+                    if (!$this->canTransitionStatus($currentStatus, $newStatus, false)) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Invalid status transition. You cannot set this status.'
+                        ], 403);
+                    }
+                } else if ($isContentChanged && $currentStatus === 'published') {
+                    // Content edit on published item - force to pending
+                    $data['status'] = 'pending';
+                    \Log::info('Moderator edited published content - forcing to pending', [
+                        'article_id' => $id,
+                        'user_id' => $user->id
+                    ]);
+                }
+                
+                // Prevent moderator from changing author
+                unset($data['author_id']);
+            }
+            
+            $request->merge($data);
             
             $validated = $request->validate([
                 'title' => 'sometimes|required|string|min:3|max:200',
@@ -247,10 +344,10 @@ class ArticleController extends Controller
                 'content' => 'nullable|string',
                 'featured_image' => 'nullable|string',
                 'cover' => 'nullable|string',
-                'status' => 'sometimes|required|in:published,archived',
+                'status' => 'sometimes|required|in:draft,pending,published,archived',
                 'category' => 'nullable|string|max:100', // Accept category as string like Video
                 'category_id' => 'nullable|exists:categories,id',
-                'author_id' => 'nullable|exists:users,id',
+                'author_id' => auth()->user()->role === 'admin' ? 'nullable|exists:users,id' : 'nullable',
                 'published_at' => 'nullable|date',
                 'views' => 'nullable|integer',
                 'likes' => 'nullable|integer',
@@ -272,6 +369,9 @@ class ArticleController extends Controller
                 // Reload tags relationship after sync
                 $article->load('tags');
             }
+            
+            // Reload relationships for response
+            $article->load(['author', 'creator', 'updater']);
             
             // Log article update activity
             ActivityLog::logPublic(
@@ -328,6 +428,15 @@ class ArticleController extends Controller
     {
         try {
             $article = Article::findOrFail($id);
+            
+            // Authorization check - moderator can only delete their own content
+            if (!$this->canModifyContent($article)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. You can only delete your own content.'
+                ], 403);
+            }
+            
             $articleTitle = $article->title;
             $article->delete();
             

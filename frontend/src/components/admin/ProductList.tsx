@@ -7,6 +7,8 @@ import {
 import { apiClient } from '../../services/api';
 import StatusBadge from '../ui/StatusBadge';
 import { ViewsChip, RatingChip, EditButton, DeleteButton } from '../ui/ContentIcons';
+import QuickStatusButtons from './QuickStatusButtons';
+import ContentStatusBadge from '../ui/ContentStatusBadge';
 import {
   Box,
   Card,
@@ -92,6 +94,7 @@ interface ProductListProps {
   onBulkDelete?: (ids: string[]) => void;
   onBulkStatusChange?: (ids: string[], status: string) => void;
   showConfirmDialog?: (title: string, message: string, onConfirm: () => void, type?: 'warning' | 'success' | 'info' | 'error') => void;
+  onQuickStatusChange?: (id: string, newStatus: string) => Promise<void>;
 }
 
 const ProductList: React.FC<ProductListProps> = ({
@@ -102,6 +105,7 @@ const ProductList: React.FC<ProductListProps> = ({
   setSelectedCategory,
   sortBy,
   setSortBy,
+  onQuickStatusChange,
   onEdit,
   onDelete,
   onView,
@@ -864,8 +868,20 @@ const ProductList: React.FC<ProductListProps> = ({
                           <VisibilityIcon sx={{ fontSize: 18 }} />
                         </IconButton>
                       </Tooltip>
-                      <EditButton tooltip="Edit Product" onClick={() => onEdit(product)} />
-                      <DeleteButton tooltip="Delete Product" onClick={() => onDelete(product.id)} />
+                      {onQuickStatusChange ? (
+                        <QuickStatusButtons
+                          item={product}
+                          onStatusChange={onQuickStatusChange}
+                          onEdit={() => onEdit(product)}
+                          onDelete={() => onDelete(product.id)}
+                          isDarkMode={isDarkMode}
+                        />
+                      ) : (
+                        <>
+                          <EditButton tooltip="Edit Product" onClick={() => onEdit(product)} />
+                          <DeleteButton tooltip="Delete Product" onClick={() => onDelete(product.id)} />
+                        </>
+                      )}
                     </Box>
                   </TableCell>
                 </TableRow>

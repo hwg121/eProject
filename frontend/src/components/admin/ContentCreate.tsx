@@ -10,13 +10,15 @@ interface ContentCreateProps {
   onSave: (content: Partial<ContentItem>) => void;
   onCancel: () => void;
   isDarkMode: boolean;
+  users?: any[];
 }
 
 const ContentCreate: React.FC<ContentCreateProps> = ({
   categories,
   onSave,
   onCancel,
-  isDarkMode
+  isDarkMode,
+  users = []
 }) => {
   const [selectedType, setSelectedType] = useState<string>('');
 
@@ -128,6 +130,7 @@ const ContentCreate: React.FC<ContentCreateProps> = ({
             onSave={handleSave}
             onCancel={handleCancel}
             isDarkMode={isDarkMode}
+            users={users}
           />
         </Card>
       )}

@@ -51,6 +51,10 @@ import AdminContactMessages from './admin/AdminContactMessages';
 import AdminCampaignSettings from './admin/AdminCampaignSettings';
 import AdminSecuritySettings from './admin/AdminSecuritySettings';
 
+// Import Approval Management
+import ApprovalManagement from '../components/admin/ApprovalManagement';
+import RejectDialog from '../components/admin/RejectDialog';
+
 // Import types and utils
 import { 
   ActivityItem, 
@@ -154,6 +158,7 @@ const AdminDashboard: React.FC = () => {
 
   // User management state
   const [users, setUsers] = useState<User[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]); // For author selection in forms
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [userStatusFilter, setUserStatusFilter] = useState('all');
   const [userRoleFilter, setUserRoleFilter] = useState('all');
@@ -178,6 +183,12 @@ const AdminDashboard: React.FC = () => {
   const [productSearchTerm, setProductSearchTerm] = useState('');
   const [productSelectedCategory, setProductSelectedCategory] = useState('all');
   const [productSortBy, setProductSortBy] = useState('latest');
+
+  // Approval Management state
+  const [pendingItems, setPendingItems] = useState<ContentItem[]>([]);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectingItem, setRejectingItem] = useState<ContentItem | null>(null);
 
   // Contact messages state
 
@@ -544,8 +555,10 @@ const AdminDashboard: React.FC = () => {
       // Handle users data structure (has data and meta properties)
       if (usersData && typeof usersData === 'object' && 'data' in usersData) {
         setUsers((usersData as any).data as User[]);
+        setAllUsers((usersData as any).data as User[]); // For author selection
       } else {
         setUsers(usersData as User[]);
+        setAllUsers(usersData as User[]); // For author selection
       }
 
       // Calculate stats from real API data - only count published content
@@ -802,6 +815,76 @@ const AdminDashboard: React.FC = () => {
     }
   }, [user, isAuthenticated]);
 
+  // Fetch pending items for approval management (admin only)
+  const fetchPendingItems = useCallback(async () => {
+    if (user?.role !== 'admin') return;
+    
+    try {
+      const [productsRes, articlesRes, videosRes] = await Promise.all([
+        productService.getAll({ status: 'pending' }),
+        articlesService.getAll({ status: 'pending' }),
+        videosService.getAll({ status: 'pending' })
+      ]);
+      
+      const allPending: ContentItem[] = [
+        ...(Array.isArray(productsRes) ? productsRes.map((p: any) => ({ ...transformProductByCategory(p), type: 'product' })) : []),
+        ...(Array.isArray(articlesRes) ? articlesRes.map((a: any) => ({ ...transformArticleToContentItem(a), type: 'article' })) : []),
+        ...(Array.isArray(videosRes) ? videosRes.map((v: any) => ({ ...transformVideoToContentItem(v), type: 'video' })) : [])
+      ];
+      
+      setPendingItems(allPending);
+      setPendingCount(allPending.length);
+    } catch (error) {
+      console.error('Error fetching pending items:', error);
+      setPendingItems([]);
+      setPendingCount(0);
+    }
+  }, [user]);
+
+  // Load pending items when user changes or on mount (admin only)
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      fetchPendingItems();
+    }
+  }, [user, fetchPendingItems]);
+
+  // Approval Management handlers
+  const handleApproveContent = async (item: ContentItem) => {
+    try {
+      const service = item.type === 'article' ? articlesService : 
+                      item.type === 'video' ? videosService : productService;
+      await service.update(item.id, { status: 'published' });
+      showToast('Content approved and published!', 'success');
+      await fetchPendingItems();
+    } catch (error) {
+      console.error('Error approving content:', error);
+      showToast('Error approving content', 'error');
+    }
+  };
+
+  const handleRejectContent = async (item: ContentItem) => {
+    setRejectingItem(item);
+    setRejectDialogOpen(true);
+  };
+
+  const handleRejectConfirm = async (reason: string) => {
+    if (!rejectingItem) return;
+    
+    try {
+      const service = rejectingItem.type === 'article' ? articlesService : 
+                      rejectingItem.type === 'video' ? videosService : productService;
+      await service.update(rejectingItem.id, { status: 'draft' });
+      showToast(`Content rejected: ${reason}`, 'warning');
+      await fetchPendingItems();
+    } catch (error) {
+      console.error('Error rejecting content:', error);
+      showToast('Error rejecting content', 'error');
+    } finally {
+      setRejectDialogOpen(false);
+      setRejectingItem(null);
+    }
+  };
+
   // Filtered users
   const filteredUsers = users.filter(user => {
     const matchesSearch = (user.name?.toLowerCase() || '').includes(userSearchTerm.toLowerCase()) ||
@@ -1047,6 +1130,29 @@ const AdminDashboard: React.FC = () => {
       // Extract proper error message from backend
       let errorMessage = 'Failed to update some products. Please try again.';
       
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      showToast(errorMessage, 'error');
+    }
+  };
+
+  // Quick status change handler (status-only, no content edit)
+  const handleQuickStatusChange = async (id: string, newStatus: string) => {
+    try {
+      // Only send status field - backend will detect this as status-only change
+      await productService.update(id, { status: newStatus });
+      await loadData();
+      showToast(`Status updated to ${newStatus}!`, 'success');
+    } catch (error: any) {
+      console.error('Error updating status:', error);
+      
+      let errorMessage = 'Failed to update status. Please try again.';
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error?.response?.data?.error) {
@@ -1902,7 +2008,7 @@ Updated: ${product.updatedAt}
           <AdminSidebar 
             activeTab={activeTab}
             onTabChange={setActiveTab}
-            stats={stats}
+            stats={{ ...stats, pendingCount }}
             isCollapsed={sidebarCollapsed}
             onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
             userRole={user?.role || 'admin'}
@@ -2310,6 +2416,33 @@ Updated: ${product.updatedAt}
         <TagManagement isDarkMode={isDarkMode} />
       )}
 
+      {/* Approval Management (Admin Only) */}
+      {activeTab === 'approvals' && user?.role === 'admin' && (
+        <>
+          <ApprovalManagement
+            isDarkMode={isDarkMode}
+            pendingItems={pendingItems}
+            onApprove={handleApproveContent}
+            onReject={handleRejectContent}
+            onEdit={(item) => {
+              if (item.type === 'article' || item.type === 'video') {
+                setEditingItem(item);
+                setActiveTab('content-edit');
+              } else {
+                setEditingProduct(item);
+                setActiveTab('product-edit');
+              }
+            }}
+          />
+          <RejectDialog
+            open={rejectDialogOpen}
+            onClose={() => setRejectDialogOpen(false)}
+            onConfirm={handleRejectConfirm}
+            contentTitle={rejectingItem?.title || ''}
+          />
+        </>
+      )}
+
       {/* Content Management - Only Techniques and Videos */}
       {['articles', 'videos', 'content-list', 'content-create', 'content-edit'].includes(activeTab) && (
         <ContentManagementSection
@@ -2340,6 +2473,8 @@ Updated: ${product.updatedAt}
           onBulkDelete={handleBulkDelete}
           onBulkStatusChange={handleBulkStatusChange}
           showConfirmDialog={showConfirmDialog}
+          users={allUsers}
+          onQuickStatusChange={handleQuickStatusChange}
         />
       )}
 
@@ -2367,6 +2502,8 @@ Updated: ${product.updatedAt}
           onBulkDelete={handleProductBulkDelete}
           onBulkStatusChange={handleProductBulkStatusChange}
           showConfirmDialog={showConfirmDialog}
+          users={allUsers}
+          onQuickStatusChange={handleQuickStatusChange}
         />
       )}
 

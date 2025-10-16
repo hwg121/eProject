@@ -6,6 +6,8 @@ import {
 import { ContentItem } from '../../types/admin';
 import StatusBadge from '../ui/StatusBadge';
 import { ViewsChip, LikesChip, RatingChip, ViewButton, EditButton, DeleteButton } from '../ui/ContentIcons';
+import QuickStatusButtons from './QuickStatusButtons';
+import ContentStatusBadge from '../ui/ContentStatusBadge';
 import {
   Box,
   Card,
@@ -61,6 +63,7 @@ interface ContentListProps {
   onBulkDelete?: (ids: string[], types: string[]) => void;
   onBulkStatusChange?: (ids: string[], status: string) => void;
   showConfirmDialog?: (title: string, message: string, onConfirm: () => void, type?: 'warning' | 'success' | 'info' | 'error') => void;
+  onQuickStatusChange?: (id: string, newStatus: string) => Promise<void>;
 }
 
 const ContentList: React.FC<ContentListProps> = ({
@@ -75,7 +78,8 @@ const ContentList: React.FC<ContentListProps> = ({
   isDarkMode,
   onBulkDelete,
   onBulkStatusChange,
-  showConfirmDialog
+  showConfirmDialog,
+  onQuickStatusChange
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -709,9 +713,21 @@ const ContentList: React.FC<ContentListProps> = ({
                     </TableCell>
                     <TableCell align="center">
                       <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
-                        <ViewButton tooltip="View" onClick={() => onView(item)} />
-                        <EditButton tooltip="Edit" onClick={() => onEdit(item)} />
-                        <DeleteButton tooltip="Delete" onClick={() => onDelete(item.id, item.category)} />
+                        {onQuickStatusChange ? (
+                          <QuickStatusButtons
+                            item={item}
+                            onStatusChange={onQuickStatusChange}
+                            onEdit={() => onEdit(item)}
+                            onDelete={() => onDelete(item.id, item.category)}
+                            isDarkMode={isDarkMode}
+                          />
+                        ) : (
+                          <>
+                            <ViewButton tooltip="View" onClick={() => onView(item)} />
+                            <EditButton tooltip="Edit" onClick={() => onEdit(item)} />
+                            <DeleteButton tooltip="Delete" onClick={() => onDelete(item.id, item.category)} />
+                          </>
+                        )}
                       </Box>
                     </TableCell>
                   </TableRow>

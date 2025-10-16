@@ -48,11 +48,13 @@ interface ProductManagementProps {
   categories: string[];
   onEditClick?: (product: Product) => void;
   editingProduct?: Product | null;
+  users?: any[];
   onEditCancel?: () => void;
   onCancelCreate?: () => void;
   onBulkDelete?: (ids: string[]) => void;
   onBulkStatusChange?: (ids: string[], status: string) => void;
   showConfirmDialog?: (title: string, message: string, onConfirm: () => void, type?: 'warning' | 'success' | 'info' | 'error') => void;
+  onQuickStatusChange?: (id: string, newStatus: string) => Promise<void>;
 }
 
 const ProductManagement: React.FC<ProductManagementProps> = ({
@@ -71,12 +73,14 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
   onCreate,
   categories,
   onEditClick,
+  users = [],
   editingProduct,
   onEditCancel,
   onCancelCreate,
   onBulkDelete,
   onBulkStatusChange,
-  showConfirmDialog
+  showConfirmDialog,
+  onQuickStatusChange
 }) => {
 
   const handleEditClick = (product: Product) => {
@@ -136,6 +140,7 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
           onBulkDelete={onBulkDelete}
           onBulkStatusChange={onBulkStatusChange}
           showConfirmDialog={showConfirmDialog}
+          onQuickStatusChange={onQuickStatusChange}
         />
       )}
 
@@ -145,6 +150,7 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
           onSave={handleCreateSave}
           onCancel={handleCreateCancel}
           isDarkMode={isDarkMode}
+          users={users}
         />
       )}
 
@@ -155,6 +161,7 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
           onSave={handleEditSave}
           onCancel={handleEditCancel}
           isDarkMode={isDarkMode}
+          users={users}
         />
       )}
     </div>

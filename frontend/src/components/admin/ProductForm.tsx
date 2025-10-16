@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { TextField, MenuItem, Checkbox, FormControlLabel, Typography } from '@mui/material';
+import { TextField, MenuItem, Checkbox, FormControlLabel, Typography, Alert } from '@mui/material';
 import Toast from '../ui/Toast';
 import TagInput from './TagInput';
 import ImageUpload from '../common/ImageUpload';
 import { validateNumber, validateURL, hasErrors } from '../../utils/validation';
+import { useAuth } from '../../contexts/AuthContext';
+import { User, ContentStatus } from '../../types/admin';
 
 interface Product {
   id?: string;
@@ -15,7 +17,7 @@ interface Product {
   image?: string;
   category: 'tool' | 'book' | 'pot' | 'accessory' | 'suggestion';
   subcategory?: string;
-  status: 'published' | 'archived';
+  status: ContentStatus;
   price?: number;
   brand?: string;
   material?: string;
@@ -49,6 +51,19 @@ interface Product {
   // Generic link
   link?: string;
   
+  // Author tracking
+  author_id?: number;
+  created_by?: number;
+  updated_by?: number;
+  creator?: {
+    id: number;
+    name: string;
+  };
+  updater?: {
+    id: number;
+    name: string;
+  };
+  
   createdAt?: string;
   updatedAt?: string;
 }
@@ -60,14 +75,18 @@ interface ProductFormProps {
   onSave: (data: Partial<Product>) => void;
   onCancel: () => void;
   isDarkMode: boolean;
+  users?: User[];
 }
 
 const ProductForm: React.FC<ProductFormProps> = ({ 
   item, 
   onSave, 
   onCancel, 
-  isDarkMode 
+  isDarkMode,
+  users = []
 }) => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [formData, setFormData] = useState<Partial<Product>>(() => {
     if (item) {
       // Handle both 'featured' and 'is_featured' fields
@@ -272,9 +291,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
       published_year: parseInt(formData.published_year as any) || undefined,
       // Ensure link is included
       link: formData.link || undefined,
-      // Ensure status and is_published are in sync
-      status: formData.status || 'published',
-      is_published: formData.is_published !== undefined ? formData.is_published : formData.status === 'published'
+      // Force pending for moderator, admin can set any status
+      status: isAdmin ? (formData.status || 'published') : 'pending',
+      is_published: formData.is_published !== undefined ? formData.is_published : formData.status === 'published',
+      // Include author_id if admin set it
+      author_id: formData.author_id
     };
     
     // Call parent's onSave - parent will handle success/error messages
@@ -311,6 +332,27 @@ const ProductForm: React.FC<ProductFormProps> = ({
             sx={textFieldStyles}
           />
         </div>
+
+        {isAdmin && (
+          <div>
+            <TextField
+              fullWidth
+              select
+              size="small"
+              label="Author (Content Owner)"
+              value={formData.author_id || user?.id}
+              onChange={(e) => setFormData({ ...formData, author_id: Number(e.target.value) })}
+              sx={textFieldStyles}
+              helperText="Select the content author/owner"
+            >
+              {users.map(u => (
+                <MenuItem key={u.id} value={u.id}>
+                  {u.name} ({u.email}) - {u.role}
+                </MenuItem>
+              ))}
+            </TextField>
+          </div>
+        )}
 
         <div>
           <TextField
@@ -794,30 +836,73 @@ const ProductForm: React.FC<ProductFormProps> = ({
           </label>
         </div>
 
-        {/* Status Dropdown */}
-        <div>
-          <label htmlFor="status" className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            Status
-          </label>
-          <select
-            id="status"
-            value={formData.status || 'published'}
-            onChange={(e) => setFormData({ 
-              ...formData, 
-              status: e.target.value as 'published' | 'archived',
-              is_published: e.target.value === 'published' // Auto-set is_published based on status
-            })}
-            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
-              isDarkMode 
-                ? 'bg-gray-800 border-gray-600 text-white' 
-                : 'bg-white border-gray-300 text-gray-900'
-            }`}
-          >
-            <option value="published">Published</option>
-            <option value="archived">Archived</option>
-          </select>
-        </div>
+        {/* Status - Admin only */}
+        {isAdmin && (
+          <div>
+            <label htmlFor="status" className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              Status
+            </label>
+            <select
+              id="status"
+              value={formData.status || 'published'}
+              onChange={(e) => setFormData({ 
+                ...formData, 
+                status: e.target.value as ContentStatus,
+                is_published: e.target.value === 'published'
+              })}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
+                isDarkMode 
+                  ? 'bg-gray-800 border-gray-600 text-white' 
+                  : 'bg-white border-gray-300 text-gray-900'
+              }`}
+            >
+              <option value="draft">Draft</option>
+              <option value="pending">Pending Review</option>
+              <option value="published">Published</option>
+              <option value="archived">Archived</option>
+            </select>
+          </div>
+        )}
+        
+        {/* Moderator Alert - No status dropdown */}
+        {!isAdmin && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            {item ? (
+              <Typography variant="body2">
+                ⚠️ Saving changes will set status to <strong>Pending</strong> for admin review.
+              </Typography>
+            ) : (
+              <Typography variant="body2">
+                Your content will be submitted as <strong>Pending</strong> for admin approval.
+              </Typography>
+            )}
+          </Alert>
+        )}
       </div>
+
+      {/* Created by / Updated by info */}
+      {item && (item as any).creator && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg mb-4" style={{
+          backgroundColor: isDarkMode ? '#374151' : '#f9fafb'
+        }}>
+          <div>
+            <Typography variant="caption" sx={{ color: isDarkMode ? '#9ca3af' : '#6b7280' }}>
+              Created by
+            </Typography>
+            <Typography variant="body2" sx={{ color: isDarkMode ? '#e5e7eb' : '#1f2937' }}>
+              {((item as any).creator?.name || 'Unknown')} ({new Date((item as any).createdAt || item.createdAt || '').toLocaleString()})
+            </Typography>
+          </div>
+          <div>
+            <Typography variant="caption" sx={{ color: isDarkMode ? '#9ca3af' : '#6b7280' }}>
+              Last updated by
+            </Typography>
+            <Typography variant="body2" sx={{ color: isDarkMode ? '#e5e7eb' : '#1f2937' }}>
+              {((item as any).updater?.name || 'Unknown')} ({new Date((item as any).updatedAt || item.updatedAt || '').toLocaleString()})
+            </Typography>
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center justify-end space-x-4 pt-6">
         <motion.button

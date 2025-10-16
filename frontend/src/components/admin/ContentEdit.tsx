@@ -11,6 +11,7 @@ interface ContentEditProps {
   onSave: (content: Partial<ContentItem>) => void;
   onCancel: () => void;
   isDarkMode: boolean;
+  users?: any[];
 }
 
 const ContentEdit: React.FC<ContentEditProps> = ({
@@ -18,7 +19,8 @@ const ContentEdit: React.FC<ContentEditProps> = ({
   categories,
   onSave,
   onCancel,
-  isDarkMode
+  isDarkMode,
+  users = []
 }) => {
   return (
     <div className="space-y-6">
@@ -57,6 +59,7 @@ const ContentEdit: React.FC<ContentEditProps> = ({
           onSave={onSave}
           onCancel={onCancel}
           isDarkMode={isDarkMode}
+          users={users}
         />
       </Card>
     </div>

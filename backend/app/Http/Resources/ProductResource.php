@@ -61,6 +61,37 @@ class ProductResource extends JsonResource
             
             // Tags relationship
             'tags' => TagResource::collection($this->whenLoaded('tags')),
+            
+            // Author tracking
+            'author_id' => $this->author_id,
+            'created_by' => $this->created_by,
+            'updated_by' => $this->updated_by,
+            
+            // Author relationship
+            'author' => $this->whenLoaded('author', function () {
+                return [
+                    'id' => $this->author->id,
+                    'name' => $this->author->name,
+                    'email' => $this->author->email,
+                    'avatar' => $this->author->avatar ?? null,
+                ];
+            }),
+            
+            // Creator relationship
+            'creator' => $this->whenLoaded('creator', function () {
+                return [
+                    'id' => $this->creator->id,
+                    'name' => $this->creator->name,
+                ];
+            }),
+            
+            // Updater relationship
+            'updater' => $this->whenLoaded('updater', function () {
+                return [
+                    'id' => $this->updater->id,
+                    'name' => $this->updater->name,
+                ];
+            }),
         ];
     }
 }

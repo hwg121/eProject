@@ -37,6 +37,7 @@ interface ProductEditProps {
   onSave: (product: Partial<Product>) => void;
   onCancel: () => void;
   isDarkMode: boolean;
+  users?: any[];
 }
 
 const ProductEdit: React.FC<ProductEditProps> = ({
@@ -44,7 +45,8 @@ const ProductEdit: React.FC<ProductEditProps> = ({
   categories,
   onSave,
   onCancel,
-  isDarkMode
+  isDarkMode,
+  users = []
 }) => {
   return (
     <div className="space-y-6">
@@ -83,6 +85,7 @@ const ProductEdit: React.FC<ProductEditProps> = ({
           onSave={onSave}
           onCancel={onCancel}
           isDarkMode={isDarkMode}
+          users={users}
         />
       </Card>
     </div>

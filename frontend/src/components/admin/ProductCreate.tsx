@@ -36,13 +36,15 @@ interface ProductCreateProps {
   onSave: (product: Partial<Product>) => void;
   onCancel: () => void;
   isDarkMode: boolean;
+  users?: any[];
 }
 
 const ProductCreate: React.FC<ProductCreateProps> = ({
   categories,
   onSave,
   onCancel,
-  isDarkMode
+  isDarkMode,
+  users = []
 }) => {
 
   return (
@@ -82,6 +84,7 @@ const ProductCreate: React.FC<ProductCreateProps> = ({
           onSave={onSave}
           onCancel={onCancel}
           isDarkMode={isDarkMode}
+          users={users}
         />
       </Card>
     </div>

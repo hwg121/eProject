@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { TextField, MenuItem, Checkbox, FormControlLabel, Typography } from '@mui/material';
+import { TextField, MenuItem, Checkbox, FormControlLabel, Typography, Alert } from '@mui/material';
 import Toast from '../ui/Toast';
 import ImageUpload from '../common/ImageUpload';
 import RichTextEditor from './RichTextEditor';
 import TagInput from './TagInput';
-import { ContentFormProps } from '../../types/admin';
+import { ContentFormProps, User, ContentStatus } from '../../types/admin';
 import { validateText, validateURL, validateNumber, hasErrors } from '../../utils/validation';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface FormData {
   title: string;
   author?: string;
   instructor?: string;
   category: string;
-  status: 'published' | 'archived';
+  status: ContentStatus;
   description?: string;
   excerpt?: string;
   tags?: number[] | { id: number; name: string; slug: string; }[];
@@ -33,9 +34,12 @@ interface FormData {
   content?: string;
   body?: string;
   slug?: string;
+  author_id?: number;
 }
 
-const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSave, onCancel, isDarkMode }) => {
+const ContentForm: React.FC<ContentFormProps & { users?: User[] }> = ({ type, item, categories, onSave, onCancel, isDarkMode, users = [] }) => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   // Helper function to check if type is video
   const isVideoType = (type: string) => type === 'videos' || type === 'video' || type === 'Video';
   
@@ -178,7 +182,8 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
       ...formData,
       // Ensure required fields have values
       title: formData.title || '',
-      status: formData.status || 'published',
+      // Force pending for moderator, admin can set any status
+      status: isAdmin ? (formData.status || 'published') : 'pending',
       // Ensure content is saved properly to both content and body fields
       content: formData.content || '',
       body: formData.content || formData.body || '',
@@ -195,6 +200,8 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
       duration: formData.duration || '',
       // Ensure boolean fields are properly cast
       is_featured: Boolean(formData.featured || formData.is_featured),
+      // Include author_id if admin set it
+      author_id: formData.author_id,
       // Only include product-specific fields for products
       ...(isProductType ? {
         buyLink: formData.buyLink,
@@ -326,20 +333,62 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
           </TextField>
         </div>
 
-        <div>
-          <TextField
-            fullWidth
-            select
-            size="small"
-            label="Status"
-            value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value as 'published' | 'archived' })}
-            sx={textFieldStyles}
-          >
-            <MenuItem value="published">Published</MenuItem>
-            <MenuItem value="archived">Archived</MenuItem>
-          </TextField>
-        </div>
+        {/* Author dropdown - Admin only */}
+        {isAdmin && (
+          <div>
+            <TextField
+              fullWidth
+              select
+              size="small"
+              label="Author (Content Owner)"
+              value={formData.author_id || user?.id}
+              onChange={(e) => setFormData({ ...formData, author_id: Number(e.target.value) })}
+              sx={textFieldStyles}
+              helperText="Select the content author/owner"
+            >
+              {users.map(u => (
+                <MenuItem key={u.id} value={u.id}>
+                  {u.name} ({u.email}) - {u.role}
+                </MenuItem>
+              ))}
+            </TextField>
+          </div>
+        )}
+
+        {/* Status - Admin only */}
+        {isAdmin && (
+          <div>
+            <TextField
+              fullWidth
+              select
+              size="small"
+              label="Status"
+              value={formData.status}
+              onChange={(e) => setFormData({ ...formData, status: e.target.value as ContentStatus })}
+              sx={textFieldStyles}
+            >
+              <MenuItem value="draft">Draft</MenuItem>
+              <MenuItem value="pending">Pending Review</MenuItem>
+              <MenuItem value="published">Published</MenuItem>
+              <MenuItem value="archived">Archived</MenuItem>
+            </TextField>
+          </div>
+        )}
+        
+        {/* Moderator Alert - No status dropdown */}
+        {!isAdmin && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            {item ? (
+              <Typography variant="body2">
+                ⚠️ Saving changes will set status to <strong>Pending</strong> for admin review.
+              </Typography>
+            ) : (
+              <Typography variant="body2">
+                Your content will be submitted as <strong>Pending</strong> for admin approval.
+              </Typography>
+            )}
+          </Alert>
+        )}
 
         {(type === 'books' || type === 'suggestions') && (
           <>
@@ -663,6 +712,30 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
           label="Featured"
         />
       </div>
+
+      {/* Created by / Updated by info */}
+      {item && (item as any).creator && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg mb-4" style={{
+          backgroundColor: isDarkMode ? '#374151' : '#f9fafb'
+        }}>
+          <div>
+            <Typography variant="caption" sx={{ color: isDarkMode ? '#9ca3af' : '#6b7280' }}>
+              Created by
+            </Typography>
+            <Typography variant="body2" sx={{ color: isDarkMode ? '#e5e7eb' : '#1f2937' }}>
+              {((item as any).creator?.name || 'Unknown')} ({new Date((item as any).createdAt || item.createdAt || '').toLocaleString()})
+            </Typography>
+          </div>
+          <div>
+            <Typography variant="caption" sx={{ color: isDarkMode ? '#9ca3af' : '#6b7280' }}>
+              Last updated by
+            </Typography>
+            <Typography variant="body2" sx={{ color: isDarkMode ? '#e5e7eb' : '#1f2937' }}>
+              {((item as any).updater?.name || 'Unknown')} ({new Date((item as any).updatedAt || item.updatedAt || '').toLocaleString()})
+            </Typography>
+          </div>
+        </div>
+      )}
 
       <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
         <motion.button

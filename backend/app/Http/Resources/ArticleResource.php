@@ -39,9 +39,30 @@ class ArticleResource extends JsonResource
                     'id' => $this->author->id,
                     'name' => $this->author->name,
                     'email' => $this->author->email,
+                    'avatar' => $this->author->avatar ?? null,
                 ];
             }),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
+            
+            // Audit tracking
+            'created_by' => $this->created_by,
+            'updated_by' => $this->updated_by,
+            
+            // Creator relationship
+            'creator' => $this->whenLoaded('creator', function () {
+                return [
+                    'id' => $this->creator->id,
+                    'name' => $this->creator->name,
+                ];
+            }),
+            
+            // Updater relationship
+            'updater' => $this->whenLoaded('updater', function () {
+                return [
+                    'id' => $this->updater->id,
+                    'name' => $this->updater->name,
+                ];
+            }),
         ];
     }
 }
