@@ -371,7 +371,7 @@ class ProductController extends Controller
             }
             
             // Load relationships for response
-            $product->load(['author', 'creator', 'updater']);
+            $product->load(['authorUser', 'creator', 'updater']);
 
         return response()->json([
             'success' => true,
@@ -416,7 +416,7 @@ class ProductController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $product = Product::with(['tags', 'author', 'creator', 'updater'])->findOrFail($id);
+            $product = Product::with(['tags', 'authorUser', 'creator', 'updater'])->findOrFail($id);
             
             // Authorization check - moderator can only modify their own content
             if (!$this->canModifyContent($product)) {

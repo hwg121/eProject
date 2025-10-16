@@ -225,7 +225,7 @@ class ArticleController extends Controller
             }
             
             // Load relationships for response
-            $article->load(['author', 'creator', 'updater']);
+            $article->load(['authorUser', 'creator', 'updater']);
             
             \Log::info('ArticleController::store - Article created:', [
                 'id' => $article->id,
@@ -282,7 +282,7 @@ class ArticleController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $article = Article::with(['tags', 'author', 'creator', 'updater'])->findOrFail($id);
+            $article = Article::with(['tags', 'authorUser', 'creator', 'updater'])->findOrFail($id);
             
             // Authorization check - moderator can only modify their own content
             if (!$this->canModifyContent($article)) {

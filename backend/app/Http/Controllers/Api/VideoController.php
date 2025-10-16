@@ -258,7 +258,7 @@ class VideoController extends Controller
             }
             
             // Load relationships for response
-            $video->load(['author', 'creator', 'updater']);
+            $video->load(['authorUser', 'creator', 'updater']);
             
             // Log video creation activity
             ActivityLog::logPublic(
@@ -323,7 +323,7 @@ class VideoController extends Controller
                 $request->merge($request->except('_method'));
             }
             
-            $video = Video::with(['tags', 'author', 'creator', 'updater'])->findOrFail($id);
+            $video = Video::with(['tags', 'authorUser', 'creator', 'updater'])->findOrFail($id);
             
             // Authorization check - moderator can only modify their own content
             if (!$this->canModifyContent($video)) {
