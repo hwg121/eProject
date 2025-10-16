@@ -652,7 +652,18 @@ class ApiClient {
     }
     
     const response: any = await this.request<unknown>(`/admin/products?${queryParams}`);
-    return response.data || [];
+    
+    // Support both infinite scroll (needs meta) and legacy mode (just data)
+    if (params?.page || params?.per_page) {
+      // Infinite scroll mode: return full response with meta
+      return {
+        data: response.data || [],
+        meta: response.meta || null
+      };
+    } else {
+      // Legacy mode: return just data for backward compatibility
+      return response.data || [];
+    }
   }
 
   async getProduct(id: string) {
