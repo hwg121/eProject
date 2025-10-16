@@ -631,7 +631,7 @@ class ProductController extends Controller
             }
             
             // Reload relationships for response
-            $product->load(['author', 'creator', 'updater']);
+            $product->load(['authorUser', 'creator', 'updater']);
             
             return response()->json([
                 'success' => true,

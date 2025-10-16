@@ -373,7 +373,7 @@ class ArticleController extends Controller
             }
             
             // Reload relationships for response
-            $article->load(['author', 'creator', 'updater']);
+            $article->load(['authorUser', 'creator', 'updater']);
             
             // Log article update activity
             ActivityLog::logPublic(

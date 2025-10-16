@@ -480,7 +480,7 @@ class VideoController extends Controller
             
             // Reload model with tags relationship after sync
             $video->refresh();
-            $video->load(['tags', 'author', 'creator', 'updater']);
+            $video->load(['tags', 'authorUser', 'creator', 'updater']);
             
             Log::info('VideoController::update - Video updated', [
                 'video_id' => $video->id,

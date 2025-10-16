@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, ButtonGroup, Tooltip } from '@mui/material';
+import { IconButton, Tooltip, Box } from '@mui/material';
 import { Send, Undo, Archive, RestoreFromTrash, Edit, Delete } from '@mui/icons-material';
 
 interface QuickStatusButtonsProps {
@@ -18,107 +18,112 @@ const QuickStatusButtons: React.FC<QuickStatusButtonsProps> = ({
   isDarkMode
 }) => {
   const status = item.status;
+  
+  const iconButtonStyle = {
+    padding: '6px',
+    '&:hover': { bgcolor: isDarkMode ? '#374151' : '#e5e7eb' }
+  };
 
   // DRAFT: Submit, Edit, Delete
   if (status === 'draft') {
     return (
-      <ButtonGroup size="small" variant="outlined">
-        <Tooltip title="Submit for admin review">
-          <Button 
-            startIcon={<Send />} 
+      <Box sx={{ display: 'flex', gap: 0.5 }}>
+        <Tooltip title="Submit for review">
+          <IconButton 
             onClick={() => onStatusChange(item.id, 'pending')} 
-            color="primary"
+            size="small"
+            sx={{ ...iconButtonStyle, color: '#2563eb' }}
           >
-            Submit
-          </Button>
+            <Send sx={{ fontSize: 18 }} />
+          </IconButton>
         </Tooltip>
-        <Tooltip title="Edit content">
-          <Button startIcon={<Edit />} onClick={() => onEdit(item)}>
-            Edit
-          </Button>
+        <Tooltip title="Edit">
+          <IconButton onClick={() => onEdit(item)} size="small" sx={iconButtonStyle}>
+            <Edit sx={{ fontSize: 18 }} />
+          </IconButton>
         </Tooltip>
         <Tooltip title="Delete">
-          <Button startIcon={<Delete />} onClick={() => onDelete(item)} color="error">
-            Delete
-          </Button>
+          <IconButton onClick={() => onDelete(item)} size="small" sx={{ ...iconButtonStyle, color: '#dc2626' }}>
+            <Delete sx={{ fontSize: 18 }} />
+          </IconButton>
         </Tooltip>
-      </ButtonGroup>
+      </Box>
     );
   }
 
   // PENDING: Withdraw, Edit, Delete
   if (status === 'pending') {
     return (
-      <ButtonGroup size="small" variant="outlined">
-        <Tooltip title="Withdraw submission">
-          <Button 
-            startIcon={<Undo />} 
+      <Box sx={{ display: 'flex', gap: 0.5 }}>
+        <Tooltip title="Withdraw">
+          <IconButton 
             onClick={() => onStatusChange(item.id, 'draft')} 
-            color="warning"
+            size="small"
+            sx={{ ...iconButtonStyle, color: '#f59e0b' }}
           >
-            Withdraw
-          </Button>
+            <Undo sx={{ fontSize: 18 }} />
+          </IconButton>
         </Tooltip>
-        <Tooltip title="Edit content">
-          <Button startIcon={<Edit />} onClick={() => onEdit(item)}>
-            Edit
-          </Button>
+        <Tooltip title="Edit">
+          <IconButton onClick={() => onEdit(item)} size="small" sx={iconButtonStyle}>
+            <Edit sx={{ fontSize: 18 }} />
+          </IconButton>
         </Tooltip>
         <Tooltip title="Delete">
-          <Button startIcon={<Delete />} onClick={() => onDelete(item)} color="error">
-            Delete
-          </Button>
+          <IconButton onClick={() => onDelete(item)} size="small" sx={{ ...iconButtonStyle, color: '#dc2626' }}>
+            <Delete sx={{ fontSize: 18 }} />
+          </IconButton>
         </Tooltip>
-      </ButtonGroup>
+      </Box>
     );
   }
 
-  // PUBLISHED: Archive, Edit (Re-approval needed), Delete
+  // PUBLISHED: Archive, Edit, Delete
   if (status === 'published') {
     return (
-      <ButtonGroup size="small" variant="outlined">
-        <Tooltip title="Take down from public">
-          <Button 
-            startIcon={<Archive />} 
+      <Box sx={{ display: 'flex', gap: 0.5 }}>
+        <Tooltip title="Archive">
+          <IconButton 
             onClick={() => onStatusChange(item.id, 'archived')} 
-            color="warning"
+            size="small"
+            sx={{ ...iconButtonStyle, color: '#f59e0b' }}
           >
-            Archive
-          </Button>
+            <Archive sx={{ fontSize: 18 }} />
+          </IconButton>
         </Tooltip>
-        <Tooltip title="Edit content (will require re-approval)">
-          <Button startIcon={<Edit />} onClick={() => onEdit(item)}>
-            Edit
-          </Button>
+        <Tooltip title="Edit (requires re-approval)">
+          <IconButton onClick={() => onEdit(item)} size="small" sx={iconButtonStyle}>
+            <Edit sx={{ fontSize: 18 }} />
+          </IconButton>
         </Tooltip>
         <Tooltip title="Delete">
-          <Button startIcon={<Delete />} onClick={() => onDelete(item)} color="error">
-            Delete
-          </Button>
+          <IconButton onClick={() => onDelete(item)} size="small" sx={{ ...iconButtonStyle, color: '#dc2626' }}>
+            <Delete sx={{ fontSize: 18 }} />
+          </IconButton>
         </Tooltip>
-      </ButtonGroup>
+      </Box>
     );
   }
 
   // ARCHIVED: Restore, Delete
   if (status === 'archived') {
     return (
-      <ButtonGroup size="small" variant="outlined">
-        <Tooltip title="Restore to draft for re-editing">
-          <Button 
-            startIcon={<RestoreFromTrash />} 
+      <Box sx={{ display: 'flex', gap: 0.5 }}>
+        <Tooltip title="Restore to draft">
+          <IconButton 
             onClick={() => onStatusChange(item.id, 'draft')} 
-            color="info"
+            size="small"
+            sx={{ ...iconButtonStyle, color: '#0891b2' }}
           >
-            Restore
-          </Button>
+            <RestoreFromTrash sx={{ fontSize: 18 }} />
+          </IconButton>
         </Tooltip>
         <Tooltip title="Delete">
-          <Button startIcon={<Delete />} onClick={() => onDelete(item)} color="error">
-            Delete
-          </Button>
+          <IconButton onClick={() => onDelete(item)} size="small" sx={{ ...iconButtonStyle, color: '#dc2626' }}>
+            <Delete sx={{ fontSize: 18 }} />
+          </IconButton>
         </Tooltip>
-      </ButtonGroup>
+      </Box>
     );
   }
 
