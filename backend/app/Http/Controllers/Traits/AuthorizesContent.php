@@ -11,6 +11,10 @@ trait AuthorizesContent
     {
         $user = auth()->user();
         
+        if (!$user) {
+            return false;
+        }
+        
         // Admin can modify anything
         if ($user->role === 'admin') {
             return true;
@@ -31,6 +35,10 @@ trait AuthorizesContent
     {
         $user = auth()->user();
         
+        if (!$user) {
+            return 'draft';
+        }
+        
         // Admin content is published by default
         if ($user->role === 'admin') {
             return 'published';
@@ -50,6 +58,10 @@ trait AuthorizesContent
     protected function canSetStatus(string $status): bool
     {
         $user = auth()->user();
+        
+        if (!$user) {
+            return false;
+        }
         
         // Admin can set any status
         if ($user->role === 'admin') {
@@ -83,6 +95,10 @@ trait AuthorizesContent
         bool $isContentChanged = false
     ): bool {
         $user = auth()->user();
+        
+        if (!$user) {
+            return false;
+        }
         
         // Admin can do anything
         if ($user->role === 'admin') {
