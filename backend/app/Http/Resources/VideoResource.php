@@ -34,6 +34,16 @@ class VideoResource extends JsonResource
             'createdAt' => $this->created_at, // Frontend camelCase
             'updatedAt' => $this->updated_at, // Frontend camelCase
             
+            // Author relationship
+            'author' => $this->whenLoaded('author', function () {
+                return [
+                    'id' => $this->author->id,
+                    'name' => $this->author->name,
+                    'email' => $this->author->email,
+                    'role' => $this->author->role,
+                ];
+            }),
+            
             // Tags relationship
             'tags' => TagResource::collection($this->whenLoaded('tags')),
         ];

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -16,7 +17,7 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         try {
-        $query = Product::query()->with('tags');
+        $query = Product::query()->with(['tags', 'author']);
 
             // Filter by status
             // Check if user is authenticated admin/moderator
@@ -32,6 +33,14 @@ class ProductController extends Controller
             ]);
             
             if ($isAdmin) {
+                // If moderator, only show own content + published content
+                if (auth()->user()->role === 'moderator') {
+                    $query->where(function($q) {
+                        $q->where('author_id', auth()->id())
+                          ->orWhere('status', 'published');
+                    });
+                }
+                
                 // Admin can see all, but if status param provided, filter by it
                 if ($request->has('status') && $request->status !== 'all') {
                     $query->where('status', $request->status);
@@ -112,10 +121,10 @@ class ProductController extends Controller
             
             if ($isAdmin) {
                 // Admin can view any product (including archived)
-                $product = Product::with('tags')->findOrFail($id);
+                $product = Product::with(['tags', 'author'])->findOrFail($id);
             } else {
                 // Public can only view published products
-                $product = Product::with('tags')->published()->findOrFail($id);
+                $product = Product::with(['tags', 'author'])->published()->findOrFail($id);
             }
             
             // Use atomic increment to prevent race conditions
@@ -146,7 +155,7 @@ class ProductController extends Controller
     public function getByCategory($category)
     {
         try {
-            $products = Product::with('tags')
+            $products = Product::with(['tags', 'author'])
                 ->published()
                 ->byCategory($category)
                 ->orderBy('created_at', 'desc')
@@ -170,7 +179,7 @@ class ProductController extends Controller
     public function getFeatured()
     {
         try {
-            $products = Product::with('tags')
+            $products = Product::with(['tags', 'author'])
                 ->published()
                 ->featured()
                 ->orderBy('created_at', 'desc')
@@ -287,6 +296,16 @@ class ProductController extends Controller
             // Merge prepared data back to request
             $request->replace($data);
             
+            // Auto-assign author based on role (before validation)
+            if (auth()->user()->role === 'admin' && $request->has('author_id')) {
+                // Admin can select author
+                $data['author_id'] = $request->author_id;
+            } else {
+                // Moderator or no selection: assign to self
+                $data['author_id'] = auth()->id();
+            }
+            $request->replace($data);
+            
             $validated = $request->validate([
                 'name' => 'required|string|min:2|max:100',
                 'slug' => 'sometimes|string|max:255|unique:products',
@@ -320,7 +339,14 @@ class ProductController extends Controller
                 'plant_type' => 'nullable|string|max:100',
                 'estimated_time' => 'nullable|string|max:50',
                 'link' => 'nullable|string',
+                'author_id' => 'nullable|integer|exists:users,id',
             ]);
+
+            // Get author for logging
+            $author = User::find($validated['author_id']);
+            if (!$author) {
+                $author = auth()->user();
+            }
 
             $product = Product::create($validated);
             
@@ -330,6 +356,20 @@ class ProductController extends Controller
                 // Load tags relationship to return in response
                 $product->load('tags');
             }
+            
+            // Log product creation activity
+            \App\Models\ActivityLog::logPublic(
+                'created',
+                'product',
+                $product->id,
+                $product->name,
+                auth()->user()->name . " created product and assigned to " . $author->name,
+                [
+                    'author_id' => $author->id,
+                    'author_name' => $author->name,
+                    'category' => $product->category
+                ]
+            );
 
         return response()->json([
             'success' => true,
@@ -374,7 +414,19 @@ class ProductController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $product = Product::with('tags')->findOrFail($id);
+            $product = Product::with(['tags', 'author'])->findOrFail($id);
+            
+            // Check permission: only author or admin can update
+            if (auth()->user()->role !== 'admin' && $product->author_id !== auth()->id()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You can only edit your own products.'
+                ], 403);
+            }
+            
+            // Track author changes for logging
+            $oldAuthorId = $product->author_id;
+            $oldAuthor = $product->author;
             
             // Handle camelCase mapping first
             $data = $request->all();
@@ -515,7 +567,13 @@ class ProductController extends Controller
                 'plant_type' => 'nullable|string|max:100',
                 'estimated_time' => 'nullable|string|max:50',
                 'link' => 'nullable|string',
+                'author_id' => 'nullable|integer|exists:users,id',
             ]);
+
+            // Handle author_id updates (admin only)
+            if ($request->has('author_id') && auth()->user()->role === 'admin') {
+                $validated['author_id'] = $request->author_id;
+            }
 
             $product->update($validated);
             
@@ -524,6 +582,25 @@ class ProductController extends Controller
                 $product->tags()->sync($tags);
                 // Reload tags relationship after sync
                 $product->load('tags');
+            }
+            
+            // Log transfer if author changed
+            if ($oldAuthorId && isset($validated['author_id']) && $oldAuthorId != $validated['author_id']) {
+                $newAuthor = User::find($validated['author_id']);
+                \App\Models\ActivityLog::logPublic(
+                    'transferred',
+                    'product',
+                    $product->id,
+                    $product->name,
+                    "Admin transferred product from " . $oldAuthor->name . " to " . $newAuthor->name,
+                    [
+                        'old_author_id' => $oldAuthorId,
+                        'new_author_id' => $validated['author_id'],
+                        'old_author_name' => $oldAuthor->name,
+                        'new_author_name' => $newAuthor->name,
+                        'changed_by' => auth()->user()->name
+                    ]
+                );
             }
             
             return response()->json([

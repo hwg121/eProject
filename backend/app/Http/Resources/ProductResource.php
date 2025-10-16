@@ -59,6 +59,16 @@ class ProductResource extends JsonResource
             'plant_type' => $this->plant_type ?? '',
             'estimated_time' => $this->estimated_time ?? '',
             
+            // Author relationship (new)
+            'author_user' => $this->whenLoaded('author', function () {
+                return [
+                    'id' => $this->author->id,
+                    'name' => $this->author->name,
+                    'email' => $this->author->email,
+                    'role' => $this->author->role,
+                ];
+            }),
+            
             // Tags relationship
             'tags' => TagResource::collection($this->whenLoaded('tags')),
         ];

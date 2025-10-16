@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Video;
 use App\Models\ActivityLog;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
@@ -28,13 +29,21 @@ class VideoController extends Controller
                 ]);
             }
 
-            $query = Video::query()->with('tags');
+            $query = Video::query()->with(['tags', 'author']);
 
             // Filter by status
             // Check if user is authenticated admin/moderator
             $isAdmin = auth()->check() && in_array(auth()->user()->role, ['admin', 'moderator']);
             
             if ($isAdmin) {
+                // If moderator, only show own content + published content
+                if (auth()->user()->role === 'moderator') {
+                    $query->where(function($q) {
+                        $q->where('author_id', auth()->id())
+                          ->orWhere('status', 'published');
+                    });
+                }
+                
                 // Admin can see all, but if status param provided, filter by it
                 if ($request->has('status') && $request->status !== 'all') {
                     $query->where('status', $request->status);
@@ -97,10 +106,10 @@ class VideoController extends Controller
             
             if ($isAdmin) {
                 // Admin can view any video
-                $video = Video::with('tags')->findOrFail($id);
+                $video = Video::with(['tags', 'author'])->findOrFail($id);
             } else {
                 // Public can only view published videos
-                $video = Video::with('tags')->where('status', 'published')->findOrFail($id);
+                $video = Video::with(['tags', 'author'])->where('status', 'published')->findOrFail($id);
             }
             
             // Use atomic increment to prevent race conditions
@@ -206,6 +215,17 @@ class VideoController extends Controller
             $tags = $validated['tags'] ?? [];
             unset($validated['tags']);
             
+            // Auto-assign author based on role
+            if (auth()->user()->role === 'admin' && $request->has('author_id')) {
+                // Admin can select author
+                $validated['author_id'] = $request->author_id;
+                $author = User::findOrFail($request->author_id);
+            } else {
+                // Moderator or no selection: assign to self
+                $validated['author_id'] = auth()->id();
+                $author = auth()->user();
+            }
+            
             $video = Video::create($validated);
             
             // Sync tags
@@ -221,8 +241,12 @@ class VideoController extends Controller
                 'video',
                 $video->id,
                 $video->title,
-                auth()->user() ? auth()->user()->name . " uploaded video: {$video->title}" : "Video uploaded: {$video->title}",
-                ['status' => $video->status]
+                auth()->user()->name . " created video and assigned to " . $author->name,
+                [
+                    'author_id' => $author->id,
+                    'author_name' => $author->name,
+                    'status' => $video->status
+                ]
             );
             
             return response()->json([
@@ -278,12 +302,24 @@ class VideoController extends Controller
                 $request->merge($request->except('_method'));
             }
             
-            $video = Video::with('tags')->findOrFail($id);
+            $video = Video::with(['tags', 'author'])->findOrFail($id);
             Log::info('VideoController::update - Video found', [
                 'video_id' => $video->id,
                 'current_status' => $video->status,
                 'title' => $video->title
             ]);
+            
+            // Check permission: only author or admin can update
+            if (auth()->user()->role !== 'admin' && $video->author_id !== auth()->id()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You can only edit your own videos.'
+                ], 403);
+            }
+            
+            // Track author changes for logging
+            $oldAuthorId = $video->author_id;
+            $oldAuthor = $video->author;
             
             // Validation rules - simplified to avoid 422 errors
             $validationRules = [
@@ -371,6 +407,11 @@ class VideoController extends Controller
             $tags = $validated['tags'] ?? null;
             unset($validated['tags']);
             
+            // Handle author_id updates (admin only)
+            if ($request->has('author_id') && auth()->user()->role === 'admin') {
+                $validated['author_id'] = $request->author_id;
+            }
+            
             $video->update($validated);
             
             // Sync tags if provided
@@ -388,15 +429,34 @@ class VideoController extends Controller
                 'updated_fields' => array_keys($validated)
             ]);
             
-            // Log video update activity
-            ActivityLog::logPublic(
-                'updated',
-                'video',
-                $video->id,
-                $video->title,
-                auth()->user() ? auth()->user()->name . " updated video: {$video->title}" : "Video updated: {$video->title}",
-                ['status' => $video->status, 'changed_fields' => array_keys($validated)]
-            );
+            // Log transfer if author changed
+            if ($oldAuthorId && isset($validated['author_id']) && $oldAuthorId != $validated['author_id']) {
+                $newAuthor = User::find($validated['author_id']);
+                ActivityLog::logPublic(
+                    'transferred',
+                    'video',
+                    $video->id,
+                    $video->title,
+                    "Admin transferred video from " . $oldAuthor->name . " to " . $newAuthor->name,
+                    [
+                        'old_author_id' => $oldAuthorId,
+                        'new_author_id' => $validated['author_id'],
+                        'old_author_name' => $oldAuthor->name,
+                        'new_author_name' => $newAuthor->name,
+                        'changed_by' => auth()->user()->name
+                    ]
+                );
+            } else {
+                // Log video update activity
+                ActivityLog::logPublic(
+                    'updated',
+                    'video',
+                    $video->id,
+                    $video->title,
+                    auth()->user() ? auth()->user()->name . " updated video: {$video->title}" : "Video updated: {$video->title}",
+                    ['status' => $video->status, 'changed_fields' => array_keys($validated)]
+                );
+            }
             
             return response()->json([
                 'success' => true,

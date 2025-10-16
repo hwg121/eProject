@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ArticleResource;
 use App\Models\Article;
 use App\Models\ActivityLog;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
@@ -39,11 +40,19 @@ class ArticleController extends Controller
             $isAdmin = auth()->check() && in_array(auth()->user()->role, ['admin', 'moderator']);
             
             if ($isAdmin) {
+                // If moderator, only show own content + published content
+                if (auth()->user()->role === 'moderator') {
+                    $query->where(function($q) {
+                        $q->where('author_id', auth()->id())
+                          ->orWhere('status', 'published');
+                    });
+                }
+                
                 // Admin can see all, but if status param provided, filter by it
                 if ($request->has('status') && $request->status !== 'all') {
                     $query->where('status', $request->status);
                 }
-                // If no status param or status=all, show all articles for admin
+                // If no status param or status=all, admin shows all articles
             } else {
                 // Public access: only show published articles
                 $query->where('status', 'published');
@@ -173,6 +182,17 @@ class ArticleController extends Controller
             $tags = $validated['tags'] ?? [];
             unset($validated['tags']);
             
+            // Auto-assign author based on role
+            if (auth()->user()->role === 'admin' && $request->has('author_id')) {
+                // Admin can select author
+                $validated['author_id'] = $request->author_id;
+                $author = User::findOrFail($request->author_id);
+            } else {
+                // Moderator or no selection: assign to self
+                $validated['author_id'] = auth()->id();
+                $author = auth()->user();
+            }
+            
             $article = Article::create($validated);
             
             // Sync tags
@@ -193,8 +213,12 @@ class ArticleController extends Controller
                 'article',
                 $article->id,
                 $article->title,
-                auth()->user() ? auth()->user()->name . " created article: {$article->title}" : "Article created: {$article->title}",
-                ['status' => $article->status]
+                auth()->user()->name . " created article and assigned to " . $author->name,
+                [
+                    'author_id' => $author->id,
+                    'author_name' => $author->name,
+                    'status' => $article->status
+                ]
             );
             
             return response()->json([
@@ -239,6 +263,18 @@ class ArticleController extends Controller
         try {
             $article = Article::with(['tags', 'author'])->findOrFail($id);
             
+            // Check permission: only author or admin can update
+            if (auth()->user()->role !== 'admin' && $article->author_id !== auth()->id()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You can only edit your own articles.'
+                ], 403);
+            }
+            
+            // Track author changes for logging
+            $oldAuthorId = $article->author_id;
+            $oldAuthor = $article->author;
+            
             $validated = $request->validate([
                 'title' => 'sometimes|required|string|min:3|max:200',
                 'slug' => 'sometimes|required|string|max:255|unique:articles,slug,' . $id,
@@ -264,6 +300,11 @@ class ArticleController extends Controller
             $tags = $validated['tags'] ?? null;
             unset($validated['tags']);
 
+            // Handle author_id updates (admin only)
+            if ($request->has('author_id') && auth()->user()->role === 'admin') {
+                $validated['author_id'] = $request->author_id;
+            }
+
             $article->update($validated);
             
             // Sync tags if provided
@@ -273,15 +314,34 @@ class ArticleController extends Controller
                 $article->load('tags');
             }
             
-            // Log article update activity
-            ActivityLog::logPublic(
-                'updated',
-                'article',
-                $article->id,
-                $article->title,
-                auth()->user() ? auth()->user()->name . " updated article: {$article->title}" : "Article updated: {$article->title}",
-                ['status' => $article->status, 'changed_fields' => array_keys($validated)]
-            );
+            // Log transfer if author changed
+            if ($oldAuthorId && isset($validated['author_id']) && $oldAuthorId != $validated['author_id']) {
+                $newAuthor = User::find($validated['author_id']);
+                ActivityLog::logPublic(
+                    'transferred',
+                    'article',
+                    $article->id,
+                    $article->title,
+                    "Admin transferred article from " . $oldAuthor->name . " to " . $newAuthor->name,
+                    [
+                        'old_author_id' => $oldAuthorId,
+                        'new_author_id' => $validated['author_id'],
+                        'old_author_name' => $oldAuthor->name,
+                        'new_author_name' => $newAuthor->name,
+                        'changed_by' => auth()->user()->name
+                    ]
+                );
+            } else {
+                // Log normal article update activity
+                ActivityLog::logPublic(
+                    'updated',
+                    'article',
+                    $article->id,
+                    $article->title,
+                    auth()->user() ? auth()->user()->name . " updated article: {$article->title}" : "Article updated: {$article->title}",
+                    ['status' => $article->status, 'changed_fields' => array_keys($validated)]
+                );
+            }
             
             return response()->json([
                 'success' => true,

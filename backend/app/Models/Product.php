@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Product extends Model
@@ -23,6 +24,7 @@ class Product extends Model
         'size',
         'color',
         'author',
+        'author_id',
         'pages',
         'published_year',
         'drainage_holes',
@@ -94,6 +96,14 @@ class Product extends Model
     public function getDisplayLink()
     {
         return $this->link;
+    }
+
+    /**
+     * Get the author that created this product.
+     */
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'author_id');
     }
 
     /**

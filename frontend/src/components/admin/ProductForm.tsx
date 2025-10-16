@@ -5,6 +5,7 @@ import Toast from '../ui/Toast';
 import TagInput from './TagInput';
 import ImageUpload from '../common/ImageUpload';
 import { validateNumber, validateURL, hasErrors } from '../../utils/validation';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Product {
   id?: string;
@@ -29,6 +30,7 @@ interface Product {
   
   // Book specific
   author?: string;
+  author_id?: number;
   pages?: number;
   published_year?: number;
   
@@ -145,6 +147,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
     setSnackbar({ open: true, message, severity });
   };
   
+  const [users, setUsers] = useState<Array<{id: number; name: string; role: string}>>([]);
+  const { user: currentUser } = useAuth();
+  
   // MUI TextField styles (matching Campaign Settings)
   const textFieldStyles = {
     '& .MuiOutlinedInput-root': {
@@ -182,6 +187,32 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   }, [item]);
 
+  // Fetch users list for admin dropdown
+  useEffect(() => {
+    if (currentUser?.role === 'admin') {
+      const fetchUsers = async () => {
+        try {
+          const token = localStorage.getItem('auth_token');
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/users`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/json',
+            },
+          });
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.data) {
+              setUsers(data.data);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch users:', error);
+        }
+      };
+      fetchUsers();
+    }
+  }, [currentUser]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -191,10 +222,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
     // Required field validations
     if (!formData.name && !formData.title) {
       newErrors.name = 'Product name is required';
+    } else if ((formData.name || formData.title || '').trim().length < 2) {
+      newErrors.name = 'Product name must be at least 2 characters';
     }
     
     if (!formData.description) {
       newErrors.description = 'Product description is required';
+    } else if (formData.description.trim().length < 10) {
+      newErrors.description = 'Product description must be at least 10 characters';
     }
     
     if (!formData.category) {
@@ -294,7 +329,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
           <TextField
             fullWidth
             size="small"
-            label="Name"
+            label="Name *"
             value={formData.title || formData.name || ''}
             onChange={(e) => {
               const value = e.target.value;
@@ -306,7 +341,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               setErrors({ ...errors, name: null });
             }}
             error={!!errors.name}
-            helperText={errors.name || `${(formData.title || formData.name || '').length}/100 characters (min 2)`}
+            helperText={errors.name || `${(formData.title || formData.name || '').length}/100 characters (min 2 required)`}
             inputProps={{ maxLength: 100 }}
             sx={textFieldStyles}
           />
@@ -499,7 +534,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             fullWidth
             multiline
             rows={4}
-            label="Description"
+            label="Description *"
             value={formData.description || ''}
             onChange={(e) => {
               const value = e.target.value;
@@ -511,7 +546,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               setErrors({ ...errors, description: null });
             }}
             error={!!errors.description}
-            helperText={errors.description || `${(formData.description || '').length}/5000 characters (min 10)`}
+            helperText={errors.description || `${(formData.description || '').length}/5000 characters (min 10 required)`}
             inputProps={{ maxLength: 5000 }}
             placeholder="Short product description..."
             sx={textFieldStyles}
@@ -532,6 +567,28 @@ const ProductForm: React.FC<ProductFormProps> = ({
           folder="products"
         />
       </div>
+
+      {/* Author dropdown for admin */}
+      {currentUser?.role === 'admin' && (
+        <div>
+          <TextField
+            fullWidth
+            select
+            size="small"
+            label="Content Author"
+            value={formData.author_id || currentUser.id}
+            onChange={(e) => setFormData({ ...formData, author_id: parseInt(e.target.value) })}
+            sx={textFieldStyles}
+            helperText="Select the author/creator of this product entry"
+          >
+            {users.map((user) => (
+              <MenuItem key={user.id} value={user.id}>
+                {user.name} ({user.role})
+              </MenuItem>
+            ))}
+          </TextField>
+        </div>
+      )}
 
       {/* Category-specific fields */}
 

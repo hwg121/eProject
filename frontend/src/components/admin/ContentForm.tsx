@@ -7,11 +7,11 @@ import RichTextEditor from './RichTextEditor';
 import TagInput from './TagInput';
 import { ContentFormProps } from '../../types/admin';
 import { validateText, validateURL, validateNumber, hasErrors } from '../../utils/validation';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface FormData {
   title: string;
-  author?: string;
-  instructor?: string;
+  author_id?: number;
   category: string;
   status: 'published' | 'archived';
   description?: string;
@@ -54,6 +54,9 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
     setSnackbar({ open: true, message, severity });
   };
   
+  const [users, setUsers] = useState<Array<{id: number; name: string; role: string}>>([]);
+  const { user: currentUser } = useAuth();
+  
   // Helper function for rating validation
   const handleRatingChange = (value: string) => {
     if (value === '') {
@@ -77,8 +80,6 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
   const [formData, setFormData] = useState<FormData>(
     item || {
       title: '',
-      author: '',
-      instructor: '',
       category: type === 'Technique' || type === 'techniques' || type === 'article' ? 'Technique' : type === 'Video' || type === 'videos' || type === 'video' ? 'Video' : (categories && categories.length > 0 ? categories[0] : ''),
       status: 'published',
       description: '',
@@ -121,6 +122,32 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
     }
   }, [item, type]);
 
+  // Fetch users list for admin dropdown
+  useEffect(() => {
+    if (currentUser?.role === 'admin') {
+      const fetchUsers = async () => {
+        try {
+          const token = localStorage.getItem('auth_token');
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/users`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/json',
+            },
+          });
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.data) {
+              setUsers(data.data);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch users:', error);
+        }
+      };
+      fetchUsers();
+    }
+  }, [currentUser]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -129,14 +156,8 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
     
     newErrors.title = validateText(formData.title, 3, 200, 'Title', true);
     
-    if (!isVideoType(type) && type !== 'suggestions') {
-      newErrors.author = validateText(formData.author, 2, 100, 'Author', true);
-    }
-    if (isVideoType(type)) {
-      newErrors.instructor = validateText(formData.instructor, 2, 100, 'Instructor', true);
-    }
-    
-    newErrors.description = validateText(formData.description, 10, 5000, 'Description', false);
+    // Description is required for all content types
+    newErrors.description = validateText(formData.description, 10, 5000, 'Description', true);
     newErrors.excerpt = validateText(formData.excerpt, 10, 500, 'Excerpt', false);
     
     if (formData.video_url) {
@@ -274,28 +295,24 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
           />
         </div>
 
-        {type !== 'suggestions' && (
+        {currentUser?.role === 'admin' && (
           <div>
             <TextField
               fullWidth
+              select
               size="small"
-              label={isVideoType(type) ? 'Instructor' : 'Author'}
-              value={isVideoType(type) ? formData.instructor : formData.author}
-              onChange={(e) => {
-                const field = isVideoType(type) ? 'instructor' : 'author';
-                const value = e.target.value;
-                if (value.length > 100) {
-                  setErrors({ ...errors, [field]: `${isVideoType(type) ? 'Instructor' : 'Author'} name must not exceed 100 characters` });
-                  return;
-                }
-                setFormData({ ...formData, [field]: value });
-                setErrors({ ...errors, [field]: null });
-              }}
-              error={!!(isVideoType(type) ? errors.instructor : errors.author)}
-              helperText={(isVideoType(type) ? errors.instructor : errors.author) || `${((isVideoType(type) ? formData.instructor : formData.author) || '').length}/100 characters (min 2)`}
-              inputProps={{ maxLength: 100 }}
+              label="Author"
+              value={formData.author_id || currentUser.id}
+              onChange={(e) => setFormData({ ...formData, author_id: parseInt(e.target.value) })}
               sx={textFieldStyles}
-            />
+              helperText="Select the author for this content"
+            >
+              {users.map((user) => (
+                <MenuItem key={user.id} value={user.id}>
+                  {user.name} ({user.role})
+                </MenuItem>
+              ))}
+            </TextField>
           </div>
         )}
 
@@ -522,7 +539,7 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
           fullWidth
           multiline
           rows={3}
-          label="Description (Short Summary)"
+          label="Description (Short Summary) *"
           value={formData.description || ''}
           onChange={(e) => {
             const value = e.target.value;
@@ -534,7 +551,7 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
             setErrors({ ...errors, description: null });
           }}
           error={!!errors.description}
-          helperText={errors.description || `${(formData.description || '').length}/5000 characters (min 10 recommended)`}
+          helperText={errors.description || `${(formData.description || '').length}/5000 characters (min 10 required)`}
           placeholder="Brief description for preview..."
           inputProps={{ maxLength: 5000 }}
           sx={textFieldStyles}
