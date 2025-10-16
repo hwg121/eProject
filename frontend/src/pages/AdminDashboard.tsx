@@ -2072,9 +2072,9 @@ Updated: ${product.updatedAt}
                         } else if (currentTab === 'view-all') {
                           // Reload all content for analytics
                           const [articlesData, videosData, productsData] = await Promise.all([
-                            articlesService.getAll({ per_page: 100 }),
-                            videosService.getAll({ per_page: 100 }),
-                            productService.getAll({ per_page: 100 })
+                            articlesService.getAll({ per_page: 1000, status: 'all' }),
+                            videosService.getAll({ per_page: 1000, status: 'all' }),
+                            productService.getAll({ per_page: 1000, status: 'all' })
                           ]);
                           setArticles(articlesData as any);
                           setVideos(videosData as any);
@@ -2090,8 +2090,8 @@ Updated: ${product.updatedAt}
                           const data = await userService.getAll();
                           setUsers(data as any);
                         } else if (currentTab.includes('product') || currentTab === 'tools' || currentTab === 'books' || currentTab === 'pots' || currentTab === 'accessories' || currentTab === 'suggestions') {
-                          // Reload products for product-related tabs
-                          const data = await productService.getAll();
+                          // Reload products for product-related tabs - get all products including archived
+                          const data = await productService.getAll({ per_page: 1000, status: 'all' });
                           // Transform products based on their category
                           setProducts(Array.isArray(data) ? data.map(transformProductByCategory) : []);
                         } else if (activeTab === 'tags') {
