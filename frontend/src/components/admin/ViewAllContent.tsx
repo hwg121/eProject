@@ -901,7 +901,7 @@ const ViewAllContent: React.FC = () => {
                         
                         <TableCell>
                           <StatusBadge 
-                            status={item.status as 'published' | 'archived' | 'inactive'} 
+                            status={item.status as 'draft' | 'pending' | 'published' | 'archived'} 
                             size="small"
                           />
                         </TableCell>

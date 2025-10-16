@@ -18,7 +18,7 @@ import {
   Article as ArticleIcon,
   VideoLibrary
 } from '@mui/icons-material';
-import ContentStatusBadge from '../ui/ContentStatusBadge';
+import StatusBadge from '../ui/StatusBadge';
 import { ContentItem } from '../../types/admin';
 
 interface ApprovalManagementProps {
@@ -162,7 +162,7 @@ const ApprovalManagement: React.FC<ApprovalManagementProps> = ({
                     {(item.description || '').substring(0, 150)}{(item.description || '').length > 150 ? '...' : ''}
                   </Typography>
                   <Box sx={{ mt: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
-                    <ContentStatusBadge status="pending" />
+                    <StatusBadge status="pending" size="small" />
                     <Chip 
                       icon={item.type === 'product' ? <ShoppingBag sx={{ fontSize: 16 }} /> 
                           : item.type === 'article' ? <ArticleIcon sx={{ fontSize: 16 }} />

@@ -7,7 +7,6 @@ import { ContentItem } from '../../types/admin';
 import StatusBadge from '../ui/StatusBadge';
 import { ViewsChip, LikesChip, RatingChip, ViewButton, EditButton, DeleteButton } from '../ui/ContentIcons';
 import QuickStatusButtons from './QuickStatusButtons';
-import ContentStatusBadge from '../ui/ContentStatusBadge';
 import {
   Box,
   Card,

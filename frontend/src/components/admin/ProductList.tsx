@@ -8,7 +8,6 @@ import { apiClient } from '../../services/api';
 import StatusBadge from '../ui/StatusBadge';
 import { ViewsChip, RatingChip, EditButton, DeleteButton } from '../ui/ContentIcons';
 import QuickStatusButtons from './QuickStatusButtons';
-import ContentStatusBadge from '../ui/ContentStatusBadge';
 import {
   Box,
   Card,
