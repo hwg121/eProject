@@ -428,9 +428,9 @@ const AdminDashboard: React.FC = () => {
       // Load all content data using admin endpoints
       console.log('AdminDashboard - Starting to load data...');
       const [articlesData, videosData, allProductsData, contactMessagesData, usersData, publicActivitiesData, securityActivitiesData] = await Promise.all([
-          loadDataWithFallback(() => articlesService.getAll({ status: 'all' })), // Explicitly request all articles including archived
-          loadDataWithFallback(() => videosService.getAll({ status: 'all' })), // Explicitly request all videos including archived
-          loadDataWithFallback(() => productService.getAll({ status: 'all' })), // Explicitly request all products including archived
+          loadDataWithFallback(() => articlesService.getAll({ status: 'all', per_page: 100 })), // Get all articles including archived
+          loadDataWithFallback(() => videosService.getAll({ status: 'all', per_page: 100 })), // Get all videos including archived
+          loadDataWithFallback(() => productService.getAll({ status: 'all', per_page: 100 })), // Get all products including archived
           loadDataWithFallback(() => contactService.getAll()),
           loadDataWithFallback(() => userService.getAll()),
           loadDataWithFallback(() => activityLogService.getPublicActivities(20)),

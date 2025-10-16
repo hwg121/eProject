@@ -25,6 +25,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (name: string, email: string, password: string, password_confirmation: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<boolean>;
 }
@@ -79,7 +80,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           localStorage.removeItem('auth_token');
         }
       }
-    } catch (error) {
+    } catch {
       localStorage.removeItem('auth_token');
     } finally {
       setIsLoading(false);
@@ -121,7 +122,57 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           error: data.message || 'Login failed' 
         };
       }
-    } catch (error) {
+    } catch {
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const register = async (name: string, email: string, password: string, password_confirmation: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      setIsLoading(true);
+      
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://103.252.93.249/api'}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ 
+          name, 
+          email, 
+          password, 
+          password_confirmation 
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        const { token, user: userData } = data.data;
+        
+        // Store token
+        localStorage.setItem('auth_token', token);
+        
+        // Clear logout flag on successful registration
+        localStorage.removeItem('user_logged_out');
+        
+        // Set user state
+        setUser(userData);
+        setIsAuthenticated(true);
+        
+        return { success: true };
+      } else {
+        return { 
+          success: false, 
+          error: data.message || data.errors ? Object.values(data.errors).flat().join(', ') : 'Registration failed' 
+        };
+      }
+    } catch {
       return { 
         success: false, 
         error: 'Network error. Please try again.' 
@@ -145,7 +196,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           },
         });
       }
-    } catch (error) {
+    } catch {
+      // Ignore logout errors
     } finally {
       // Clear local state regardless of API call success
       localStorage.removeItem('auth_token');
@@ -187,7 +239,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       
       return false;
-    } catch (error) {
+    } catch {
       return false;
     }
   };
@@ -197,6 +249,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     isAuthenticated,
     isLoading,
     login,
+    register,
     logout,
     refreshToken,
   };

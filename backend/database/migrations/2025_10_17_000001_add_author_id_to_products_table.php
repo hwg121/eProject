@@ -12,9 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->unsignedBigInteger('author_id')->nullable()->after('slug');
-            $table->foreign('author_id')->references('id')->on('users')->onDelete('set null');
-            $table->index('author_id');
+            // Only add author_id if it doesn't exist
+            if (!Schema::hasColumn('products', 'author_id')) {
+                $table->unsignedBigInteger('author_id')->nullable()->after('slug');
+                $table->foreign('author_id')->references('id')->on('users')->onDelete('set null');
+                $table->index('author_id');
+            }
         });
     }
 
@@ -24,10 +27,11 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->dropForeign(['author_id']);
-            $table->dropIndex(['author_id']);
-            $table->dropColumn('author_id');
+            if (Schema::hasColumn('products', 'author_id')) {
+                $table->dropForeign(['author_id']);
+                $table->dropIndex(['author_id']);
+                $table->dropColumn('author_id');
+            }
         });
     }
 };
-

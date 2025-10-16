@@ -32,6 +32,9 @@ class ProductResource extends JsonResource
             'color' => $this->color ?? '',
             'status' => $this->status ?? 'published',
             'is_featured' => (bool) ($this->is_featured ?? false),
+            'featured' => (bool) ($this->is_featured ?? false), // Frontend expects 'featured'
+            'is_published' => $this->status === 'published', // Derived from status
+            'author_id' => $this->author_id ?? null,
             'views' => $this->views ?? 0,
             'likes' => $this->likes ?? 0,
             'rating' => is_numeric($this->rating ?? 0) ? (float) $this->rating : 0.0,

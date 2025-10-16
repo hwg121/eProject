@@ -108,6 +108,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       
       // Book specific
       author: '',
+      author_id: undefined,
       pages: 0,
       published_year: new Date().getFullYear(),
       
@@ -216,17 +217,20 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Debug: log current form data
+    console.log('🔍 Form submit - Current formData:', formData);
+    
     // Validation
     const newErrors: {[key: string]: string | null} = {};
     
     // Required field validations
     if (!formData.name && !formData.title) {
       newErrors.name = 'Product name is required';
-    } else if ((formData.name || formData.title || '').trim().length < 2) {
+    } else if ((formData.name || formData.title || '').trim().length > 0 && (formData.name || formData.title || '').trim().length < 2) {
       newErrors.name = 'Product name must be at least 2 characters';
     }
     
-    if (!formData.description) {
+    if (!formData.description || formData.description.trim().length === 0) {
       newErrors.description = 'Product description is required';
     } else if (formData.description.trim().length < 10) {
       newErrors.description = 'Product description must be at least 10 characters';
@@ -249,24 +253,28 @@ const ProductForm: React.FC<ProductFormProps> = ({
       newErrors.brand = 'Brand must not exceed 50 characters';
     }
     
-    if (formData.author && formData.author.length > 100) {
-      newErrors.author = 'Author name must not exceed 100 characters';
+    if (formData.author && formData.author.trim().length > 0) {
+      if (formData.author.trim().length < 2) {
+        newErrors.author = 'Author name must be at least 2 characters';
+      } else if (formData.author.length > 100) {
+        newErrors.author = 'Author name must not exceed 100 characters';
+      }
     }
     
-    // Number validations
-    if (formData.price !== undefined && formData.price !== null) {
+    // Number validations - only validate if value is provided and not 0
+    if (formData.price !== undefined && formData.price !== null && formData.price !== 0) {
       newErrors.price = validateNumber(formData.price, 0, 999999, 'Price', false);
     }
     
-    if (formData.rating !== undefined && formData.rating !== null) {
+    if (formData.rating !== undefined && formData.rating !== null && formData.rating !== 0) {
       newErrors.rating = validateNumber(formData.rating, 0, 5, 'Rating', false);
     }
     
-    if (formData.pages !== undefined && formData.pages !== null) {
+    if (formData.pages !== undefined && formData.pages !== null && formData.pages !== 0) {
       newErrors.pages = validateNumber(formData.pages, 1, 10000, 'Pages', false);
     }
     
-    if (formData.published_year !== undefined && formData.published_year !== null) {
+    if (formData.published_year !== undefined && formData.published_year !== null && formData.published_year !== 0 && formData.published_year !== new Date().getFullYear()) {
       newErrors.published_year = validateNumber(formData.published_year, 1900, 2100, 'Published Year', false);
     }
     
@@ -275,12 +283,25 @@ const ProductForm: React.FC<ProductFormProps> = ({
       newErrors.link = validateURL(formData.link, false);
     }
     
+    // Author ID validation (for admin dropdown) - only validate if value exists
+    if (formData.author_id !== undefined && formData.author_id !== null && formData.author_id !== '') {
+      if (!Number.isInteger(formData.author_id) || formData.author_id <= 0) {
+        newErrors.author_id = 'Please select a valid author';
+      }
+    }
+    
     // Check if there are any errors
     if (hasErrors(newErrors)) {
+      console.log('❌ Validation errors:', newErrors);
+      console.log('❌ Form data:', formData);
+      console.log('❌ Error details:', Object.entries(newErrors).filter(([key, value]) => value !== null));
+      console.log('❌ hasErrors result:', hasErrors(newErrors));
       setErrors(newErrors);
       showToast('Please fix validation errors', 'error');
       return;
     }
+    
+    console.log('✅ Validation passed - no errors found');
     
     // Clear errors if validation passes
     setErrors({});
@@ -295,6 +316,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
       subcategory: formData.subcategory || '',
       // Tags should be array of tag IDs
       tags: Array.isArray(formData.tags) ? formData.tags : [],
+      // Handle author_id - only include if it's a valid number
+      author_id: (formData.author_id && Number.isInteger(formData.author_id) && formData.author_id > 0) ? formData.author_id : undefined,
       rating: (() => {
           const ratingValue = parseFloat(formData.rating as any) || 0;
         return ratingValue;
@@ -311,6 +334,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
       status: formData.status || 'published',
       is_published: formData.is_published !== undefined ? formData.is_published : formData.status === 'published'
     };
+    
+    // Debug: log the data being sent
+    console.log('🔍 ProductForm - Submitting data:', processedData);
+    console.log('🔍 Name:', processedData.name, 'Length:', processedData.name?.length);
+    console.log('🔍 Description:', processedData.description?.substring(0, 50) + '...', 'Length:', processedData.description?.length);
     
     // Call parent's onSave - parent will handle success/error messages
     onSave(processedData);
@@ -576,10 +604,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
             select
             size="small"
             label="Content Author"
-            value={formData.author_id || currentUser.id}
+            value={formData.author_id || (currentUser?.id ? parseInt(currentUser.id.toString()) : '')}
             onChange={(e) => setFormData({ ...formData, author_id: parseInt(e.target.value) })}
             sx={textFieldStyles}
-            helperText="Select the author/creator of this product entry"
+            error={!!errors.author_id}
+            helperText={errors.author_id || "Select the author/creator of this product entry"}
           >
             {users.map((user) => (
               <MenuItem key={user.id} value={user.id}>
@@ -610,7 +639,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 setErrors({ ...errors, author: null });
               }}
               error={!!errors.author}
-              helperText={errors.author || `${(formData.author || '').length}/100 characters (min 2)`}
+              helperText={errors.author || `${(formData.author || '').length}/100 characters (min 2 if provided)`}
               inputProps={{ maxLength: 100 }}
               placeholder="Author name"
               sx={textFieldStyles}
