@@ -1,0 +1,1735 @@
+===================================================================================
+📋 PROMPT CHI TIẾT - IMPLEMENT CONTENT/PRODUCT AUTHORSHIP & MODERATOR PERMISSIONS
+===================================================================================
+
+🎯 MỤC TIÊU TỔNG QUAN:
+----------------------
+Cải tiến hệ thống quản lý content/product với các yêu cầu sau:
+1. Author mặc định là người tạo (auto-fill cho moderator, có thể edit cho admin)
+2. Moderator chỉ được CRUD content/product của chính họ
+3. Admin có quyền gán author cho bất kỳ ai + CRUD tất cả content
+4. Thêm status "pending" cho moderator (cần admin approve)
+5. Hiển thị thông tin "Created by" và "Last updated by" (cả backend & frontend)
+6. **Thêm Admin Sidebar Menu "Approval Management" để admin review và approve content pending**
+7. **Moderator Status Workflow: EDIT action vs STATUS-ONLY action (detailed rules below)**
+
+===================================================================================
+📊 PHÂN TÍCH HỆ THỐNG HIỆN TẠI:
+===================================================================================
+
+BACKEND MODELS:
+---------------
+✅ Article: Đã có author_id relationship với User
+✅ Video: Đã có author_id relationship với User  
+❌ Product: CHƯA CÓ author_id (chỉ có field 'author' string cho book)
+
+MIGRATIONS:
+-----------
+✅ Articles table: author_id (foreignId, nullable, onDelete: set null)
+✅ Videos table: author_id (foreignId, nullable, onDelete: set null)
+⚠️ Products table: ĐÃ CÓ author_id (@2025_10_17_000001) - NHƯNG CHƯA CÓ created_by, updated_by
+
+STATUS FIELDS:
+--------------
+✅ Article: enum('draft', 'published') - CẦN THÊM 'pending', 'archived'
+✅ Video: enum('draft', 'published') - CẦN THÊM 'pending', 'archived'
+✅ Product: enum('draft', 'published', 'archived') - CẦN THÊM 'pending'
+
+CONTROLLERS HIỆN TẠI:
+---------------------
+- ProductController: store() và update() KHÔNG set author_id
+- ArticleController: store() và update() CÓ validate author_id nhưng không auto-set
+- VideoController: store() và update() CÓ validate author_id nhưng không auto-set
+- Tất cả controllers: Không kiểm tra ownership cho moderator
+
+AUTHENTICATION & AUTHORIZATION:
+--------------------------------
+- Route middleware: 'check.role:admin,moderator' (cho phép cả 2)
+- Controllers: Check isAdmin = admin || moderator
+- CHƯA CÓ logic phân biệt quyền giữa admin vs moderator
+
+TIMESTAMPS vs AUDIT TRACKING:
+------------------------------
+⚠️ QUAN TRỌNG - Phân biệt 2 loại tracking:
+
+✅ Laravel Timestamps (ĐÃ CÓ SẴN):
+- created_at: DateTime - Thời gian tạo record
+- updated_at: DateTime - Thời gian cập nhật cuối
+
+❌ Audit Tracking (CẦN THÊM):
+- created_by: Foreign Key → users.id - User nào tạo record
+- updated_by: Foreign Key → users.id - User nào sửa lần cuối
+
+MỤC ĐÍCH: Hiển thị "Created by John Doe on 2025-10-17" và "Last updated by Admin on 2025-10-18"
+
+MODERATOR STATUS WORKFLOW (QUAN TRỌNG):
+----------------------------------------
+⚠️ Moderator có 2 LOẠI ACTIONS khác nhau:
+
+1️⃣ EDIT ACTION (vào form, sửa nội dung):
+   - Click "Edit" button → Vào form
+   - Sửa bất kỳ field nào (title, description, image, etc.)
+   - Click "Save Changes"
+   - → Status AUTO = Pending (bắt buộc)
+   - → KHÔNG có dropdown status trong form
+   - → Content cần admin approve lại
+
+2️⃣ STATUS-ONLY ACTION (quick buttons ngoài list):
+   - KHÔNG vào form edit
+   - Chỉ đổi status, KHÔNG sửa content
+   - Allowed transitions:
+     * Published → Archived (take down button)
+     * Archived → Draft (restore button)
+     * Draft → Pending (submit button)
+     * Pending → Draft (withdraw button)
+
+UI IMPLEMENTATION:
+- Content List có 2 nhóm buttons:
+  * [Edit] = vào form (rule 1️⃣)
+  * [Archive/Restore/Submit] = quick actions (rule 2️⃣)
+
+===================================================================================
+📝 TODO CHI TIẾT (PHẢI THỰC HIỆN TUẦN TỰ):
+===================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 1: DATABASE MIGRATIONS                                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+TODO 1.1: Update migration hiện có cho Products (thêm created_by/updated_by)
+-----------------------------------------------------------------------------
+⚠️ NOTE: Migration @2025_10_17_000001_add_author_id_to_products_table.php ĐÃ TỒN TẠI
+      và đã có author_id. Chỉ cần UPDATE để thêm created_by và updated_by.
+
+File: backend/database/migrations/2025_10_17_000001_add_author_id_to_products_table.php
+
+UPDATE nội dung:
+```php
+public function up(): void
+{
+    Schema::table('products', function (Blueprint $table) {
+        // author_id already exists from previous version - check and add if needed
+        if (!Schema::hasColumn('products', 'author_id')) {
+            $table->unsignedBigInteger('author_id')->nullable()->after('slug');
+            $table->foreign('author_id')->references('id')->on('users')->onDelete('set null');
+            $table->index('author_id');
+        }
+        
+        // Add created_by and updated_by for audit trail (NEW)
+        if (!Schema::hasColumn('products', 'created_by')) {
+            $table->foreignId('created_by')
+                  ->nullable()
+                  ->after('author_id')
+                  ->constrained('users')
+                  ->onDelete('set null');
+            $table->index('created_by');
+        }
+        
+        if (!Schema::hasColumn('products', 'updated_by')) {
+            $table->foreignId('updated_by')
+                  ->nullable()
+                  ->after('created_by')
+                  ->constrained('users')
+                  ->onDelete('set null');
+            $table->index('updated_by');
+        }
+    });
+}
+
+public function down(): void
+{
+    Schema::table('products', function (Blueprint $table) {
+        if (Schema::hasColumn('products', 'author_id')) {
+            $table->dropForeign(['author_id']);
+            $table->dropIndex(['author_id']);
+            $table->dropColumn('author_id');
+        }
+        if (Schema::hasColumn('products', 'created_by')) {
+            $table->dropForeign(['created_by']);
+            $table->dropIndex(['created_by']);
+            $table->dropColumn('created_by');
+        }
+        if (Schema::hasColumn('products', 'updated_by')) {
+            $table->dropForeign(['updated_by']);
+            $table->dropIndex(['updated_by']);
+            $table->dropColumn('updated_by');
+        }
+    });
+}
+```
+
+TODO 1.2: Tạo migration thêm created_by/updated_by cho Articles
+----------------------------------------------------------------
+File: backend/database/migrations/YYYY_MM_DD_HHMMSS_add_audit_tracking_to_articles_table.php
+
+```php
+public function up(): void
+{
+    Schema::table('articles', function (Blueprint $table) {
+        $table->foreignId('created_by')
+              ->nullable()
+              ->after('author_id')
+              ->constrained('users')
+              ->onDelete('set null');
+        
+        $table->foreignId('updated_by')
+              ->nullable()
+              ->after('created_by')
+              ->constrained('users')
+              ->onDelete('set null');
+        
+        $table->index('created_by');
+        $table->index('updated_by');
+    });
+}
+
+public function down(): void
+{
+    Schema::table('articles', function (Blueprint $table) {
+        $table->dropForeign(['created_by']);
+        $table->dropForeign(['updated_by']);
+        $table->dropColumn(['created_by', 'updated_by']);
+    });
+}
+```
+
+TODO 1.3: Tạo migration thêm created_by/updated_by cho Videos
+--------------------------------------------------------------
+File: backend/database/migrations/YYYY_MM_DD_HHMMSS_add_audit_tracking_to_videos_table.php
+
+```php
+// Tương tự Articles
+```
+
+TODO 1.4: Tạo migration thêm status 'pending' cho tất cả tables
+----------------------------------------------------------------
+File: backend/database/migrations/YYYY_MM_DD_HHMMSS_add_pending_status_to_content_tables.php
+
+```php
+public function up(): void
+{
+    // Modify Products status enum
+    DB::statement("ALTER TABLE products MODIFY status ENUM('draft', 'pending', 'published', 'archived') DEFAULT 'pending'");
+    
+    // Modify Articles status enum
+    DB::statement("ALTER TABLE articles MODIFY status ENUM('draft', 'pending', 'published', 'archived') DEFAULT 'pending'");
+    
+    // Modify Videos status enum
+    DB::statement("ALTER TABLE videos MODIFY status ENUM('draft', 'pending', 'published', 'archived') DEFAULT 'pending'");
+}
+
+public function down(): void
+{
+    // Revert to old enum values
+    DB::statement("ALTER TABLE products MODIFY status ENUM('draft', 'published', 'archived') DEFAULT 'published'");
+    DB::statement("ALTER TABLE articles MODIFY status ENUM('draft', 'published') DEFAULT 'published'");
+    DB::statement("ALTER TABLE videos MODIFY status ENUM('draft', 'published') DEFAULT 'published'");
+}
+```
+
+⚠️ CRITICAL CHECK PHASE 1:
+- Verify migrations có syntax đúng
+- Verify onDelete('set null') để tránh cascade delete content khi user bị xóa
+- Verify indexes được tạo đúng cho performance
+- TEST migration: php artisan migrate (trên server)
+- TEST rollback: php artisan migrate:rollback (trên server)
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 2: BACKEND MODELS                                                      │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+TODO 2.1: Cập nhật Product Model
+---------------------------------
+File: backend/app/Models/Product.php
+
+Changes:
+1. Thêm vào $fillable:
+   - 'author_id'
+   - 'created_by'
+   - 'updated_by'
+
+2. Thêm relationships:
+```php
+public function author(): BelongsTo
+{
+    return $this->belongsTo(User::class, 'author_id');
+}
+
+public function creator(): BelongsTo
+{
+    return $this->belongsTo(User::class, 'created_by');
+}
+
+public function updater(): BelongsTo
+{
+    return $this->belongsTo(User::class, 'updated_by');
+}
+```
+
+3. Thêm boot method để auto-track created_by/updated_by:
+```php
+protected static function boot()
+{
+    parent::boot();
+    
+    static::creating(function ($model) {
+        if (auth()->check()) {
+            $model->created_by = auth()->id();
+            $model->updated_by = auth()->id();
+            
+            // Auto-set author_id if not provided
+            if (!$model->author_id) {
+                $model->author_id = auth()->id();
+            }
+        }
+    });
+    
+    static::updating(function ($model) {
+        if (auth()->check()) {
+            $model->updated_by = auth()->id();
+        }
+    });
+}
+```
+
+4. Cập nhật validation cho status:
+```php
+// Thay 'published', 'archived' thành:
+// 'draft', 'pending', 'published', 'archived'
+```
+
+TODO 2.2: Cập nhật Article Model
+---------------------------------
+File: backend/app/Models/Article.php
+
+Changes:
+1. Thêm 'created_by', 'updated_by' vào $fillable
+2. Thêm relationships cho creator() và updater()
+3. Thêm boot method tương tự Product
+
+TODO 2.3: Cập nhật Video Model
+-------------------------------
+File: backend/app/Models/Video.php
+
+Changes: Tương tự Article
+
+⚠️ CRITICAL CHECK PHASE 2:
+- Verify relationships đúng: BelongsTo, tên foreign key chính xác
+- Verify boot() method KHÔNG conflict với existing logic
+- Verify fillable array có đủ fields
+- TEST: Tạo product/article/video mới → check DB xem created_by/updated_by có được set
+- TEST: Update → check updated_by có thay đổi
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 3: BACKEND RESOURCES                                                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+TODO 3.1: Cập nhật ProductResource
+-----------------------------------
+File: backend/app/Http/Resources/ProductResource.php
+
+Thêm vào toArray():
+```php
+'author_id' => $this->author_id,
+'created_by' => $this->created_by,
+'updated_by' => $this->updated_by,
+
+// Relationships (load conditionally)
+'author' => $this->whenLoaded('author', function () {
+    return [
+        'id' => $this->author->id,
+        'name' => $this->author->name,
+        'email' => $this->author->email,
+        'avatar' => $this->author->avatar,
+    ];
+}),
+'creator' => $this->whenLoaded('creator', function () {
+    return [
+        'id' => $this->creator->id,
+        'name' => $this->creator->name,
+    ];
+}),
+'updater' => $this->whenLoaded('updater', function () {
+    return [
+        'id' => $this->updater->id,
+        'name' => $this->updater->name,
+    ];
+}),
+```
+
+TODO 3.2: Cập nhật ArticleResource
+-----------------------------------
+File: backend/app/Http/Resources/ArticleResource.php
+
+Thêm tương tự ProductResource (đã có author, cần thêm creator/updater)
+
+TODO 3.3: Cập nhật VideoResource
+---------------------------------
+File: backend/app/Http/Resources/VideoResource.php
+
+Thêm tương tự
+
+⚠️ CRITICAL CHECK PHASE 3:
+- Verify whenLoaded() để tránh N+1 query
+- Verify không return sensitive data (password, etc)
+- TEST API response có chứa author/creator/updater info
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 4: BACKEND CONTROLLERS - AUTHORIZATION LOGIC                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+TODO 4.1: Tạo Helper Trait cho Authorization
+---------------------------------------------
+File: backend/app/Http/Controllers/Traits/AuthorizesContent.php
+
+```php
+<?php
+
+namespace App\Http\Controllers\Traits;
+
+trait AuthorizesContent
+{
+    /**
+     * Check if user can modify content (admin can modify all, moderator only own)
+     */
+    protected function canModifyContent($content): bool
+    {
+        $user = auth()->user();
+        
+        // Admin can modify anything
+        if ($user->role === 'admin') {
+            return true;
+        }
+        
+        // Moderator can only modify their own content
+        if ($user->role === 'moderator') {
+            return $content->author_id === $user->id;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Get default status based on user role
+     */
+    protected function getDefaultStatus(): string
+    {
+        $user = auth()->user();
+        
+        // Admin content is published by default
+        if ($user->role === 'admin') {
+            return 'published';
+        }
+        
+        // Moderator content needs approval
+        if ($user->role === 'moderator') {
+            return 'pending';
+        }
+        
+        return 'draft';
+    }
+    
+    /**
+     * Check if user can set specific status
+     */
+    protected function canSetStatus(string $status): bool
+    {
+        $user = auth()->user();
+        
+        // Admin can set any status
+        if ($user->role === 'admin') {
+            return true;
+        }
+        
+        // Moderator can only set draft or pending
+        if ($user->role === 'moderator') {
+            return in_array($status, ['draft', 'pending']);
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Check if user can transition from current status to new status
+     * 
+     * IMPORTANT WORKFLOW RULES:
+     * 
+     * MODERATOR có 2 loại actions:
+     * 1. EDIT (vào form, sửa content) → Bất kỳ thay đổi nào → AUTO về Pending
+     * 2. STATUS CHANGE (quick action ngoài list) → Không edit content, chỉ đổi status
+     * 
+     * @param string $currentStatus Current content status
+     * @param string $newStatus Desired new status
+     * @param bool $isContentChanged Whether content fields were modified (for edit detection)
+     */
+    protected function canTransitionStatus(
+        string $currentStatus, 
+        string $newStatus, 
+        bool $isContentChanged = false
+    ): bool {
+        $user = auth()->user();
+        
+        // Admin can do anything
+        if ($user->role === 'admin') {
+            return true;
+        }
+        
+        // Moderator status transition rules
+        if ($user->role === 'moderator') {
+            // If content was changed (EDIT action), force to pending
+            if ($isContentChanged && $currentStatus === 'published') {
+                return $newStatus === 'pending'; // Must go to pending for re-approval
+            }
+            
+            // Status-only transitions (quick actions, no content change)
+            $allowedTransitions = [
+                'draft' => ['pending'],                    // Submit for review
+                'pending' => ['draft'],                    // Withdraw submission
+                'published' => ['archived'],               // Take down (status button only)
+                'archived' => ['draft'],                   // Restore to draft for re-editing
+            ];
+            
+            return in_array($newStatus, $allowedTransitions[$currentStatus] ?? []);
+        }
+        
+        return false;
+    }
+}
+```
+
+TODO 4.2: Cập nhật ProductController
+-------------------------------------
+File: backend/app/Http/Controllers/Api/ProductController.php
+
+Changes:
+
+1. Thêm use Trait:
+```php
+use App\Http\Controllers\Traits\AuthorizesContent;
+
+class ProductController extends Controller
+{
+    use AuthorizesContent;
+```
+
+2. Cập nhật index() - Filter by ownership cho moderator:
+```php
+public function index(Request $request)
+{
+    try {
+        $query = Product::query()->with(['tags', 'author', 'creator', 'updater']);
+        
+        $user = auth()->user();
+        $isAdmin = $user && $user->role === 'admin';
+        $isModerator = $user && $user->role === 'moderator';
+        
+        if ($isAdmin) {
+            // Admin sees all
+            if ($request->has('status') && $request->status !== 'all') {
+                $query->where('status', $request->status);
+            }
+        } else if ($isModerator) {
+            // Moderator only sees their own content
+            $query->where('author_id', $user->id);
+            
+            // Filter by status if provided
+            if ($request->has('status') && $request->status !== 'all') {
+                $query->where('status', $request->status);
+            }
+        } else {
+            // Public: only published
+            $query->where('status', 'published');
+        }
+        
+        // ... rest of filtering logic
+    }
+}
+```
+
+3. Cập nhật store():
+```php
+public function store(Request $request)
+{
+    try {
+        $data = $request->all();
+        
+        // ... existing data processing ...
+        
+        // Set default status based on role
+        if (!isset($data['status']) || !$this->canSetStatus($data['status'])) {
+            $data['status'] = $this->getDefaultStatus();
+        }
+        
+        // Admin can set author_id, moderator cannot
+        if (auth()->user()->role === 'admin') {
+            // Admin can specify author_id from request
+            if (!isset($data['author_id'])) {
+                $data['author_id'] = auth()->id();
+            }
+            // Validate author exists
+            $validated['author_id'] = 'nullable|exists:users,id';
+        } else {
+            // Moderator: force author to self
+            $data['author_id'] = auth()->id();
+        }
+        
+        // Validation rules - UPDATE status validation
+        $validated = $request->validate([
+            // ... existing rules ...
+            'status' => 'nullable|in:draft,pending,published,archived',
+            'author_id' => auth()->user()->role === 'admin' ? 'nullable|exists:users,id' : 'nullable',
+        ]);
+        
+        // created_by and updated_by will be auto-set by Model boot()
+        
+        $product = Product::create($validated);
+        
+        // Load relationships for response
+        $product->load(['tags', 'author', 'creator', 'updater']);
+        
+        // ... rest of logic
+    }
+}
+```
+
+4. Cập nhật update():
+```php
+public function update(Request $request, $id)
+{
+    try {
+        $product = Product::with(['tags', 'author', 'creator', 'updater'])->findOrFail($id);
+        
+        // Authorization check
+        if (!$this->canModifyContent($product)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. You can only modify your own content.'
+            ], 403);
+        }
+        
+        $data = $request->all();
+        
+        // Status validation
+        if (isset($data['status']) && !$this->canSetStatus($data['status'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not authorized to set this status.'
+            ], 403);
+        }
+        
+        // Admin can change author_id, moderator cannot
+        if (auth()->user()->role !== 'admin') {
+            unset($data['author_id']); // Prevent moderator from changing author
+        }
+        
+        // ... rest of validation and update logic
+        
+        $validated = $request->validate([
+            // ... existing rules ...
+            'status' => 'sometimes|required|in:draft,pending,published,archived',
+            'author_id' => auth()->user()->role === 'admin' ? 'nullable|exists:users,id' : 'nullable',
+        ]);
+        
+        $product->update($validated);
+        
+        // Reload relationships
+        $product->load(['tags', 'author', 'creator', 'updater']);
+        
+        // ... rest of logic
+    }
+}
+```
+
+5. Cập nhật destroy():
+```php
+public function destroy($id)
+{
+    try {
+        $product = Product::findOrFail($id);
+        
+        // Authorization check
+        if (!$this->canModifyContent($product)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. You can only delete your own content.'
+            ], 403);
+        }
+        
+        $product->delete();
+        
+        // ... rest of logic
+    }
+}
+```
+
+TODO 4.3: Cập nhật ArticleController
+-------------------------------------
+File: backend/app/Http/Controllers/Api/ArticleController.php
+
+Apply SAME LOGIC như ProductController:
+- index(): Filter by author_id for moderator
+- store(): Auto-set author_id, validate status
+- update(): Check ownership, validate status
+- destroy(): Check ownership
+
+TODO 4.4: Cập nhật VideoController
+-----------------------------------
+File: backend/app/Http/Controllers/Api/VideoController.php
+
+Apply SAME LOGIC như ProductController
+
+⚠️ CRITICAL CHECK PHASE 4:
+- TEST Admin create → author_id có thể custom, status default published
+- TEST Moderator create → author_id = self, status default pending
+- TEST Moderator edit own content → success
+- TEST Moderator edit other's content → 403 error
+- TEST Admin edit any content → success
+- TEST Moderator delete own → success
+- TEST Moderator delete other's → 403
+- TEST Status transitions: pending → published (chỉ admin)
+- TEST với các relationships: author, creator, updater có load đúng
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 5: FRONTEND TYPES & INTERFACES                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+TODO 5.1: Cập nhật frontend types
+----------------------------------
+File: frontend/src/types/admin.ts
+
+Thêm vào ContentItem interface:
+```typescript
+export interface ContentItem {
+  // ... existing fields ...
+  author_id?: number;
+  created_by?: number;
+  updated_by?: number;
+  author?: {
+    id: number;
+    name: string;
+    email: string;
+    avatar?: string;
+  };
+  creator?: {
+    id: number;
+    name: string;
+  };
+  updater?: {
+    id: number;
+    name: string;
+  };
+}
+```
+
+Thêm status enum:
+```typescript
+export type ContentStatus = 'draft' | 'pending' | 'published' | 'archived';
+```
+
+⚠️ CRITICAL CHECK PHASE 5:
+- Verify types match backend response
+- Verify optional fields (?) correctly placed
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 6: FRONTEND FORMS - ProductForm                                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+TODO 6.1: Cập nhật ProductForm component
+-----------------------------------------
+File: frontend/src/components/admin/ProductForm.tsx
+
+Changes:
+
+1. Thêm import useAuth:
+```typescript
+import { useAuth } from '../../contexts/AuthContext';
+```
+
+2. Thêm props để get list users (cho admin):
+```typescript
+interface ProductFormProps {
+  // ... existing props ...
+  users?: User[]; // For admin to select author
+}
+```
+
+3. Trong component:
+```typescript
+const ProductForm: React.FC<ProductFormProps> = ({ 
+  item, 
+  onSave, 
+  onCancel, 
+  isDarkMode,
+  users = []
+}) => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+  
+  // ... existing state ...
+```
+
+4. Thêm field author_id vào form (CHỈ HIỂN THỊ CHO ADMIN):
+```typescript
+{isAdmin && (
+  <div>
+    <TextField
+      fullWidth
+      select
+      size="small"
+      label="Author (Content Owner)"
+      value={formData.author_id || user?.id}
+      onChange={(e) => setFormData({ ...formData, author_id: Number(e.target.value) })}
+      sx={textFieldStyles}
+      helperText="Select the content author/owner"
+    >
+      {users.map(u => (
+        <MenuItem key={u.id} value={u.id}>
+          {u.name} ({u.email}) - {u.role}
+        </MenuItem>
+      ))}
+    </TextField>
+  </div>
+)}
+```
+
+5. Cập nhật Status dropdown - ADMIN ONLY:
+```typescript
+{/* ADMIN: Full status dropdown */}
+{isAdmin && (
+  <div>
+    <label className="block text-sm font-medium mb-2">
+      Status
+    </label>
+    <select
+      id="status"
+      value={formData.status || 'published'}
+      onChange={(e) => setFormData({ 
+        ...formData, 
+        status: e.target.value as ContentStatus
+      })}
+      className={/* ... */}
+    >
+      <option value="draft">Draft</option>
+      <option value="pending">Pending Review</option>
+      <option value="published">Published</option>
+      <option value="archived">Archived</option>
+    </select>
+  </div>
+)}
+
+{/* MODERATOR: No status dropdown in CREATE/EDIT form */}
+{!isAdmin && (
+  <Alert severity="info" sx={{ mb: 2 }}>
+    {item ? (
+      // EDIT mode
+      <Typography variant="body2">
+        ⚠️ Saving changes will set status to <strong>Pending</strong> for admin review.
+      </Typography>
+    ) : (
+      // CREATE mode
+      <Typography variant="body2">
+        Your content will be submitted as <strong>Pending</strong> for admin approval.
+      </Typography>
+    )}
+  </Alert>
+)}
+```
+
+Note: Moderator status = auto "pending" khi submit (không có dropdown)
+
+6. Hiển thị thông tin Created by / Last updated by (READ-ONLY):
+```typescript
+{item && (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+    <div>
+      <Typography variant="caption" className="text-gray-500">
+        Created by
+      </Typography>
+      <Typography variant="body2">
+        {item.creator?.name || 'Unknown'} ({new Date(item.createdAt).toLocaleString()})
+      </Typography>
+    </div>
+    <div>
+      <Typography variant="caption" className="text-gray-500">
+        Last updated by
+      </Typography>
+      <Typography variant="body2">
+        {item.updater?.name || 'Unknown'} ({new Date(item.updatedAt).toLocaleString()})
+      </Typography>
+    </div>
+  </div>
+)}
+```
+
+⚠️ CRITICAL CHECK PHASE 6:
+- TEST Admin: See author dropdown, can select any user
+- TEST Moderator: NO author field (auto = self)
+- TEST Form shows created_by and updated_by info when editing
+- TEST Status dropdown has all 4 options
+- TEST Submit with correct author_id
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 7: FRONTEND FORMS - ContentForm (Article/Video)                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+TODO 7.1: Cập nhật ContentForm component
+-----------------------------------------
+File: frontend/src/components/admin/ContentForm.tsx
+
+Apply SAME CHANGES như ProductForm:
+- Add useAuth
+- Add users prop
+- Add author_id field (admin only)
+- Update status dropdown (add pending)
+- Show created_by / updated_by info
+
+⚠️ CRITICAL CHECK PHASE 7:
+- Tương tự Phase 6
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 8: FRONTEND AdminDashboard - Integration                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+TODO 8.1: Fetch users list for admin
+-------------------------------------
+File: frontend/src/pages/AdminDashboard.tsx
+
+Thêm state:
+```typescript
+const [allUsers, setAllUsers] = useState<User[]>([]);
+```
+
+Thêm vào fetchData():
+```typescript
+const fetchData = async () => {
+  try {
+    // ... existing fetches ...
+    
+    // Fetch users if admin (for author selection)
+    if (user?.role === 'admin') {
+      const usersResponse = await userService.getAll();
+      if (usersResponse.success) {
+        setAllUsers(usersResponse.data);
+      }
+    }
+  } catch (error) {
+    // ...
+  }
+};
+```
+
+TODO 8.2: Pass users to forms
+------------------------------
+Khi render ProductForm:
+```typescript
+<ProductForm
+  item={editingProduct}
+  onSave={handleSaveProduct}
+  onCancel={() => setActiveTab('products')}
+  isDarkMode={isDarkMode}
+  users={allUsers} // <-- ADD THIS
+/>
+```
+
+Khi render ContentForm:
+```typescript
+<ContentForm
+  // ... existing props
+  users={allUsers} // <-- ADD THIS
+/>
+```
+
+TODO 8.3: Cập nhật filter/display logic
+----------------------------------------
+1. Thêm filter "My Content" cho moderator:
+```typescript
+{user?.role === 'moderator' && (
+  <Chip 
+    label="My Content Only" 
+    color="primary" 
+    size="small"
+    sx={{ ml: 2 }}
+  />
+)}
+```
+
+2. Hiển thị author name trong lists:
+```typescript
+// In product/content cards
+<Typography variant="caption" color="text.secondary">
+  By: {item.author?.name || 'Unknown'}
+</Typography>
+```
+
+3. Thêm badge cho status "pending":
+```typescript
+{item.status === 'pending' && (
+  <Chip 
+    label="Pending Review" 
+    color="warning" 
+    size="small"
+    icon={<AccessTime />}
+  />
+)}
+```
+
+⚠️ CRITICAL CHECK PHASE 8:
+- TEST Admin: See all content, can filter by status
+- TEST Moderator: See only own content
+- TEST Content lists show author name
+- TEST Pending items have warning badge
+- TEST Forms receive users list correctly
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 9: FRONTEND STATUS BADGES & UI ENHANCEMENTS                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+TODO 9.1: Tạo StatusBadge component cho content status
+-------------------------------------------------------
+File: frontend/src/components/ui/ContentStatusBadge.tsx
+
+```typescript
+import React from 'react';
+import { Chip } from '@mui/material';
+import { CheckCircle, Schedule, Archive, Edit } from '@mui/icons-material';
+
+interface ContentStatusBadgeProps {
+  status: 'draft' | 'pending' | 'published' | 'archived';
+  size?: 'small' | 'medium';
+}
+
+const ContentStatusBadge: React.FC<ContentStatusBadgeProps> = ({ status, size = 'small' }) => {
+  const configs = {
+    draft: { 
+      label: 'Draft', 
+      color: 'default' as const, 
+      icon: <Edit fontSize="small" /> 
+    },
+    pending: { 
+      label: 'Pending Review', 
+      color: 'warning' as const, 
+      icon: <Schedule fontSize="small" /> 
+    },
+    published: { 
+      label: 'Published', 
+      color: 'success' as const, 
+      icon: <CheckCircle fontSize="small" /> 
+    },
+    archived: { 
+      label: 'Archived', 
+      color: 'default' as const, 
+      icon: <Archive fontSize="small" /> 
+    }
+  };
+  
+  const config = configs[status] || configs.draft;
+  
+  return (
+    <Chip 
+      label={config.label} 
+      color={config.color}
+      size={size}
+      icon={config.icon}
+      sx={{ fontWeight: 500 }}
+    />
+  );
+};
+
+export default ContentStatusBadge;
+```
+
+TODO 9.2: Sử dụng StatusBadge trong lists
+------------------------------------------
+Trong ProductManagement, ContentManagementSection:
+```typescript
+import ContentStatusBadge from '../ui/ContentStatusBadge';
+
+// In render:
+<ContentStatusBadge status={item.status} />
+```
+
+⚠️ CRITICAL CHECK PHASE 9:
+- TEST Badge colors: draft (gray), pending (orange), published (green), archived (gray)
+- TEST Badge icons hiển thị đúng
+- TEST Badge size responsive
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 10: QUICK STATUS BUTTONS (MODERATOR)                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+TODO 10.1: Thêm Quick Status Action Buttons vào Content/Product Lists
+----------------------------------------------------------------------
+File: frontend/src/components/admin/ProductManagement.tsx (và ContentManagementSection)
+
+⚠️ QUAN TRỌNG: Buttons này KHÔNG vào form edit, chỉ update status trực tiếp
+
+Implement logic theo status hiện tại:
+
+**1. DRAFT Content:**
+```typescript
+<ButtonGroup size="small" variant="outlined">
+  <Tooltip title="Submit for admin review">
+    <Button 
+      startIcon={<Send />}
+      onClick={() => handleQuickStatusChange(item.id, 'pending')}
+      color="primary"
+    >
+      Submit
+    </Button>
+  </Tooltip>
+  <Button startIcon={<Edit />} onClick={() => handleEdit(item)}>
+    Edit
+  </Button>
+  <Button startIcon={<Delete />} onClick={() => handleDelete(item)} color="error">
+    Delete
+  </Button>
+</ButtonGroup>
+```
+
+**2. PENDING Content:**
+```typescript
+<ButtonGroup size="small" variant="outlined">
+  <Tooltip title="Withdraw submission">
+    <Button 
+      startIcon={<Undo />}
+      onClick={() => handleQuickStatusChange(item.id, 'draft')}
+      color="warning"
+    >
+      Withdraw
+    </Button>
+  </Tooltip>
+  <Button startIcon={<Edit />} onClick={() => handleEdit(item)}>
+    Edit
+  </Button>
+  <Button startIcon={<Delete />} onClick={() => handleDelete(item)} color="error">
+    Delete
+  </Button>
+</ButtonGroup>
+```
+
+**3. PUBLISHED Content:**
+```typescript
+<ButtonGroup size="small" variant="outlined">
+  <Tooltip title="Take down from public">
+    <Button 
+      startIcon={<Archive />}
+      onClick={() => handleQuickStatusChange(item.id, 'archived')}
+      color="warning"
+    >
+      Archive
+    </Button>
+  </Tooltip>
+  <Button startIcon={<Edit />} onClick={() => handleEdit(item)}>
+    Edit (Re-approval needed)
+  </Button>
+  <Button startIcon={<Delete />} onClick={() => handleDelete(item)} color="error">
+    Delete
+  </Button>
+</ButtonGroup>
+```
+
+**4. ARCHIVED Content:**
+```typescript
+<ButtonGroup size="small" variant="outlined">
+  <Tooltip title="Restore to draft for re-editing">
+    <Button 
+      startIcon={<RestoreFromTrash />}
+      onClick={() => handleQuickStatusChange(item.id, 'draft')}
+      color="info"
+    >
+      Restore
+    </Button>
+  </Tooltip>
+  <Button startIcon={<Delete />} onClick={() => handleDelete(item)} color="error">
+    Delete
+  </Button>
+</ButtonGroup>
+```
+
+TODO 10.2: Implement handleQuickStatusChange function
+------------------------------------------------------
+```typescript
+const handleQuickStatusChange = async (id: string, newStatus: ContentStatus) => {
+  try {
+    // Confirm dialog
+    const messages = {
+      pending: 'Submit this content for admin review?',
+      draft: 'Withdraw this content back to draft?',
+      archived: 'Archive this content? It will be hidden from public.',
+      published: 'This is not allowed via quick action.'
+    };
+    
+    const confirmed = await showConfirmDialog(
+      'Change Status',
+      messages[newStatus]
+    );
+    
+    if (!confirmed) return;
+    
+    // Update status only (no content change)
+    const service = getServiceByType(item.type);
+    await service.update(id, { 
+      status: newStatus 
+      // CRITICAL: Chỉ update status, KHÔNG update content fields
+    });
+    
+    showToast(`Status changed to ${newStatus}`, 'success');
+    await fetchItems(); // Reload list
+  } catch (error) {
+    showToast('Error changing status', 'error');
+  }
+};
+```
+
+TODO 10.3: Update Backend Controller để phân biệt Status-Only vs Edit
+-----------------------------------------------------------------------
+File: backend/app/Http/Controllers/Api/ProductController.php (và Article, Video)
+
+```php
+public function update(Request $request, $id)
+{
+    try {
+        $product = Product::findOrFail($id);
+        
+        // Authorization
+        if (!$this->canModifyContent($product)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 403);
+        }
+        
+        $data = $request->all();
+        $user = auth()->user();
+        
+        // Detect if this is a STATUS-ONLY change (quick action)
+        $statusOnlyFields = ['status'];
+        $providedFields = array_keys($data);
+        $isStatusOnly = count($providedFields) === 1 && in_array('status', $providedFields);
+        
+        // Detect if content was actually changed
+        $contentFields = ['name', 'title', 'description', 'content', 'image', 'price', /* ... all content fields */];
+        $isContentChanged = false;
+        foreach ($contentFields as $field) {
+            if (isset($data[$field]) && $data[$field] != $product->$field) {
+                $isContentChanged = true;
+                break;
+            }
+        }
+        
+        // Moderator logic
+        if ($user->role === 'moderator') {
+            $currentStatus = $product->status;
+            $newStatus = $data['status'] ?? $currentStatus;
+            
+            if ($isStatusOnly) {
+                // Quick status change - use transition rules
+                if (!$this->canTransitionStatus($currentStatus, $newStatus, false)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invalid status transition'
+                    ], 403);
+                }
+            } else {
+                // Content edit - force to pending if currently published
+                if ($isContentChanged && $currentStatus === 'published') {
+                    $data['status'] = 'pending';
+                    \Log::info('Moderator edited published content - forcing to pending', [
+                        'product_id' => $id,
+                        'user_id' => $user->id
+                    ]);
+                }
+            }
+        }
+        
+        // Validation and update
+        $validated = $request->validate([
+            // ... rules
+        ]);
+        
+        $product->update($validated);
+        $product->load(['tags', 'author', 'creator', 'updater']);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Updated successfully',
+            'data' => new ProductResource($product)
+        ]);
+    } catch (\Exception $e) {
+        // Error handling
+    }
+}
+```
+
+⚠️ CRITICAL CHECK PHASE 10:
+- TEST Moderator Draft → Submit button → Status = pending
+- TEST Moderator Pending → Withdraw button → Status = draft
+- TEST Moderator Published → Archive button → Status = archived (không vào form)
+- TEST Moderator Archived → Restore button → Status = draft
+- TEST Moderator Edit Published content → Save → Auto status = pending
+- TEST Quick status change KHÔNG trigger "Last updated by" nếu chỉ đổi status
+- TEST Confirm dialogs hiển thị đúng message
+- TEST Admin: Có đầy đủ buttons và không bị restrict
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 11: APPROVAL MANAGEMENT SYSTEM (ADMIN ONLY)                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+TODO 11.1: Thêm "Approval Management" vào AdminSidebar
+-------------------------------------------------------
+File: frontend/src/components/admin/AdminSidebar.tsx
+
+Thêm navigation item (chỉ hiện cho admin):
+```typescript
+{
+  id: 'approvals',
+  label: 'Approval Management',
+  icon: CheckCircle, // Import from lucide-react
+  color: 'from-orange-500 to-amber-600',
+  description: 'Review pending content',
+  count: stats.pendingCount || 0, // Count số pending items
+  adminOnly: true, // Chỉ admin mới thấy
+}
+```
+
+TODO 11.2: Tạo component ApprovalManagement
+--------------------------------------------
+File: frontend/src/components/admin/ApprovalManagement.tsx
+
+Component structure:
+```typescript
+interface ApprovalManagementProps {
+  isDarkMode: boolean;
+  onApprove: (id: string, type: string) => Promise<void>;
+  onReject: (id: string, type: string, reason?: string) => Promise<void>;
+}
+
+Features:
+1. Tabs: "All Pending" | "Products" | "Articles" | "Videos"
+2. Card layout cho mỗi pending item:
+   - Title, description, author name
+   - Created date
+   - Preview image
+   - Tags
+   - Action buttons: "Approve" (green) | "Reject" (red) | "Edit" (blue)
+3. Filter: by author, by date range
+4. Sort: newest first, oldest first
+5. Bulk actions: Select multiple → Approve all / Reject all
+```
+
+Example card:
+```typescript
+<Card className="p-4 mb-4">
+  <div className="flex justify-between items-start">
+    <div>
+      <Typography variant="h6">{item.title}</Typography>
+      <Typography variant="caption" color="text.secondary">
+        By: {item.author?.name} | {formatDate(item.created_at)}
+      </Typography>
+      <Typography variant="body2" className="mt-2">
+        {truncate(item.description, 150)}
+      </Typography>
+      <div className="mt-2">
+        <ContentStatusBadge status="pending" />
+        <Chip label={item.type} size="small" sx={{ ml: 1 }} />
+      </div>
+    </div>
+    <div className="flex gap-2">
+      <Button 
+        color="success" 
+        onClick={() => handleApprove(item)}
+        startIcon={<CheckCircle />}
+      >
+        Approve
+      </Button>
+      <Button 
+        color="error" 
+        onClick={() => handleReject(item)}
+        startIcon={<XCircle />}
+      >
+        Reject
+      </Button>
+      <IconButton onClick={() => handleEdit(item)}>
+        <Edit />
+      </IconButton>
+    </div>
+  </div>
+</Card>
+```
+
+TODO 11.3: Thêm API endpoints cho Approval
+-------------------------------------------
+Backend: KHÔNG CẦN endpoint mới - Sử dụng update() endpoint hiện có
+Frontend: Khi approve → gọi update API với status = 'published'
+
+Approve logic:
+```typescript
+const handleApprove = async (item: ContentItem) => {
+  try {
+    const service = getServiceByType(item.type); // article/video/product service
+    await service.update(item.id, { status: 'published' });
+    showToast('Content approved and published!', 'success');
+    await fetchPendingItems(); // Reload list
+  } catch (error) {
+    showToast('Error approving content', 'error');
+  }
+};
+```
+
+Reject logic:
+```typescript
+const handleReject = async (item: ContentItem) => {
+  // Show dialog to enter rejection reason
+  const reason = await showRejectDialog();
+  if (!reason) return;
+  
+  try {
+    const service = getServiceByType(item.type);
+    // Change status to draft + add rejection note
+    await service.update(item.id, { 
+      status: 'draft',
+      // TODO: Có thể thêm field rejection_note vào DB nếu muốn
+    });
+    
+    // Send notification to author (optional - future feature)
+    // await notificationService.send(item.author_id, reason);
+    
+    showToast('Content rejected', 'warning');
+    await fetchPendingItems();
+  } catch (error) {
+    showToast('Error rejecting content', 'error');
+  }
+};
+```
+
+TODO 11.4: Tạo RejectDialog component
+--------------------------------------
+File: frontend/src/components/admin/RejectDialog.tsx
+
+```typescript
+interface RejectDialogProps {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: (reason: string) => void;
+  contentTitle: string;
+}
+
+// Dialog with textarea for rejection reason
+```
+
+TODO 11.5: Fetch pending items logic
+-------------------------------------
+File: frontend/src/pages/AdminDashboard.tsx
+
+Thêm state:
+```typescript
+const [pendingItems, setPendingItems] = useState<ContentItem[]>([]);
+const [pendingCount, setPendingCount] = useState(0);
+```
+
+Thêm fetch function:
+```typescript
+const fetchPendingItems = async () => {
+  try {
+    // Fetch all pending items from all types
+    const [productsRes, articlesRes, videosRes] = await Promise.all([
+      productService.getAll({ status: 'pending' }),
+      articlesService.getAll({ status: 'pending' }),
+      videosService.getAll({ status: 'pending' })
+    ]);
+    
+    const allPending = [
+      ...productsRes.data.map(p => ({ ...transformProductByCategory(p), type: 'product' })),
+      ...articlesRes.data.map(a => ({ ...transformArticleToContentItem(a), type: 'article' })),
+      ...videosRes.data.map(v => ({ ...transformVideoToContentItem(v), type: 'video' }))
+    ];
+    
+    setPendingItems(allPending);
+    setPendingCount(allPending.length);
+  } catch (error) {
+    console.error('Error fetching pending items:', error);
+  }
+};
+```
+
+TODO 11.6: Thêm notification badge cho Approval menu
+-----------------------------------------------------
+AdminSidebar: Show badge with pending count
+```typescript
+<Badge badgeContent={stats.pendingCount} color="warning">
+  <CheckCircle />
+</Badge>
+```
+
+TODO 11.7: Integration vào AdminDashboard
+------------------------------------------
+Thêm case 'approvals' vào switch:
+```typescript
+case 'approvals':
+  return (
+    <ApprovalManagement
+      isDarkMode={isDarkMode}
+      pendingItems={pendingItems}
+      onApprove={handleApproveContent}
+      onReject={handleRejectContent}
+      onEdit={(item) => {
+        if (item.type === 'article' || item.type === 'video') {
+          setEditingItem(item);
+          setActiveTab('content-edit');
+        } else {
+          setEditingProduct(item);
+          setActiveTab('product-edit');
+        }
+      }}
+    />
+  );
+```
+
+⚠️ CRITICAL CHECK PHASE 11:
+- TEST Admin: See "Approval Management" in sidebar
+- TEST Moderator: KHÔNG thấy menu này
+- TEST Badge hiển thị số pending items đúng
+- TEST Approve button → Content status = published
+- TEST Reject button → Show dialog → Content status = draft
+- TEST Edit button → Navigate to edit form với data đúng
+- TEST Bulk approve: Select nhiều items → Approve all
+- TEST Filter by content type (product/article/video)
+- TEST Real-time: Sau approve/reject → List update ngay
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 12: END-TO-END TESTING & VERIFICATION                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+TODO 12.1: Test Scenario - Admin Workflow
+------------------------------------------
+1. Login as Admin
+2. Create Product:
+   ✓ Author dropdown visible
+   ✓ Can select any user as author
+   ✓ Default status = published
+   ✓ Submit → Check DB: author_id, created_by, updated_by set correctly
+3. Edit Product:
+   ✓ Can change author
+   ✓ Can change status to any value
+   ✓ Submit → Check DB: updated_by changed
+4. View Product list:
+   ✓ See all products (any author)
+   ✓ See author name in cards
+5. Delete any product:
+   ✓ Success
+
+TODO 12.2: Test Scenario - Moderator Workflow
+----------------------------------------------
+1. Login as Moderator
+2. Create Product:
+   ✓ NO author dropdown
+   ✓ Default status = pending
+   ✓ Submit → Check DB: author_id = moderator's ID
+3. Edit own Product:
+   ✓ Success
+   ✓ Can change status: draft ↔ pending (NOT published/archived)
+4. Try edit other's Product:
+   ✓ Should show 403 error or hide edit button
+5. View Product list:
+   ✓ See ONLY own products
+6. Try delete other's product:
+   ✓ Should show 403 or hide delete button
+
+TODO 12.3: Test Scenario - User Deletion
+-----------------------------------------
+1. Create content with author_id = User X
+2. Delete User X from system
+3. Check content:
+   ✓ Content still exists
+   ✓ author_id = NULL (because onDelete: set null)
+   ✓ created_by, updated_by = NULL
+4. Admin can reassign author:
+   ✓ Edit content → Select new author → Save
+
+TODO 12.4: Test Scenario - Status Workflow
+-------------------------------------------
+1. Moderator creates content → status = pending
+2. Admin views content → See "Pending Review" badge
+3. Admin edits → Change status to "published"
+4. Public API: Verify content now visible
+5. Admin changes to "archived"
+6. Public API: Verify content NOT visible
+
+TODO 12.5: Test Scenario - Display Created/Updated Info
+--------------------------------------------------------
+1. Create content (User A)
+2. Edit form → Verify shows:
+   ✓ Created by: User A (date)
+   ✓ Last updated by: User A (date)
+3. Admin edits content
+4. Edit form → Verify shows:
+   ✓ Created by: User A (original date)
+   ✓ Last updated by: Admin (new date)
+
+TODO 12.6: Cross-Content Type Testing
+--------------------------------------
+Repeat all tests for:
+- ✓ Products (all 5 categories: tool, book, pot, accessory, suggestion)
+- ✓ Articles
+- ✓ Videos
+
+TODO 12.7: Test Scenario - Approval Management Workflow
+--------------------------------------------------------
+1. Moderator creates Product/Article/Video → status = pending
+2. Admin login → Navigate to "Approval Management"
+3. Verify:
+   ✓ See pending item in list
+   ✓ Badge shows count = 1
+   ✓ Item shows author name (moderator)
+   ✓ Item shows created date
+4. Admin clicks "Approve":
+   ✓ Confirm dialog appears
+   ✓ Click confirm → Item disappears from pending list
+   ✓ Badge count decreases
+   ✓ Check product list → Status = published
+5. Moderator creates another content
+6. Admin clicks "Reject":
+   ✓ Reject dialog with textarea appears
+   ✓ Enter reason → Submit
+   ✓ Item disappears from pending list
+   ✓ Check DB → Status = draft
+7. Admin clicks "Edit" on pending item:
+   ✓ Navigate to edit form
+   ✓ Can change author
+   ✓ Can approve by changing status to published
+8. Bulk operations:
+   ✓ Select 3 pending items
+   ✓ Click "Approve All" → All 3 approved
+   ✓ Badge count updates correctly
+
+TODO 12.8: API Response Validation
+-----------------------------------
+Check API responses include:
+```json
+{
+  "author_id": 123,
+  "created_by": 123,
+  "updated_by": 456,
+  "author": {
+    "id": 123,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "avatar": "..."
+  },
+  "creator": {
+    "id": 123,
+    "name": "John Doe"
+  },
+  "updater": {
+    "id": 456,
+    "name": "Admin User"
+  },
+  "status": "pending"
+}
+```
+
+===================================================================================
+🔍 VERIFICATION CHECKLIST (PHẢI CHECK TẤT CẢ):
+===================================================================================
+
+DATABASE:
+□ Migrations run successfully
+□ Foreign keys created with onDelete('set null')
+□ Indexes created for performance
+□ Status enums updated to include 'pending'
+
+BACKEND MODELS:
+□ author_id, created_by, updated_by in fillable
+□ Relationships defined correctly
+□ boot() method auto-tracks created_by/updated_by
+
+BACKEND RESOURCES:
+□ author, creator, updater in API response
+□ whenLoaded() used to prevent N+1
+
+BACKEND CONTROLLERS:
+□ index() filters by author_id for moderator
+□ store() auto-sets author_id correctly
+□ store() respects default status by role
+□ update() checks ownership for moderator
+□ update() validates status change permissions
+□ destroy() checks ownership
+
+FRONTEND TYPES:
+□ ContentItem includes author_id, created_by, updated_by, relationships
+
+FRONTEND FORMS:
+□ Admin sees author dropdown
+□ Moderator doesn't see author dropdown
+□ Status dropdown has 4 options
+□ Created by / Updated by info displayed
+□ Users list passed as prop
+
+FRONTEND DASHBOARD:
+□ Moderator sees only own content
+□ Admin sees all content
+□ Status badges display correctly
+□ Author name shown in lists
+
+END-TO-END:
+□ All test scenarios passed
+□ No console errors
+□ No API errors (check Network tab)
+□ Database integrity maintained
+
+===================================================================================
+📌 NOTES & WARNINGS:
+===================================================================================
+
+1. **Migration Order**: Chạy migrations theo thứ tự để tránh foreign key errors
+
+2. **User Deletion**: onDelete('set null') quan trọng để content không bị cascade delete
+
+3. **Authorization**: CRITICAL - Must check both role AND ownership
+
+4. **Default Status**: 
+   - Admin → published (trust admin)
+   - Moderator → pending (needs approval)
+
+5. **Status Transitions**:
+   - Moderator: draft ↔ pending
+   - Admin: any → any
+
+6. **N+1 Query Prevention**: Always use ->with(['author', 'creator', 'updater']) when loading
+
+7. **Frontend State**: Sau khi create/update, reload list để hiển thị author info mới
+
+8. **Security**: Moderator KHÔNG BAO GIỜ được:
+   - Edit/delete content của người khác
+   - Set status = published/archived
+   - Change author_id của content
+
+===================================================================================
+🚀 EXECUTION PLAN:
+===================================================================================
+
+Step 1: Backend Foundations (Phases 1-4)
+   → Run migrations on server
+   → Update models, resources, controllers
+   → TEST all API endpoints with Postman/curl
+
+Step 2: Frontend Integration (Phases 5-9)
+   → Update types
+   → Update forms
+   → Update dashboard
+   → TEST in browser
+
+Step 3: Complete E2E Testing (Phase 10)
+   → Test all scenarios
+   → Fix any bugs
+   → Verify checklist
+
+Step 4: Commit & Deploy
+   → git add frontend/ backend/
+   → git commit -m "feat: implement content authorship and moderator permissions"
+   → git push origin main
+
+===================================================================================
+END OF PROMPT
+===================================================================================
+

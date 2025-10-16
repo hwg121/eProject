@@ -162,7 +162,7 @@ const ApprovalManagement: React.FC<ApprovalManagementProps> = ({
                     {(item.description || '').substring(0, 150)}{(item.description || '').length > 150 ? '...' : ''}
                   </Typography>
                   <Box sx={{ mt: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
-                    <StatusBadge status="pending" size="small" />
+                    <StatusBadge status={item.status as 'draft' | 'pending' | 'published' | 'archived'} size="small" />
                     <Chip 
                       icon={item.type === 'product' ? <ShoppingBag sx={{ fontSize: 16 }} /> 
                           : item.type === 'article' ? <ArticleIcon sx={{ fontSize: 16 }} />
