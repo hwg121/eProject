@@ -117,7 +117,7 @@ trait AuthorizesContent
                 'draft' => ['pending'],                    // Submit for review
                 'pending' => ['draft'],                    // Withdraw submission
                 'published' => ['archived'],               // Take down (status button only)
-                'archived' => ['draft'],                   // Restore to draft for re-editing
+                'archived' => ['draft', 'published'],      // Restore to draft for editing OR re-publish (no edit needed)
             ];
             
             return in_array($newStatus, $allowedTransitions[$currentStatus] ?? []);

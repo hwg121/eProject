@@ -1,6 +1,6 @@
 import React from 'react';
 import { IconButton, Tooltip, Box } from '@mui/material';
-import { Send, Undo, Archive, RestoreFromTrash, Edit, Delete } from '@mui/icons-material';
+import { Send, Undo, Archive, RestoreFromTrash, Edit, Delete, Publish } from '@mui/icons-material';
 
 interface QuickStatusButtonsProps {
   item: any;
@@ -105,11 +105,20 @@ const QuickStatusButtons: React.FC<QuickStatusButtonsProps> = ({
     );
   }
 
-  // ARCHIVED: Restore, Delete
+  // ARCHIVED: Publish, Restore to Draft, Delete
   if (status === 'archived') {
     return (
       <Box sx={{ display: 'flex', gap: 0.5 }}>
-        <Tooltip title="Restore to draft">
+        <Tooltip title="Re-publish (no approval needed)">
+          <IconButton 
+            onClick={() => onStatusChange(item.id, 'published')} 
+            size="small"
+            sx={{ ...iconButtonStyle, color: '#10b981' }}
+          >
+            <Publish sx={{ fontSize: 18 }} />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Restore to draft for editing">
           <IconButton 
             onClick={() => onStatusChange(item.id, 'draft')} 
             size="small"
