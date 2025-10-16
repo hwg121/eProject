@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BarChart3, Users, Package, MessageSquare,
   Menu, X, ChevronRight,
-  FileText, Settings, Target, Hash, CheckCircle
+  FileText, Settings, Target, Hash, CheckCircle, Shield
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { 
@@ -100,13 +100,17 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       ]
     },
     {
-      id: 'approvals',
-      label: 'Approval Management',
-      icon: CheckCircle,
+      id: 'admin-management',
+      label: 'Admin Management',
+      icon: Shield,
       color: 'from-orange-500 to-amber-600',
-      description: 'Review pending content',
-      count: stats.pendingCount || 0,
-      adminOnly: true
+      description: 'Admin-only features',
+      adminOnly: true,
+      children: [
+        { id: 'approvals', label: 'Approval Management', icon: null, count: stats.pendingCount || 0 },
+        { id: 'campaign-settings', label: 'Campaign Settings', icon: null },
+        { id: 'security-settings', label: 'Security Settings', icon: null }
+      ]
     },
     {
       id: 'tags',
@@ -140,9 +144,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
         { id: 'staff-management', label: 'Staff Members', icon: null, adminOnly: true },
         { id: 'map-settings', label: 'Map Settings', icon: null, adminOnly: true },
         { id: 'contact-settings', label: 'Contact Settings', icon: null, adminOnly: true },
-        { id: 'contact-messages', label: 'Contact Messages', icon: null },
-        { id: 'campaign-settings', label: 'Campaign Settings', icon: null, adminOnly: true },
-        { id: 'security-settings', label: 'Security Settings', icon: null, adminOnly: true }
+        { id: 'contact-messages', label: 'Contact Messages', icon: null }
       ]
     }
   ];

@@ -10,7 +10,14 @@ import {
   Card as MuiCard,
   Chip 
 } from '@mui/material';
-import { CheckCircle, Cancel, Edit } from '@mui/icons-material';
+import { 
+  CheckCircle, 
+  Cancel, 
+  Edit,
+  ShoppingBag,
+  Article as ArticleIcon,
+  VideoLibrary
+} from '@mui/icons-material';
 import ContentStatusBadge from '../ui/ContentStatusBadge';
 import { ContentItem } from '../../types/admin';
 
@@ -33,6 +40,14 @@ const ApprovalManagement: React.FC<ApprovalManagementProps> = ({
   const [selected, setSelected] = useState<string[]>([]);
 
   const tabs = ['All Pending', 'Products', 'Articles', 'Videos'];
+  
+  // Calculate counts for each tab
+  const tabCounts = {
+    all: pendingItems.length,
+    products: pendingItems.filter(item => item.type === 'product').length,
+    articles: pendingItems.filter(item => item.type === 'article').length,
+    videos: pendingItems.filter(item => item.type === 'video').length
+  };
   
   const filteredItems = currentTab === 0 
     ? pendingItems 
@@ -75,9 +90,13 @@ const ApprovalManagement: React.FC<ApprovalManagementProps> = ({
           '& .MuiTabs-indicator': { backgroundColor: '#10b981' }
         }}
       >
-        {tabs.map((tab, idx) => (
-          <Tab key={idx} label={`${tab} (${idx === 0 ? pendingItems.length : filteredItems.length})`} />
-        ))}
+        {tabs.map((tab, idx) => {
+          const count = idx === 0 ? tabCounts.all 
+                      : idx === 1 ? tabCounts.products
+                      : idx === 2 ? tabCounts.articles
+                      : tabCounts.videos;
+          return <Tab key={idx} label={`${tab} (${count})`} />;
+        })}
       </Tabs>
       
       {selected.length > 0 && (
@@ -114,7 +133,12 @@ const ApprovalManagement: React.FC<ApprovalManagementProps> = ({
               p: 2, 
               mb: 2, 
               bgcolor: isDarkMode ? '#1f2937' : '#fff',
-              borderColor: isDarkMode ? '#374151' : '#e5e7eb'
+              border: isDarkMode ? '2px solid #374151' : '2px solid #e5e7eb',
+              transition: 'all 0.2s',
+              '&:hover': {
+                borderColor: '#10b981',
+                boxShadow: isDarkMode ? '0 4px 12px rgba(16, 185, 129, 0.15)' : '0 4px 12px rgba(16, 185, 129, 0.1)'
+              }
             }}
           >
             <Box display="flex" justifyContent="space-between" alignItems="start">
@@ -132,14 +156,25 @@ const ApprovalManagement: React.FC<ApprovalManagementProps> = ({
                     {item.title || 'Untitled'}
                   </Typography>
                   <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
-                    By: {typeof item.author === 'object' ? item.author.name : item.author || 'Unknown'} | Created: {new Date(item.createdAt).toLocaleString()}
+                    By: {typeof item.authorUser === 'object' ? item.authorUser.name : (item.creator?.name || 'Unknown')} | Created: {new Date(item.createdAt).toLocaleString()}
                   </Typography>
                   <Typography variant="body2" sx={{ color: isDarkMode ? '#d1d5db' : '#4b5563', mb: 1 }}>
                     {(item.description || '').substring(0, 150)}{(item.description || '').length > 150 ? '...' : ''}
                   </Typography>
                   <Box sx={{ mt: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
                     <ContentStatusBadge status="pending" />
-                    <Chip label={item.type || 'content'} size="small" color="default" />
+                    <Chip 
+                      icon={item.type === 'product' ? <ShoppingBag sx={{ fontSize: 16 }} /> 
+                          : item.type === 'article' ? <ArticleIcon sx={{ fontSize: 16 }} />
+                          : <VideoLibrary sx={{ fontSize: 16 }} />}
+                      label={item.type === 'product' ? 'Product' : item.type === 'article' ? 'Article' : 'Video'} 
+                      size="small" 
+                      sx={{
+                        bgcolor: item.type === 'product' ? '#dbeafe' : item.type === 'article' ? '#fce7f3' : '#ede9fe',
+                        color: item.type === 'product' ? '#1e40af' : item.type === 'article' ? '#9f1239' : '#5b21b6',
+                        fontWeight: 500
+                      }}
+                    />
                     {item.category && (
                       <Chip label={item.category} size="small" variant="outlined" />
                     )}
@@ -147,7 +182,7 @@ const ApprovalManagement: React.FC<ApprovalManagementProps> = ({
                 </Box>
               </Box>
               
-              <Box display="flex" gap={1} flexShrink={0}>
+              <Box display="flex" gap={1} flexShrink={0} alignItems="center">
                 <Button 
                   variant="contained"
                   color="success" 
@@ -156,6 +191,7 @@ const ApprovalManagement: React.FC<ApprovalManagementProps> = ({
                   size="small"
                   sx={{
                     bgcolor: '#10b981',
+                    minWidth: '100px',
                     '&:hover': { bgcolor: '#059669' }
                   }}
                 >
@@ -167,13 +203,19 @@ const ApprovalManagement: React.FC<ApprovalManagementProps> = ({
                   onClick={() => onReject(item)} 
                   startIcon={<Cancel />}
                   size="small"
+                  sx={{
+                    minWidth: '90px'
+                  }}
                 >
                   Reject
                 </Button>
                 <IconButton 
                   onClick={() => onEdit(item)} 
                   size="small"
-                  sx={{ color: isDarkMode ? '#60a5fa' : '#3b82f6' }}
+                  sx={{ 
+                    color: isDarkMode ? '#60a5fa' : '#3b82f6',
+                    padding: '8px'
+                  }}
                 >
                   <Edit />
                 </IconButton>
