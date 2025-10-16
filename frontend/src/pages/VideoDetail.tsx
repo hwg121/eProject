@@ -86,7 +86,7 @@ const VideoDetail: React.FC = () => {
               title: videoData.title || '',
               description: videoData.description || '',
               content: videoData.content || videoData.transcript || '',
-              author: videoData.author || videoData.instructor || '',
+              author: videoData.instructor || videoData.author || '',
               publishedAt: videoData.published_at || videoData.created_at || new Date().toISOString(),
               tags: convertedTags,
               views: videoData.views || 0,

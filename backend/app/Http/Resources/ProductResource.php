@@ -20,6 +20,7 @@ class ProductResource extends JsonResource
             'title' => $this->name, // Frontend expects 'title'
             'slug' => $this->slug ?? '',
             'description' => $this->description ?? '',
+            'image' => $this->image ?? '',
             'category' => $this->category,
             'subcategory' => $this->subcategory ?? '',
             'price' => $this->price !== null && $this->price !== '' 

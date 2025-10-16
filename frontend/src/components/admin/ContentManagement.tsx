@@ -243,8 +243,16 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <div className="text-2xl">
-                      {getTypeIcon(item.type || 'article')}
+                    <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center bg-gray-200 text-2xl">
+                      {item.imageUrl ? (
+                        <img 
+                          src={item.imageUrl} 
+                          alt={item.title || 'Content'} 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        getTypeIcon(item.type || 'article')
+                      )}
                     </div>
                     <div>
                       <h3 className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>

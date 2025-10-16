@@ -755,7 +755,15 @@ const ProductList: React.FC<ProductListProps> = ({
                   <TableCell>
                       <div className="flex items-center space-x-3">
                       <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center text-2xl">
-                        {getProductIcon(product.category)}
+                        {product.image ? (
+                          <img 
+                            src={product.image} 
+                            alt={product.name || product.title || 'Product'} 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          getProductIcon(product.category)
+                        )}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">

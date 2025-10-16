@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { TextField, MenuItem, Checkbox, FormControlLabel } from '@mui/material';
+import { TextField, MenuItem, Checkbox, FormControlLabel, Typography } from '@mui/material';
 import Toast from '../ui/Toast';
 import TagInput from './TagInput';
+import ImageUpload from '../common/ImageUpload';
 import { validateText, validateNumber, validateURL } from '../../utils/validation';
 
 interface Product {
@@ -11,6 +12,7 @@ interface Product {
   title?: string;
   slug?: string;
   description: string;
+  image?: string;
   category: 'tool' | 'book' | 'pot' | 'accessory' | 'suggestion';
   subcategory?: string;
   status: 'published' | 'archived';
@@ -92,6 +94,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       subcategory: '',
       status: 'published',
       description: '',
+      image: '',
       brand: '',
       material: '',
       size: '',
@@ -498,6 +501,21 @@ const ProductForm: React.FC<ProductFormProps> = ({
             sx={textFieldStyles}
           />
         </div>
+
+      {/* Product Image */}
+      <div>
+        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: isDarkMode ? '#e5e7eb' : '#374151' }}>
+          Product Image
+        </Typography>
+        <ImageUpload
+          value={formData.image}
+          onChange={(url) => setFormData({ ...formData, image: url })}
+          onError={(error) => showToast(error, 'error')}
+          placeholder="Upload product image"
+          modelType="product"
+          folder="products"
+        />
+      </div>
 
       {/* Category-specific fields */}
 

@@ -85,7 +85,7 @@ export const transformToolToContentItem = (tool: any): ContentItem => ({
   content: tool.content,
   tags: tool.tags || [],
   cover: tool.cover,
-  imageUrl: tool.images_json ? JSON.parse(tool.images_json)[0] : '/image.png'
+  imageUrl: tool.image || '/image.png'
 });
 
 export const transformEssentialToContentItem = (essential: any): ContentItem => ({

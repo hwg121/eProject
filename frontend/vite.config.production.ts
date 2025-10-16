@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import fs from 'node:fs';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -8,6 +9,18 @@ export default defineConfig({
       // Optimize JSX runtime
       jsxRuntime: 'automatic',
     }),
+    // Plugin to copy web.config after build
+    {
+      name: 'copy-web-config',
+      writeBundle() {
+        try {
+          fs.copyFileSync('web.config', 'dist/web.config');
+          console.log('✅ web.config copied to dist/');
+        } catch (error) {
+          console.warn('⚠️ Could not copy web.config:', error);
+        }
+      },
+    },
   ],
   optimizeDeps: {
     exclude: ['lucide-react'],

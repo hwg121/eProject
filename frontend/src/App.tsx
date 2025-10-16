@@ -6,7 +6,8 @@ import { NavigationProvider } from './contexts/NavigationContext';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import LoadingSpinner from './components/common/LoadingSpinner';
-import { motion, AnimatePresence } from 'framer-motion';
+import ErrorBoundary from './components/common/ErrorBoundary';
+import { AnimatePresence } from 'framer-motion';
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home'));
 const Techniques = lazy(() => import('./pages/Techniques'));
@@ -32,12 +33,17 @@ const TagArchive = lazy(() => import('./pages/TagArchive'));
 // Admin pages
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 
+// Error pages
+const NotFound = lazy(() => import('./pages/NotFound'));
+const ErrorPage = lazy(() => import('./pages/ErrorPage'));
+
 function App() {
   return (
-    <ThemeProvider>
-      <NavigationProvider>
-        <AuthProvider>
-          <Router>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <NavigationProvider>
+          <AuthProvider>
+            <Router>
             <Routes>
               <Route path="/login" element={<Login />} />
               
@@ -73,17 +79,20 @@ function App() {
                         <Route path="/article/:slug" element={<ArticleDetail />} />
                         <Route path="/video/:slug" element={<VideoDetail />} />
                         <Route path="/technique/:slug" element={<TechniqueDetail />} />
+                        
+                        {/* 404 - Catch all routes */}
+                        <Route path="*" element={<NotFound />} />
                       </Routes>
                     </AnimatePresence>
                   </Suspense>
                 </Layout>
               } />
-              <Route path="*" element={<div className="text-center py-12"><h1 className="text-4xl font-bold text-emerald-800 mb-4">404 - Page Not Found</h1><p className="text-emerald-600">The page you're looking for doesn't exist.</p></div>} />
             </Routes>
           </Router>
         </AuthProvider>
       </NavigationProvider>
     </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

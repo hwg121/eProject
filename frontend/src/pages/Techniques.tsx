@@ -64,7 +64,7 @@ const Techniques: React.FC = () => {
   }));
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-12">
       <PageHeader
         title="Gardening Techniques & Tips"
         subtitle="Master the art of gardening with our comprehensive guides and expert advice"

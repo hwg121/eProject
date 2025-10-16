@@ -32,7 +32,7 @@ class ArticleController extends Controller
                 ]);
             }
 
-            $query = Article::query()->with('tags');
+            $query = Article::query()->with(['tags', 'author']);
 
             // Filter by status
             // Check if user is authenticated admin/moderator
@@ -115,10 +115,10 @@ class ArticleController extends Controller
             
             if ($isAdmin) {
                 // Admin can view any article
-                $article = Article::with('tags')->findOrFail($id);
+                $article = Article::with(['tags', 'author'])->findOrFail($id);
             } else {
                 // Public can only view published articles
-                $article = Article::with('tags')->where('status', 'published')->findOrFail($id);
+                $article = Article::with(['tags', 'author'])->where('status', 'published')->findOrFail($id);
             }
             
             // Use atomic increment to prevent race conditions
@@ -237,7 +237,7 @@ class ArticleController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $article = Article::with('tags')->findOrFail($id);
+            $article = Article::with(['tags', 'author'])->findOrFail($id);
             
             $validated = $request->validate([
                 'title' => 'sometimes|required|string|min:3|max:200',

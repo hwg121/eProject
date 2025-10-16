@@ -622,7 +622,15 @@ const ContentList: React.FC<ContentListProps> = ({
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center text-2xl">
-                          {getContentIcon(item.category)}
+                          {item.imageUrl || item.featured_image ? (
+                            <img 
+                              src={item.imageUrl || item.featured_image} 
+                              alt={item.title || 'Content'} 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            getContentIcon(item.category)
+                          )}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">

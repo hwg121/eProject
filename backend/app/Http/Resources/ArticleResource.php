@@ -33,7 +33,14 @@ class ArticleResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             
-            // Tags relationship
+            // Relationships
+            'author' => $this->whenLoaded('author', function () {
+                return [
+                    'id' => $this->author->id,
+                    'name' => $this->author->name,
+                    'email' => $this->author->email,
+                ];
+            }),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
         ];
     }

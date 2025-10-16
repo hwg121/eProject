@@ -171,7 +171,7 @@ const ViewAllContent: React.FC = () => {
           author: 'Admin', // Products don't have author field
           created_at: product.created_at,
           updated_at: product.updated_at,
-          thumbnail: product.featured_image,
+          thumbnail: product.image || product.featured_image,
           category: product.category === 'book' ? 'Book' : 
                    product.category === 'tool' ? 'Tool' :
                    product.category === 'pot' ? 'Pot' :

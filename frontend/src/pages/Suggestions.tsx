@@ -74,8 +74,17 @@ const Suggestions: React.FC = () => {
     const loadSuggestions = async () => {
       try {
         setLoading(true);
-        const suggestionsData = await publicService.getSuggestions();
-        setSuggestions(suggestionsData as Product[]);
+        const response = await publicService.getSuggestions();
+        
+        // Handle API response format: {success: true, data: [...]}
+        let suggestionsData: Product[] = [];
+        if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
+          suggestionsData = (response as any).data;
+        } else if (Array.isArray(response)) {
+          suggestionsData = response;
+        }
+        
+        setSuggestions(suggestionsData);
       } catch (err) {
         setError('Failed to load suggestions');
         console.error('Error loading suggestions:', err);
@@ -113,14 +122,27 @@ const Suggestions: React.FC = () => {
       rel="noopener noreferrer"
       className="block h-full"
     >
-      <Card className="h-full group hover:shadow-xl transition-all duration-300 p-6 relative">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center space-x-2">
-            <div className="text-emerald-600">
-              <Star className="h-5 w-5" />
-            </div>
-            <span className="text-sm text-emerald-600 font-medium">{item.subcategory || 'Suggestion'}</span>
+      <Card className="h-full group hover:shadow-xl transition-all duration-300 overflow-hidden relative">
+        {/* Image Section */}
+        {item.image && (
+          <div className="w-full h-48 overflow-hidden bg-gray-100">
+            <img 
+              src={item.image} 
+              alt={item.name} 
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+            />
           </div>
+        )}
+        
+        {/* Content Section */}
+        <div className="p-6">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex items-center space-x-2">
+              <div className="text-emerald-600">
+                <Star className="h-5 w-5" />
+              </div>
+              <span className="text-sm text-emerald-600 font-medium">{item.subcategory || 'Suggestion'}</span>
+            </div>
           <div className="flex items-center space-x-2">
             {item.is_featured && (
               <div className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-lg">
@@ -146,6 +168,7 @@ const Suggestions: React.FC = () => {
             <ExternalLink className="h-4 w-4" />
             <span className="text-sm">View Details</span>
           </button>
+        </div>
         </div>
       </Card>
     </a>
