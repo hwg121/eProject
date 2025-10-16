@@ -690,6 +690,71 @@ const ViewAllContent: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Bulk Actions Bar */}
+      {selectedItems.length > 0 && (
+        <Paper 
+          elevation={3}
+          sx={{ 
+            mb: 2, 
+            p: 2, 
+            background: isDarkMode ? '#1e293b' : '#ffffff',
+            borderRadius: 2,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            flexWrap: 'wrap'
+          }}
+        >
+          <Typography variant="body2" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b', fontWeight: 600 }}>
+            {selectedItems.length} item(s) selected
+          </Typography>
+          
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+            <FormControl size="small" sx={{ minWidth: 150 }}>
+              <InputLabel>Change Status</InputLabel>
+              <Select
+                value={bulkStatus}
+                onChange={(e) => setBulkStatus(e.target.value)}
+                label="Change Status"
+                sx={{
+                  bgcolor: isDarkMode ? '#0f172a' : '#f8fafc',
+                }}
+              >
+                <MenuItem value="published">Published</MenuItem>
+                <MenuItem value="archived">Archived</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <Button
+              variant="contained"
+              size="small"
+              onClick={handleBulkStatusChange}
+              disabled={!bulkStatus}
+              sx={{
+                bgcolor: '#10b981',
+                '&:hover': { bgcolor: '#059669' },
+                textTransform: 'none'
+              }}
+            >
+              Apply Status
+            </Button>
+            
+            <Button
+              variant="contained"
+              size="small"
+              onClick={handleBulkDelete}
+              sx={{
+                bgcolor: '#ef4444',
+                '&:hover': { bgcolor: '#dc2626' },
+                textTransform: 'none'
+              }}
+            >
+              Delete Selected
+            </Button>
+          </Box>
+        </Paper>
+      )}
+
       {/* Content Table */}
       <Card sx={{
         border: '1px solid',
@@ -879,71 +944,6 @@ const ViewAllContent: React.FC = () => {
           </TableContainer>
         </CardContent>
       </Card>
-
-      {/* Bulk Actions Bar */}
-      {selectedItems.length > 0 && (
-        <Paper 
-          elevation={3}
-          sx={{ 
-            mt: 3, 
-            p: 2, 
-            background: isDarkMode ? '#1e293b' : '#ffffff',
-            borderRadius: 2,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2,
-            flexWrap: 'wrap'
-          }}
-        >
-          <Typography variant="body2" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b', fontWeight: 600 }}>
-            {selectedItems.length} item(s) selected
-          </Typography>
-          
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
-            <FormControl size="small" sx={{ minWidth: 150 }}>
-              <InputLabel>Change Status</InputLabel>
-              <Select
-                value={bulkStatus}
-                onChange={(e) => setBulkStatus(e.target.value)}
-                label="Change Status"
-                sx={{
-                  bgcolor: isDarkMode ? '#0f172a' : '#f8fafc',
-                }}
-              >
-                <MenuItem value="published">Published</MenuItem>
-                <MenuItem value="archived">Archived</MenuItem>
-              </Select>
-            </FormControl>
-            
-            <Button
-              variant="contained"
-              size="small"
-              onClick={handleBulkStatusChange}
-              disabled={!bulkStatus}
-              sx={{
-                bgcolor: '#10b981',
-                '&:hover': { bgcolor: '#059669' },
-                textTransform: 'none'
-              }}
-            >
-              Apply Status
-            </Button>
-            
-            <Button
-              variant="contained"
-              size="small"
-              onClick={handleBulkDelete}
-              sx={{
-                bgcolor: '#ef4444',
-                '&:hover': { bgcolor: '#dc2626' },
-                textTransform: 'none'
-              }}
-            >
-              Delete Selected
-            </Button>
-          </Box>
-        </Paper>
-      )}
 
       {toast.show && (
         <Toast
