@@ -19,7 +19,7 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         try {
-        $query = Product::query()->with(['tags', 'author', 'creator', 'updater']);
+        $query = Product::query()->with(['tags', 'authorUser', 'creator', 'updater']);
 
             // Filter by status
             // Check if user is authenticated admin/moderator
@@ -127,15 +127,15 @@ class ProductController extends Controller
             
             if ($isAdmin) {
                 // Admin can view any product (including archived)
-                $product = Product::with(['tags', 'author', 'creator', 'updater'])->findOrFail($id);
+                $product = Product::with(['tags', 'authorUser', 'creator', 'updater'])->findOrFail($id);
             } else if ($isModerator) {
                 // Moderator can view their own products (any status)
-                $product = Product::with(['tags', 'author', 'creator', 'updater'])
+                $product = Product::with(['tags', 'authorUser', 'creator', 'updater'])
                     ->where('author_id', $user->id)
                     ->findOrFail($id);
             } else {
                 // Public can only view published products
-                $product = Product::with(['tags', 'author', 'creator', 'updater'])->published()->findOrFail($id);
+                $product = Product::with(['tags', 'authorUser', 'creator', 'updater'])->published()->findOrFail($id);
             }
             
             // Use atomic increment to prevent race conditions

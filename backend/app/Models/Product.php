@@ -110,8 +110,9 @@ class Product extends Model
 
     /**
      * Get the author (owner) of this product.
+     * Named 'authorUser' to avoid conflict with 'author' column (book author name)
      */
-    public function author(): BelongsTo
+    public function authorUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');
     }

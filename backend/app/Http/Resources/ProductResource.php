@@ -68,12 +68,12 @@ class ProductResource extends JsonResource
             'updated_by' => $this->updated_by,
             
             // Author relationship (User who owns the content)
-            'authorUser' => $this->whenLoaded('author', function () {
-                return $this->author ? [
-                    'id' => $this->author->id,
-                    'name' => $this->author->name,
-                    'email' => $this->author->email,
-                    'avatar' => $this->author->avatar ?? null,
+            'authorUser' => $this->whenLoaded('authorUser', function () {
+                return $this->authorUser ? [
+                    'id' => $this->authorUser->id,
+                    'name' => $this->authorUser->name,
+                    'email' => $this->authorUser->email,
+                    'avatar' => $this->authorUser->avatar ?? null,
                 ] : null;
             }),
             

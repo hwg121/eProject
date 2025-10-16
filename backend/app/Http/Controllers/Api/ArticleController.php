@@ -35,7 +35,7 @@ class ArticleController extends Controller
                 ]);
             }
 
-            $query = Article::query()->with(['tags', 'author', 'creator', 'updater']);
+            $query = Article::query()->with(['tags', 'authorUser', 'creator', 'updater']);
 
             // Filter by status
             // Check if user is authenticated admin/moderator
@@ -130,15 +130,15 @@ class ArticleController extends Controller
             
             if ($isAdmin) {
                 // Admin can view any article
-                $article = Article::with(['tags', 'author', 'creator', 'updater'])->findOrFail($id);
+                $article = Article::with(['tags', 'authorUser', 'creator', 'updater'])->findOrFail($id);
             } else if ($isModerator) {
                 // Moderator can view their own articles (any status)
-                $article = Article::with(['tags', 'author', 'creator', 'updater'])
+                $article = Article::with(['tags', 'authorUser', 'creator', 'updater'])
                     ->where('author_id', $user->id)
                     ->findOrFail($id);
             } else {
                 // Public can only view published articles
-                $article = Article::with(['tags', 'author', 'creator', 'updater'])->where('status', 'published')->findOrFail($id);
+                $article = Article::with(['tags', 'authorUser', 'creator', 'updater'])->where('status', 'published')->findOrFail($id);
             }
             
             // Use atomic increment to prevent race conditions

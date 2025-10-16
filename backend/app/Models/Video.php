@@ -126,7 +126,7 @@ class Video extends Model
     /**
      * Get the author (owner) of this video.
      */
-    public function author(): BelongsTo
+    public function authorUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');
     }

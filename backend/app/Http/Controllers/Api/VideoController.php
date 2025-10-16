@@ -31,7 +31,7 @@ class VideoController extends Controller
                 ]);
             }
 
-            $query = Video::query()->with(['tags', 'author', 'creator', 'updater']);
+            $query = Video::query()->with(['tags', 'authorUser', 'creator', 'updater']);
 
             // Filter by status
             // Check if user is authenticated admin/moderator
@@ -112,15 +112,15 @@ class VideoController extends Controller
             
             if ($isAdmin) {
                 // Admin can view any video
-                $video = Video::with(['tags', 'author', 'creator', 'updater'])->findOrFail($id);
+                $video = Video::with(['tags', 'authorUser', 'creator', 'updater'])->findOrFail($id);
             } else if ($isModerator) {
                 // Moderator can view their own videos (any status)
-                $video = Video::with(['tags', 'author', 'creator', 'updater'])
+                $video = Video::with(['tags', 'authorUser', 'creator', 'updater'])
                     ->where('author_id', $user->id)
                     ->findOrFail($id);
             } else {
                 // Public can only view published videos
-                $video = Video::with(['tags', 'author', 'creator', 'updater'])->where('status', 'published')->findOrFail($id);
+                $video = Video::with(['tags', 'authorUser', 'creator', 'updater'])->where('status', 'published')->findOrFail($id);
             }
             
             // Use atomic increment to prevent race conditions
