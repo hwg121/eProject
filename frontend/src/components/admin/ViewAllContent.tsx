@@ -221,14 +221,14 @@ const ViewAllContent: React.FC = () => {
     // Use category if available, otherwise use type
     const key = category || type;
     switch (key) {
-      case 'article': return { bg: '#3b82f6', text: '#ffffff' };
-      case 'video': return { bg: '#ef4444', text: '#ffffff' };
-      case 'Book': return { bg: '#8b5cf6', text: '#ffffff' };
-      case 'Tool': return { bg: '#f59e0b', text: '#ffffff' };
-      case 'Pot': return { bg: '#10b981', text: '#ffffff' };
-      case 'Accessory': return { bg: '#06b6d4', text: '#ffffff' };
-      case 'Suggestion': return { bg: '#6b7280', text: '#ffffff' };
-      default: return { bg: '#6b7280', text: '#ffffff' };
+      case 'article': return { bg: '#3b82f6', text: '#ffffff' }; // Blue - Articles/Techniques
+      case 'video': return { bg: '#ef4444', text: '#ffffff' }; // Red - Videos
+      case 'Book': return { bg: '#8b5cf6', text: '#ffffff' }; // Purple - Books
+      case 'Tool': return { bg: '#f97316', text: '#ffffff' }; // Orange - Tools
+      case 'Pot': return { bg: '#10b981', text: '#ffffff' }; // Green - Pots
+      case 'Accessory': return { bg: '#06b6d4', text: '#ffffff' }; // Cyan - Accessories
+      case 'Suggestion': return { bg: '#14b8a6', text: '#ffffff' }; // Teal - Suggestions
+      default: return { bg: '#6b7280', text: '#ffffff' }; // Gray - Default
     }
   };
 
@@ -314,6 +314,134 @@ const ViewAllContent: React.FC = () => {
       prev.includes(id) 
         ? prev.filter(item => item !== id)
         : [...prev, id]
+    );
+  };
+
+  // Helper function to get service for type
+  const getServiceForType = (type: string) => {
+    const typeKey = type.toLowerCase();
+    switch (typeKey) {
+      case 'article':
+        return articlesService;
+      case 'video':
+        return videosService;
+      case 'book':
+      case 'tool':
+      case 'pot':
+      case 'accessory':
+      case 'suggestion':
+        return productService;
+      default:
+        return null;
+    }
+  };
+
+  // Bulk Actions
+  const handleBulkPublish = () => {
+    showConfirmDialog(
+      'Publish Items',
+      `Are you sure you want to publish ${selectedItems.length} selected item(s)?`,
+      async () => {
+        try {
+          const selectedContent = content.filter(item => selectedItems.includes(item.id));
+          const itemsByType = selectedContent.reduce((acc, item) => {
+            const type = item.type || item.category;
+            if (!acc[type]) acc[type] = [];
+            acc[type].push(item);
+            return acc;
+          }, {} as Record<string, ContentItem[]>);
+
+          for (const [type, items] of Object.entries(itemsByType)) {
+            for (const item of items) {
+              const actualId = item.id.replace(/^(article|video|product)_/, '');
+              const service = getServiceForType(type);
+              if (service) {
+                await service.update(actualId, { status: 'published' });
+              }
+            }
+          }
+
+          showToast(`Successfully published ${selectedItems.length} item(s)`, 'success');
+          setSelectedItems([]);
+          await loadAllContent();
+        } catch (error) {
+          console.error('Bulk publish error:', error);
+          showToast('Failed to publish some items', 'error');
+        }
+      },
+      'info'
+    );
+  };
+
+  const handleBulkArchive = () => {
+    showConfirmDialog(
+      'Archive Items',
+      `Are you sure you want to archive ${selectedItems.length} selected item(s)?`,
+      async () => {
+        try {
+          const selectedContent = content.filter(item => selectedItems.includes(item.id));
+          const itemsByType = selectedContent.reduce((acc, item) => {
+            const type = item.type || item.category;
+            if (!acc[type]) acc[type] = [];
+            acc[type].push(item);
+            return acc;
+          }, {} as Record<string, ContentItem[]>);
+
+          for (const [type, items] of Object.entries(itemsByType)) {
+            for (const item of items) {
+              const actualId = item.id.replace(/^(article|video|product)_/, '');
+              const service = getServiceForType(type);
+              if (service) {
+                await service.update(actualId, { status: 'archived' });
+              }
+            }
+          }
+
+          showToast(`Successfully archived ${selectedItems.length} item(s)`, 'success');
+          setSelectedItems([]);
+          await loadAllContent();
+        } catch (error) {
+          console.error('Bulk archive error:', error);
+          showToast('Failed to archive some items', 'error');
+        }
+      },
+      'warning'
+    );
+  };
+
+  const handleBulkDelete = () => {
+    showConfirmDialog(
+      'Delete Items',
+      `Are you sure you want to delete ${selectedItems.length} selected item(s)? This action cannot be undone.`,
+      async () => {
+        try {
+          const selectedContent = content.filter(item => selectedItems.includes(item.id));
+          const itemsByType = selectedContent.reduce((acc, item) => {
+            const type = item.type || item.category;
+            if (!acc[type]) acc[type] = [];
+            acc[type].push(item);
+            return acc;
+          }, {} as Record<string, ContentItem[]>);
+
+          for (const [type, items] of Object.entries(itemsByType)) {
+            for (const item of items) {
+              const actualId = item.id.replace(/^(article|video|product)_/, '');
+              const service = getServiceForType(type);
+              if (service) {
+                await service.delete(actualId);
+              }
+            }
+          }
+
+          showToast(`Successfully deleted ${selectedItems.length} item(s)`, 'success');
+          setSelectedItems([]);
+          await loadAllContent();
+        } catch (error) {
+          console.error('Bulk delete error:', error);
+          showToast('Failed to delete some items', 'error');
+        }
+      },
+      'error'
     );
   };
   
@@ -782,7 +910,7 @@ const ViewAllContent: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Selection Summary */}
+      {/* Bulk Actions Bar */}
       {selectedItems.length > 0 && (
         <Box sx={{ 
           mt: 3, 
@@ -793,11 +921,67 @@ const ViewAllContent: React.FC = () => {
           borderColor: isDarkMode ? 'rgba(16, 185, 129, 0.3)' : 'rgba(16, 185, 129, 0.2)',
           display: 'flex',
           alignItems: 'center',
-          gap: 2
+          gap: 2,
+          flexWrap: 'wrap'
         }}>
           <Typography variant="body2" sx={{ fontWeight: 600, color: '#10b981' }}>
             {selectedItems.length} item{selectedItems.length > 1 ? 's' : ''} selected
           </Typography>
+          
+          {/* Bulk Actions */}
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', flex: 1 }}>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={handleBulkPublish}
+              sx={{ 
+                bgcolor: '#10b981',
+                color: 'white',
+                '&:hover': {
+                  bgcolor: '#059669',
+                },
+                textTransform: 'none',
+                fontWeight: 600
+              }}
+            >
+              Publish Selected
+            </Button>
+            
+            <Button
+              variant="contained"
+              size="small"
+              onClick={handleBulkArchive}
+              sx={{ 
+                bgcolor: '#f59e0b',
+                color: 'white',
+                '&:hover': {
+                  bgcolor: '#d97706',
+                },
+                textTransform: 'none',
+                fontWeight: 600
+              }}
+            >
+              Archive Selected
+            </Button>
+            
+            <Button
+              variant="contained"
+              size="small"
+              onClick={handleBulkDelete}
+              sx={{ 
+                bgcolor: '#ef4444',
+                color: 'white',
+                '&:hover': {
+                  bgcolor: '#dc2626',
+                },
+                textTransform: 'none',
+                fontWeight: 600
+              }}
+            >
+              Delete Selected
+            </Button>
+          </Box>
+          
           <Button
             variant="outlined"
             size="small"
