@@ -32,7 +32,7 @@ const Login: React.FC = () => {
     }
     
     if (!validateEmail(email)) {
-      setError('Invalid email format');
+      setError('Please enter a valid email address (e.g., user@example.com)');
       return;
     }
     
@@ -154,7 +154,7 @@ const Login: React.FC = () => {
           </motion.div>
 
           {/* Login Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             {error && (
               <motion.div
                 className={`border rounded-lg p-4 flex items-center space-x-2 ${

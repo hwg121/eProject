@@ -221,7 +221,7 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data">
+    <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data" noValidate>
       <div className="flex items-center justify-between mb-6">
         <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
           {item ? 'Edit' : 'Create'} {type.charAt(0).toUpperCase() + type.slice(1, -1)}

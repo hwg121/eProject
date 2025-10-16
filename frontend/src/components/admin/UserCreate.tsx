@@ -234,7 +234,7 @@ const UserCreate: React.FC<UserCreateProps> = ({
         border: '1px solid',
         borderColor: actualDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'
       }}>
-        <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
           {/* Basic Information */}
           <Box sx={{ mb: 4 }}>
             <Typography variant="h6" sx={{ 

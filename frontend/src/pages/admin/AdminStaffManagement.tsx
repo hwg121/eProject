@@ -663,7 +663,7 @@ const AdminStaffManagement: React.FC = () => {
           </IconButton>
         </DialogTitle>
         
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <DialogContent sx={{ pt: { xs: 2, sm: 3 }, px: { xs: 2, sm: 3 } }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3 } }}>
               {/* Avatar Upload */}

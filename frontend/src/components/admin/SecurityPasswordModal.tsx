@@ -70,7 +70,7 @@ const SecurityPasswordModal: React.FC<SecurityPasswordModalProps> = ({
             </div>
 
             {/* Body */}
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4" noValidate>
               {/* Warning Message */}
               <div className="flex items-start p-4 space-x-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />

@@ -19,7 +19,7 @@ export const validateEmail = (email: string, required: boolean = true): string |
   
   // Format validation with stricter regex
   const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-  if (!emailRegex.test(trimmedEmail)) return 'Invalid email format';
+  if (!emailRegex.test(trimmedEmail)) return 'Please enter a valid email address (e.g., user@example.com)';
   
   // Additional checks
   if (trimmedEmail.includes('..')) return 'Email cannot contain consecutive dots';

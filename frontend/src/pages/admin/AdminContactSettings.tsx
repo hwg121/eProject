@@ -462,7 +462,7 @@ const AdminContactSettings: React.FC = () => {
                 </div>
               </div>
 
-              <form onSubmit={handleSubmit} className="p-6">
+              <form onSubmit={handleSubmit} className="p-6" noValidate>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Email */}
                   <div>

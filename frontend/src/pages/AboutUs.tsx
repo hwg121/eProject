@@ -585,7 +585,7 @@ const AboutUs: React.FC = () => {
                   <p className="text-emerald-600/80 dark:text-emerald-300/80 text-sm md:text-base">We'll respond within 24 hours</p>
                 </div>
                 
-                <form onSubmit={handleSubmit} className="flex-1 flex flex-col">
+                <form onSubmit={handleSubmit} className="flex-1 flex flex-col" noValidate>
                 <div className="space-y-4 md:space-y-6 flex-1">
                 {/* Name Field */}
                 <motion.div

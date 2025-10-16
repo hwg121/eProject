@@ -329,7 +329,7 @@ const AdminHeroSection: React.FC = () => {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                 <TextField
                   fullWidth
                   size="small"
