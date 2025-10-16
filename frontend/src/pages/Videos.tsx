@@ -110,8 +110,16 @@ const Videos: React.FC = () => {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {currentVideos.map((video) => (
+          {videos.length === 0 ? (
+            <div className="text-center py-12">
+              <Play className="h-16 w-16 text-emerald-300 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-emerald-800 mb-2">No videos found</h3>
+              <p className="text-emerald-600">Check back later for new video tutorials</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {currentVideos.map((video) => (
             <Link key={video.id} to={`/video/${video.slug || generateSlug(video.title)}`} className="block h-full">
               <Card className="h-full group cursor-pointer hover:shadow-xl transition-all duration-300">
                 <div className="relative overflow-hidden rounded-lg mb-4">
@@ -144,11 +152,11 @@ const Videos: React.FC = () => {
                 </div>
               </Card>
             </Link>
-          ))}
-        </div>
+              ))}
+            </div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
+            {/* Pagination */}
+            {totalPages > 1 && (
           <div className="flex justify-center items-center space-x-2 mt-8">
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
@@ -180,11 +188,13 @@ const Videos: React.FC = () => {
               className="px-4 py-2 rounded-lg bg-emerald-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-emerald-700 transition-colors"
             >
               Next
-            </button>
-          </div>
-        )}
-      </>
-    )}
+              </button>
+            </div>
+          )}
+        </>
+          )}
+        </>
+      )}
 
       {/* Video Modal */}
       {selectedVideo && (

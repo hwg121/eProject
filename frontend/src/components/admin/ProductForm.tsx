@@ -4,7 +4,7 @@ import { TextField, MenuItem, Checkbox, FormControlLabel, Typography } from '@mu
 import Toast from '../ui/Toast';
 import TagInput from './TagInput';
 import ImageUpload from '../common/ImageUpload';
-import { validateText, validateNumber, validateURL, hasErrors } from '../../utils/validation';
+import { validateNumber, validateURL, hasErrors } from '../../utils/validation';
 
 interface Product {
   id?: string;
@@ -63,9 +63,7 @@ interface ProductFormProps {
 }
 
 const ProductForm: React.FC<ProductFormProps> = ({ 
-  type, 
   item, 
-  categories, 
   onSave, 
   onCancel, 
   isDarkMode 
@@ -146,11 +144,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const showToast = (message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
     setSnackbar({ open: true, message, severity });
   };
-
-  // Clear all validation errors
-  const clearAllErrors = () => {
-    setErrors({});
-  };
   
   // MUI TextField styles (matching Campaign Settings)
   const textFieldStyles = {
@@ -174,9 +167,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
         // Ensure subcategory is loaded (keep original value, even if empty string)
         subcategory: item.subcategory !== undefined && item.subcategory !== null ? item.subcategory : '',
         // Ensure price is number (backend might return string or null)
-        price: item.price !== undefined && item.price !== null && item.price !== '' 
+        price: item.price !== undefined && item.price !== null && String(item.price) !== '' 
           ? (typeof item.price === 'string' ? parseFloat(item.price) : item.price) 
-          : null,
+          : undefined,
         // Ensure rating is number
         rating: item.rating ? (typeof item.rating === 'string' ? parseFloat(item.rating) : item.rating) : 0,
         // Convert tags from Tag objects to IDs for TagInput
@@ -272,9 +265,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
         return ratingValue;
       })(),
       // Fix price: parseFloat can return 0, which is valid
-      price: formData.price !== undefined && formData.price !== null && formData.price !== '' 
-        ? parseFloat(formData.price as any) 
-        : null,
+      price: formData.price !== undefined && formData.price !== null && String(formData.price) !== '' 
+        ? parseFloat(String(formData.price)) 
+        : undefined,
       pages: parseInt(formData.pages as any) || undefined,
       published_year: parseInt(formData.published_year as any) || undefined,
       // Ensure link is included
@@ -287,14 +280,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
     // Call parent's onSave - parent will handle success/error messages
     onSave(processedData);
   };
-
-  const inputClass = `w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
-    isDarkMode 
-      ? 'bg-gray-700 border-gray-600 text-white' 
-      : 'bg-white border-gray-300 text-gray-900'
-  }`;
-
-  const labelClass = `block font-semibold mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6" noValidate>
@@ -373,7 +358,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             onChange={(e) => {
               const value = e.target.value;
               if (value === '') {
-                setFormData({ ...formData, price: null });
+                setFormData({ ...formData, price: undefined });
                 setErrors({ ...errors, price: null });
                 return;
               }
