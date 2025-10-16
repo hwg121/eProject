@@ -86,8 +86,10 @@ class ProductController extends Controller
         $sortOrder = $request->get('sortOrder', 'desc');
         $query->orderBy($sortBy, $sortOrder);
 
-            // Pagination
-            $perPage = min($request->get('per_page', 15), 50);
+            // Pagination - Allow higher limit for admin dashboard
+            $requestedPerPage = $request->get('per_page', 15);
+            $maxPerPage = $isAdmin ? 1000 : 50; // Admin can fetch more items
+            $perPage = min($requestedPerPage, $maxPerPage);
         $products = $query->paginate($perPage);
 
         return response()->json([
