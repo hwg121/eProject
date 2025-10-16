@@ -42,30 +42,30 @@ class VideoResource extends JsonResource
             'created_by' => $this->created_by,
             'updated_by' => $this->updated_by,
             
-            // Author relationship
-            'author' => $this->whenLoaded('author', function () {
-                return [
+            // Author relationship (User who owns the content)
+            'authorUser' => $this->whenLoaded('author', function () {
+                return $this->author ? [
                     'id' => $this->author->id,
                     'name' => $this->author->name,
                     'email' => $this->author->email,
                     'avatar' => $this->author->avatar ?? null,
-                ];
+                ] : null;
             }),
             
             // Creator relationship
             'creator' => $this->whenLoaded('creator', function () {
-                return [
+                return $this->creator ? [
                     'id' => $this->creator->id,
                     'name' => $this->creator->name,
-                ];
+                ] : null;
             }),
             
             // Updater relationship
             'updater' => $this->whenLoaded('updater', function () {
-                return [
+                return $this->updater ? [
                     'id' => $this->updater->id,
                     'name' => $this->updater->name,
-                ];
+                ] : null;
             }),
         ];
     }

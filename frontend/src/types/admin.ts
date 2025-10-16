@@ -42,20 +42,21 @@ export interface ContentItem {
   author_id?: number;
   created_by?: number;
   updated_by?: number;
-  author?: {
+  author?: string; // Book author name (string)
+  authorUser?: {
     id: number;
     name: string;
     email: string;
     avatar?: string;
-  } | string; // Can be string (book author) or object (user author)
+  } | null; // User who owns the content
   creator?: {
     id: number;
     name: string;
-  };
+  } | null;
   updater?: {
     id: number;
     name: string;
-  };
+  } | null;
 }
 
 export interface ContactMessage {
