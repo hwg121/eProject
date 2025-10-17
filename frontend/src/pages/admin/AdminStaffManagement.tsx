@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Save, X, Users, Upload, Image as ImageIcon, ArrowUp, ArrowDown } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import PageHeader from '../../components/ui/PageHeader';
-import StatusBadge from '../../components/ui/StatusBadge';
+import StatusBadge from '../../components/StatusBadge';
 import Toast from '../../components/ui/Toast';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { staffMemberService } from '../../services/api.ts';

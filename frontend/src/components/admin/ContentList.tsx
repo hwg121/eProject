@@ -4,7 +4,7 @@ import {
   FileText, Star
 } from 'lucide-react';
 import { ContentItem } from '../../types/admin';
-import StatusBadge from '../ui/StatusBadge';
+import StatusBadge from '../StatusBadge';
 import { ViewsChip, LikesChip, RatingChip, ViewButton, EditButton, DeleteButton } from '../ui/ContentIcons';
 import QuickStatusButtons from './QuickStatusButtons';
 import {

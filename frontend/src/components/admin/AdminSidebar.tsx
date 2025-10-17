@@ -109,7 +109,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       children: [
         { id: 'approvals', label: 'Approval Management', icon: null, count: stats.pendingCount || 0 },
         { id: 'campaign-settings', label: 'Campaign Settings', icon: null },
-        { id: 'security-settings', label: 'Security Settings', icon: null }
+        { id: 'security-settings', label: 'Security Settings', icon: null },
+        { id: 'maintenance-settings', label: 'Maintenance Mode', icon: null }
       ]
     },
     {

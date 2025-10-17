@@ -46,7 +46,7 @@ import {
   Grid
 } from '@mui/material';
 import { validateEmail, validatePhone, validateText, validateURL, hasErrors } from '../../utils/validation';
-import StatusBadge from '../../components/ui/StatusBadge';
+import StatusBadge from '../../components/StatusBadge';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
 const AdminContactSettings: React.FC = () => {

@@ -18,7 +18,7 @@ import {
   Article as ArticleIcon,
   VideoLibrary
 } from '@mui/icons-material';
-import StatusBadge from '../ui/StatusBadge';
+import StatusBadge from '../StatusBadge';
 import { ContentItem } from '../../types/admin';
 
 interface ApprovalManagementProps {

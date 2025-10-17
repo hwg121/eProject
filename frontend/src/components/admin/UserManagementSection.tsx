@@ -2,7 +2,7 @@ import React, { useState, memo } from 'react';
 import { Search } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import Card from '../ui/Card';
-import StatusBadge from '../ui/StatusBadge';
+import StatusBadge from '../StatusBadge';
 import RoleBadge from '../ui/RoleBadge';
 import UserCreate from './UserCreate';
 import UserProfileComponent from './UserProfileComponent';

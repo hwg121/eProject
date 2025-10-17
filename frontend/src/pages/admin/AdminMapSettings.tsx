@@ -3,7 +3,7 @@ import { Plus, Edit, Trash2, Save, X, Map, MapPin, Eye } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import PageHeader from '../../components/ui/PageHeader';
 import Toast from '../../components/ui/Toast';
-import StatusBadge from '../../components/ui/StatusBadge';
+import StatusBadge from '../../components/StatusBadge';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { mapSettingService } from '../../services/api.ts';
 import {

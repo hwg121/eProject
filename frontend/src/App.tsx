@@ -1,13 +1,14 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { NavigationProvider } from './contexts/NavigationContext';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import LoadingSpinner from './components/common/LoadingSpinner';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import { AnimatePresence } from 'framer-motion';
+import { maintenanceService } from './services/api';
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home'));
 const Techniques = lazy(() => import('./pages/Techniques'));
@@ -36,6 +37,51 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 // Error pages
 const NotFound = lazy(() => import('./pages/NotFound'));
 const ErrorPage = lazy(() => import('./pages/ErrorPage'));
+const MaintenancePage = lazy(() => import('./pages/MaintenancePage'));
+
+// Maintenance Check Component
+const MaintenanceCheck: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
+  const [maintenanceData, setMaintenanceData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    checkMaintenanceStatus();
+  }, []);
+
+  const checkMaintenanceStatus = async () => {
+    try {
+      const response: any = await maintenanceService.getStatus();
+      if (response.success && response.data) {
+        setIsMaintenanceMode(response.data.is_enabled);
+        setMaintenanceData(response.data);
+      }
+    } catch (error) {
+      console.error('Error checking maintenance status:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  // Show maintenance page to non-admin users
+  if (isMaintenanceMode && user?.role !== 'admin') {
+    return (
+      <Suspense fallback={<LoadingSpinner />}>
+        <MaintenancePage 
+          message={maintenanceData?.message}
+          estimatedEndAt={maintenanceData?.estimated_end_at}
+        />
+      </Suspense>
+    );
+  }
+
+  return <>{children}</>;
+};
 
 function App() {
   return (
@@ -44,7 +90,8 @@ function App() {
         <NavigationProvider>
           <AuthProvider>
             <Router>
-            <Routes>
+              <MaintenanceCheck>
+                <Routes>
               <Route path="/login" element={<Login />} />
               
               {/* Admin Routes - No Layout */}
@@ -88,11 +135,12 @@ function App() {
                 </Layout>
               } />
             </Routes>
+              </MaintenanceCheck>
           </Router>
         </AuthProvider>
       </NavigationProvider>
     </ThemeProvider>
-    </ErrorBoundary>
+  </ErrorBoundary>
   );
 }
 

@@ -22,7 +22,8 @@ use App\Http\Controllers\Api\{
     MapSettingController,
     ContactSettingController,
     CampaignSettingController,
-    TagController
+    TagController,
+    MaintenanceController
 };
 
 /*
@@ -38,6 +39,9 @@ Route::middleware(['cors'])->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
     Route::post('/auth/refresh', [AuthController::class, 'refresh'])->middleware('auth:sanctum');
 
+    // Maintenance mode status (Public)
+    Route::get('/maintenance/status', [MaintenanceController::class, 'status']);
+    
     // Public GET routes
     Route::get('/articles', [ArticleController::class, 'index']);
     Route::get('/videos', [VideoController::class, 'index']);
@@ -207,6 +211,10 @@ Route::middleware(['cors'])->group(function () {
         Route::get('/admin/campaign-settings/{metric}', [CampaignSettingController::class, 'show']);
         Route::put('/admin/campaign-settings/{metric}', [CampaignSettingController::class, 'update']);
         Route::get('/admin/stats/overview', [CampaignSettingController::class, 'getStatsOverview']);
+        
+        // Maintenance Settings (Admin only)
+        Route::get('/admin/maintenance', [MaintenanceController::class, 'show']);
+        Route::put('/admin/maintenance', [MaintenanceController::class, 'update']);
 
         // Product Management (admin routes) - REMOVED DUPLICATE (already defined at lines 69-80)
         

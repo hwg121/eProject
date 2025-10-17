@@ -5,7 +5,7 @@ import {
   Package, Star, DollarSign, Tag, Filter
 } from 'lucide-react';
 import { apiClient } from '../../services/api';
-import StatusBadge from '../ui/StatusBadge';
+import StatusBadge from '../StatusBadge';
 import { ViewsChip, RatingChip, EditButton, DeleteButton } from '../ui/ContentIcons';
 import QuickStatusButtons from './QuickStatusButtons';
 import {
@@ -94,6 +94,7 @@ interface ProductListProps {
   onBulkStatusChange?: (ids: string[], status: string) => void;
   showConfirmDialog?: (title: string, message: string, onConfirm: () => void, type?: 'warning' | 'success' | 'info' | 'error') => void;
   onQuickStatusChange?: (id: string, newStatus: string) => Promise<void>;
+  currentUser?: { id: number; role: 'admin' | 'moderator' | 'user' };
 }
 
 const ProductList: React.FC<ProductListProps> = ({
@@ -112,7 +113,8 @@ const ProductList: React.FC<ProductListProps> = ({
   isDarkMode,
   onBulkDelete,
   onBulkStatusChange,
-  showConfirmDialog
+  showConfirmDialog,
+  currentUser
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -825,9 +827,6 @@ const ProductList: React.FC<ProductListProps> = ({
                     />
                   </TableCell>
                   <TableCell>
-                    <div style={{fontSize: '10px', color: '#666', marginBottom: '2px'}}>
-                      Debug: {product.status} (type: {typeof product.status})
-                    </div>
                     <StatusBadge 
                       status={product.status as 'draft' | 'pending' | 'published' | 'archived'}
                       size="small"
@@ -877,6 +876,7 @@ const ProductList: React.FC<ProductListProps> = ({
                           onEdit={() => onEdit(product)}
                           onDelete={() => onDelete(product.id)}
                           isDarkMode={isDarkMode}
+                          currentUser={currentUser}
                         />
                       ) : (
                         <>

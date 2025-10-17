@@ -55,6 +55,7 @@ interface ProductManagementProps {
   onBulkStatusChange?: (ids: string[], status: string) => void;
   showConfirmDialog?: (title: string, message: string, onConfirm: () => void, type?: 'warning' | 'success' | 'info' | 'error') => void;
   onQuickStatusChange?: (id: string, newStatus: string) => Promise<void>;
+  currentUser?: { id: number; role: 'admin' | 'moderator' | 'user' };
 }
 
 const ProductManagement: React.FC<ProductManagementProps> = ({
@@ -80,7 +81,8 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
   onBulkDelete,
   onBulkStatusChange,
   showConfirmDialog,
-  onQuickStatusChange
+  onQuickStatusChange,
+  currentUser
 }) => {
 
   const handleEditClick = (product: Product) => {
@@ -141,6 +143,7 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
           onBulkStatusChange={onBulkStatusChange}
           showConfirmDialog={showConfirmDialog}
           onQuickStatusChange={onQuickStatusChange}
+          currentUser={currentUser}
         />
       )}
 

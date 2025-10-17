@@ -50,6 +50,7 @@ import AdminContactSettings from './admin/AdminContactSettings';
 import AdminContactMessages from './admin/AdminContactMessages';
 import AdminCampaignSettings from './admin/AdminCampaignSettings';
 import AdminSecuritySettings from './admin/AdminSecuritySettings';
+import AdminMaintenanceSettings from './admin/AdminMaintenanceSettings';
 
 // Import Approval Management
 import ApprovalManagement from '../components/admin/ApprovalManagement';
@@ -105,6 +106,58 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     console.log('📍 activeTab changed to:', activeTab);
   }, [activeTab]);
+  
+  // Load management data (for product-list, content-list tabs - moderator sees only their own)
+  const loadManagementData = useCallback(async () => {
+    try {
+      const loadDataWithFallback = async (serviceCall: () => Promise<unknown>) => {
+        try {
+          const response = await serviceCall() as {success?: boolean, data?: unknown[]};
+          if (response && response.success && Array.isArray(response.data)) {
+            return response.data;
+          } else if (Array.isArray(response)) {
+            return response;
+          } else if (response && response.data && Array.isArray(response.data)) {
+            return response.data;
+          }
+          return [];
+        } catch (error) {
+          return [];
+        }
+      };
+
+      console.log('AdminDashboard - Loading management data (view_all=false for moderator)...');
+      const [articlesData, videosData, allProductsData] = await Promise.all([
+        loadDataWithFallback(() => articlesService.getAll({ status: 'all', per_page: 1000 })), // No view_all = moderator sees only own
+        loadDataWithFallback(() => videosService.getAll({ status: 'all', per_page: 1000 })), // No view_all = moderator sees only own
+        loadDataWithFallback(() => productService.getAll({ status: 'all', per_page: 1000 })) // No view_all = moderator sees only own
+      ]);
+
+      // Update state with filtered data
+      setArticles(articlesData.map(transformArticleToContentItem));
+      setVideos(videosData.map(transformVideoToContentItem));
+      setProducts(allProductsData.map(transformProductByCategory));
+
+      console.log('AdminDashboard - Management data loaded:', {
+        articles: articlesData?.length || 0,
+        videos: videosData?.length || 0,
+        products: allProductsData?.length || 0
+      });
+    } catch (error) {
+      console.error('Error loading management data:', error);
+    }
+  }, []);
+
+  // Reload data when switching to management tabs (for moderator to see only their content)
+  useEffect(() => {
+    const isManagementTab = ['product-list', 'content-list', 'articles', 'videos'].includes(activeTab);
+    const isModerator = user?.role === 'moderator';
+    
+    if (isManagementTab && isModerator) {
+      console.log('🔄 Reloading data for management tab (moderator - own content only)');
+      loadManagementData();
+    }
+  }, [activeTab, user?.role, loadManagementData]);
   
   // Listen for edit events from ViewAllContent
   useEffect(() => {
@@ -458,9 +511,9 @@ const AdminDashboard: React.FC = () => {
       // Load all content data using admin endpoints
       console.log('AdminDashboard - Starting to load data...');
       const [articlesData, videosData, allProductsData, contactMessagesData, usersData, publicActivitiesData, securityActivitiesData] = await Promise.all([
-          loadDataWithFallback(() => articlesService.getAll({ status: 'all', per_page: 1000 })), // Get all articles (up to 1000)
-          loadDataWithFallback(() => videosService.getAll({ status: 'all', per_page: 1000 })), // Get all videos (up to 1000)
-          loadDataWithFallback(() => productService.getAll({ status: 'all', per_page: 1000 })), // Get all products (up to 1000)
+          loadDataWithFallback(() => articlesService.getAll({ status: 'all', per_page: 1000, view_all: true })), // Get all articles (moderator can see all in overview)
+          loadDataWithFallback(() => videosService.getAll({ status: 'all', per_page: 1000, view_all: true })), // Get all videos (moderator can see all in overview)
+          loadDataWithFallback(() => productService.getAll({ status: 'all', per_page: 1000, view_all: true })), // Get all products (moderator can see all in overview)
           loadDataWithFallback(() => contactService.getAll()),
           loadDataWithFallback(() => userService.getAll()),
           loadDataWithFallback(() => activityLogService.getPublicActivities(20)),
@@ -564,11 +617,13 @@ const AdminDashboard: React.FC = () => {
       // Calculate stats from real API data - only count published content
       const totalArticles = Array.isArray(articlesData) ? articlesData.filter((item: any) => item.status === 'published').length : 0;
       const totalVideos = Array.isArray(videosData) ? videosData.filter((item: any) => item.status === 'published').length : 0;
-      const totalBooks = Array.isArray(booksData) ? booksData.filter((item: any) => item.status === 'published').length : 0;
-      const totalTools = Array.isArray(toolsData) ? toolsData.filter((item: any) => item.status === 'published').length : 0;
-      const totalPots = Array.isArray(potsData) ? potsData.filter((item: any) => item.status === 'published').length : 0;
-      const totalAccessories = Array.isArray(accessoriesData) ? accessoriesData.filter((item: any) => item.status === 'published').length : 0;
-      const totalSuggestions = Array.isArray(suggestionsData) ? suggestionsData.filter((item: any) => item.status === 'published').length : 0;
+      
+      // Calculate product counts from allProductsData (unified product service)
+      const totalBooks = publishedProducts.filter((item: any) => item.category === 'book').length;
+      const totalTools = publishedProducts.filter((item: any) => item.category === 'tool').length;
+      const totalPots = publishedProducts.filter((item: any) => item.category === 'pot').length;
+      const totalAccessories = publishedProducts.filter((item: any) => item.category === 'accessory').length;
+      const totalSuggestions = publishedProducts.filter((item: any) => item.category === 'suggestion').length;
       const totalContactMessages = Array.isArray(contactMessagesData) ? contactMessagesData.length : 0;
       const totalUsers = Array.isArray(usersData) ? usersData.length : 0;
 
@@ -588,31 +643,18 @@ const AdminDashboard: React.FC = () => {
       // Calculate total views from published content only
       const publishedArticles = Array.isArray(articlesData) ? articlesData.filter((item: any) => item.status === 'published') : [];
       const publishedVideos = Array.isArray(videosData) ? videosData.filter((item: any) => item.status === 'published') : [];
-      const publishedBooks = Array.isArray(booksData) ? booksData.filter((item: any) => item.status === 'published') : [];
-      const publishedTools = Array.isArray(toolsData) ? toolsData.filter((item: any) => item.status === 'published') : [];
-      const publishedPots = Array.isArray(potsData) ? potsData.filter((item: any) => item.status === 'published') : [];
-      const publishedAccessories = Array.isArray(accessoriesData) ? accessoriesData.filter((item: any) => item.status === 'published') : [];
-      const publishedSuggestions = Array.isArray(suggestionsData) ? suggestionsData.filter((item: any) => item.status === 'published') : [];
       
       const totalViews = [
         ...publishedArticles,
         ...publishedVideos,
-        ...publishedBooks,
-        ...publishedTools,
-        ...publishedPots,
-        ...publishedAccessories,
-        ...publishedSuggestions
+        ...publishedProducts
       ].reduce((sum, item) => sum + (item.views || 0), 0);
 
       // Calculate average rating from published content only (rating >= 1)
       const ratedContent = [
         ...publishedArticles,
         ...publishedVideos,
-        ...publishedBooks,
-        ...publishedSuggestions,
-        ...publishedAccessories,
-        ...publishedTools,
-        ...publishedPots
+        ...publishedProducts
       ].filter(item => {
         const rating = parseFloat(item.rating);
         return !isNaN(rating) && rating >= 1;
@@ -2504,6 +2546,7 @@ Updated: ${product.updatedAt}
           showConfirmDialog={showConfirmDialog}
           users={allUsers}
           onQuickStatusChange={handleQuickStatusChange}
+          currentUser={user}
         />
       )}
 
@@ -2515,6 +2558,7 @@ Updated: ${product.updatedAt}
       {activeTab === 'contact-messages' && <AdminContactMessages />}
       {activeTab === 'campaign-settings' && user?.role === 'admin' && <AdminCampaignSettings />}
       {activeTab === 'security-settings' && user?.role === 'admin' && <AdminSecuritySettings />}
+      {activeTab === 'maintenance-settings' && user?.role === 'admin' && <AdminMaintenanceSettings />}
 
       {/* Modal for Create/Edit */}
       <AnimatePresence>

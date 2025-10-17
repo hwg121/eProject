@@ -8,6 +8,7 @@ interface QuickStatusButtonsProps {
   onEdit: (item: any) => void;
   onDelete: (item: any) => void;
   isDarkMode: boolean;
+  currentUser?: { id: number; role: 'admin' | 'moderator' | 'user' };
 }
 
 const QuickStatusButtons: React.FC<QuickStatusButtonsProps> = ({
@@ -15,9 +16,14 @@ const QuickStatusButtons: React.FC<QuickStatusButtonsProps> = ({
   onStatusChange,
   onEdit,
   onDelete,
-  isDarkMode
+  isDarkMode,
+  currentUser
 }) => {
   const status = item.status;
+  
+  // Check if user can modify this content
+  const canModify = !currentUser || currentUser.role === 'admin' || 
+    (currentUser.role === 'moderator' && item.author_id === currentUser.id);
   
   const iconButtonStyle = {
     padding: '6px',
@@ -28,25 +34,29 @@ const QuickStatusButtons: React.FC<QuickStatusButtonsProps> = ({
   if (status === 'draft') {
     return (
       <Box sx={{ display: 'flex', gap: 0.5 }}>
-        <Tooltip title="Submit for review">
-          <IconButton 
-            onClick={() => onStatusChange(item.id, 'pending')} 
-            size="small"
-            sx={{ ...iconButtonStyle, color: '#2563eb' }}
-          >
-            <Send sx={{ fontSize: 18 }} />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Edit">
-          <IconButton onClick={() => onEdit(item)} size="small" sx={iconButtonStyle}>
-            <Edit sx={{ fontSize: 18 }} />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Delete">
-          <IconButton onClick={() => onDelete(item)} size="small" sx={{ ...iconButtonStyle, color: '#dc2626' }}>
-            <Delete sx={{ fontSize: 18 }} />
-          </IconButton>
-        </Tooltip>
+        {canModify && (
+          <>
+            <Tooltip title="Submit for review">
+              <IconButton 
+                onClick={() => onStatusChange(item.id, 'pending')} 
+                size="small"
+                sx={{ ...iconButtonStyle, color: '#2563eb' }}
+              >
+                <Send sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Edit">
+              <IconButton onClick={() => onEdit(item)} size="small" sx={iconButtonStyle}>
+                <Edit sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Delete">
+              <IconButton onClick={() => onDelete(item)} size="small" sx={{ ...iconButtonStyle, color: '#dc2626' }}>
+                <Delete sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+          </>
+        )}
       </Box>
     );
   }
@@ -55,25 +65,29 @@ const QuickStatusButtons: React.FC<QuickStatusButtonsProps> = ({
   if (status === 'pending') {
     return (
       <Box sx={{ display: 'flex', gap: 0.5 }}>
-        <Tooltip title="Withdraw">
-          <IconButton 
-            onClick={() => onStatusChange(item.id, 'draft')} 
-            size="small"
-            sx={{ ...iconButtonStyle, color: '#f59e0b' }}
-          >
-            <Undo sx={{ fontSize: 18 }} />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Edit">
-          <IconButton onClick={() => onEdit(item)} size="small" sx={iconButtonStyle}>
-            <Edit sx={{ fontSize: 18 }} />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Delete">
-          <IconButton onClick={() => onDelete(item)} size="small" sx={{ ...iconButtonStyle, color: '#dc2626' }}>
-            <Delete sx={{ fontSize: 18 }} />
-          </IconButton>
-        </Tooltip>
+        {canModify && (
+          <>
+            <Tooltip title="Withdraw">
+              <IconButton 
+                onClick={() => onStatusChange(item.id, 'draft')} 
+                size="small"
+                sx={{ ...iconButtonStyle, color: '#f59e0b' }}
+              >
+                <Undo sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Edit">
+              <IconButton onClick={() => onEdit(item)} size="small" sx={iconButtonStyle}>
+                <Edit sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Delete">
+              <IconButton onClick={() => onDelete(item)} size="small" sx={{ ...iconButtonStyle, color: '#dc2626' }}>
+                <Delete sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+          </>
+        )}
       </Box>
     );
   }
@@ -82,25 +96,29 @@ const QuickStatusButtons: React.FC<QuickStatusButtonsProps> = ({
   if (status === 'published') {
     return (
       <Box sx={{ display: 'flex', gap: 0.5 }}>
-        <Tooltip title="Archive">
-          <IconButton 
-            onClick={() => onStatusChange(item.id, 'archived')} 
-            size="small"
-            sx={{ ...iconButtonStyle, color: '#f59e0b' }}
-          >
-            <Archive sx={{ fontSize: 18 }} />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Edit (requires re-approval)">
-          <IconButton onClick={() => onEdit(item)} size="small" sx={iconButtonStyle}>
-            <Edit sx={{ fontSize: 18 }} />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Delete">
-          <IconButton onClick={() => onDelete(item)} size="small" sx={{ ...iconButtonStyle, color: '#dc2626' }}>
-            <Delete sx={{ fontSize: 18 }} />
-          </IconButton>
-        </Tooltip>
+        {canModify && (
+          <>
+            <Tooltip title="Archive">
+              <IconButton 
+                onClick={() => onStatusChange(item.id, 'archived')} 
+                size="small"
+                sx={{ ...iconButtonStyle, color: '#f59e0b' }}
+              >
+                <Archive sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Edit (requires re-approval)">
+              <IconButton onClick={() => onEdit(item)} size="small" sx={iconButtonStyle}>
+                <Edit sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Delete">
+              <IconButton onClick={() => onDelete(item)} size="small" sx={{ ...iconButtonStyle, color: '#dc2626' }}>
+                <Delete sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+          </>
+        )}
       </Box>
     );
   }
@@ -109,29 +127,33 @@ const QuickStatusButtons: React.FC<QuickStatusButtonsProps> = ({
   if (status === 'archived') {
     return (
       <Box sx={{ display: 'flex', gap: 0.5 }}>
-        <Tooltip title="Re-publish (no approval needed)">
-          <IconButton 
-            onClick={() => onStatusChange(item.id, 'published')} 
-            size="small"
-            sx={{ ...iconButtonStyle, color: '#10b981' }}
-          >
-            <Publish sx={{ fontSize: 18 }} />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Restore to draft for editing">
-          <IconButton 
-            onClick={() => onStatusChange(item.id, 'draft')} 
-            size="small"
-            sx={{ ...iconButtonStyle, color: '#0891b2' }}
-          >
-            <RestoreFromTrash sx={{ fontSize: 18 }} />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Delete">
-          <IconButton onClick={() => onDelete(item)} size="small" sx={{ ...iconButtonStyle, color: '#dc2626' }}>
-            <Delete sx={{ fontSize: 18 }} />
-          </IconButton>
-        </Tooltip>
+        {canModify && (
+          <>
+            <Tooltip title="Re-publish (no approval needed)">
+              <IconButton 
+                onClick={() => onStatusChange(item.id, 'published')} 
+                size="small"
+                sx={{ ...iconButtonStyle, color: '#10b981' }}
+              >
+                <Publish sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Restore to draft for editing">
+              <IconButton 
+                onClick={() => onStatusChange(item.id, 'draft')} 
+                size="small"
+                sx={{ ...iconButtonStyle, color: '#0891b2' }}
+              >
+                <RestoreFromTrash sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Delete">
+              <IconButton onClick={() => onDelete(item)} size="small" sx={{ ...iconButtonStyle, color: '#dc2626' }}>
+                <Delete sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+          </>
+        )}
       </Box>
     );
   }

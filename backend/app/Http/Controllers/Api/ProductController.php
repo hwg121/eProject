@@ -43,8 +43,16 @@ class ProductController extends Controller
                 }
                 // If no status param or status=all, show all products for admin
             } else if ($isModerator) {
-                // Moderator only sees their own content
-                $query->where('author_id', $user->id);
+                // Moderator behavior depends on view_all parameter:
+                // - view_all=true: See all content (for analytics/overview)
+                // - view_all=false or not set: Only see their own content (for management)
+                $viewAll = $request->get('view_all', false) === 'true' || $request->get('view_all', false) === true;
+                
+                if (!$viewAll) {
+                    // Default: Only show moderator's own content
+                    $query->where('author_id', $user->id);
+                }
+                // If view_all=true, don't filter by author_id (show all for analytics)
                 
                 // Filter by status if provided
                 if ($request->has('status') && $request->status !== 'all') {
@@ -88,7 +96,9 @@ class ProductController extends Controller
 
             // Pagination - Allow higher limit for admin dashboard
             $requestedPerPage = $request->get('per_page', 15);
-            $maxPerPage = $isAdmin ? 1000 : 50; // Admin can fetch more items
+            // Admin and moderator (when view_all=true for analytics) can fetch more items
+            $viewAll = $request->get('view_all', false) === 'true' || $request->get('view_all', false) === true;
+            $maxPerPage = ($isAdmin || ($isModerator && $viewAll)) ? 1000 : 50;
             $perPage = min($requestedPerPage, $maxPerPage);
         $products = $query->paginate($perPage);
 

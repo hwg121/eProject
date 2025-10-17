@@ -208,12 +208,15 @@ const ProductForm: React.FC<ProductFormProps> = ({
     const newErrors: {[key: string]: string | null} = {};
     
     // Required field validations
-    if (!formData.name && !formData.title) {
+    const productName = formData.name || formData.title;
+    if (!productName || productName.trim() === '') {
       newErrors.name = 'Product name is required';
     }
     
-    if (!formData.description) {
+    if (!formData.description || formData.description.trim() === '') {
       newErrors.description = 'Product description is required';
+    } else if (formData.description.length < 10) {
+      newErrors.description = 'Product description must be at least 10 characters';
     }
     
     if (!formData.category) {
@@ -221,7 +224,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
     
     // Field length validations
-    if (formData.name && formData.name.length > 100) {
+    if (productName && productName.length > 100) {
       newErrors.name = 'Product name must not exceed 100 characters';
     }
     
@@ -238,15 +241,15 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
     
     // Number validations
-    if (formData.price !== undefined && formData.price !== null) {
+    if (formData.price !== undefined && formData.price !== null && formData.price !== 0) {
       newErrors.price = validateNumber(formData.price, 0, 999999, 'Price', false);
     }
     
-    if (formData.rating !== undefined && formData.rating !== null) {
+    if (formData.rating !== undefined && formData.rating !== null && formData.rating !== 0) {
       newErrors.rating = validateNumber(formData.rating, 0, 5, 'Rating', false);
     }
     
-    if (formData.pages !== undefined && formData.pages !== null) {
+    if (formData.pages !== undefined && formData.pages !== null && formData.pages !== 0) {
       newErrors.pages = validateNumber(formData.pages, 1, 10000, 'Pages', false);
     }
     
@@ -321,6 +324,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
               const value = e.target.value;
               if (value.length > 100) {
                 setErrors({ ...errors, name: 'Name must not exceed 100 characters' });
+                return;
+              }
+              if (value.trim() === '' && value.length > 0) {
+                setErrors({ ...errors, name: 'Product name is required' });
+                setFormData({ ...formData, title: value, name: value });
                 return;
               }
               setFormData({ ...formData, title: value, name: value });
@@ -547,6 +555,16 @@ const ProductForm: React.FC<ProductFormProps> = ({
               const value = e.target.value;
               if (value.length > 5000) {
                 setErrors({ ...errors, description: 'Description must not exceed 5000 characters' });
+                return;
+              }
+              if (value.trim() === '' && value.length > 0) {
+                setErrors({ ...errors, description: 'Product description is required' });
+                setFormData({ ...formData, description: value });
+                return;
+              }
+              if (value.length > 0 && value.length < 10) {
+                setErrors({ ...errors, description: 'Description must be at least 10 characters' });
+                setFormData({ ...formData, description: value });
                 return;
               }
               setFormData({ ...formData, description: value });
@@ -811,11 +829,19 @@ const ProductForm: React.FC<ProductFormProps> = ({
           label="Link (URL or Text)"
           value={formData.link || ''}
           onChange={(e) => {
-            setFormData({ ...formData, link: e.target.value });
-            setErrors({ ...errors, link: null });
+            const value = e.target.value;
+            setFormData({ ...formData, link: value });
+            
+            // Real-time URL validation if value is not empty
+            if (value && value.trim() !== '') {
+              const urlError = validateURL(value, false);
+              setErrors({ ...errors, link: urlError });
+            } else {
+              setErrors({ ...errors, link: null });
+            }
           }}
           error={!!errors.link}
-          helperText={errors.link}
+          helperText={errors.link || 'Enter a valid URL (https://example.com) or any text reference'}
           placeholder="https://example.com or any text reference"
           sx={textFieldStyles}
         />

@@ -70,18 +70,28 @@ const Tools: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = isMobile ? 6 : 9;
 
   useEffect(() => {
     const loadTools = async () => {
       try {
         setLoading(true);
-        const response = await publicService.getTools();
+        const response = await publicService.getTools({ 
+          page: currentPage, 
+          per_page: 50 
+        });
         
-        // Handle API response format: {success: true, data: [...]}
+        // Handle API response format: {data: [...], meta: {...}}
         let toolsData: Product[] = [];
-        if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
-          toolsData = (response as any).data;
+        if (response && typeof response === 'object' && 'data' in response) {
+          toolsData = response.data;
+          // Update total pages from server meta (for UI pagination display)
+          if (response.meta) {
+            const totalItems = response.meta.total || 0;
+            // Calculate pages based on client-side itemsPerPage for UI display
+            setTotalPages(Math.ceil(totalItems / itemsPerPage));
+          }
         } else if (Array.isArray(response)) {
           toolsData = response;
         }
@@ -101,9 +111,9 @@ const Tools: React.FC = () => {
     };
 
     loadTools();
-  }, []);
+  }, [currentPage, itemsPerPage]);
 
-  // Filter tools based on search term
+  // Filter tools based on search term (client-side filtering for current page)
   const filteredTools = tools.filter(tool => {
     const matchesSearch = tool.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          tool.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -112,14 +122,13 @@ const Tools: React.FC = () => {
 
   // Reset to page 1 when search changes
   useEffect(() => {
-    setCurrentPage(1);
+    if (searchTerm) {
+      setCurrentPage(1);
+    }
   }, [searchTerm]);
 
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredTools.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentTools = filteredTools.slice(startIndex, endIndex);
+  // Use filtered tools for display (server handles pagination)
+  const currentTools = filteredTools;
 
   return (
     <div className="space-y-12">

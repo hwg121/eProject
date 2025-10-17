@@ -412,20 +412,36 @@ class ApiClient {
     }
   }
 
-  async getPublicTools() {
+  async getPublicTools(params?: { page?: number; per_page?: number }) {
     try {
-      const response: any = await this.request<unknown>('/products?category=tool');
-      return response.data || [];
+      const queryParams = new URLSearchParams();
+      queryParams.append('category', 'tool');
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+      
+      const response: any = await this.request<unknown>(`/products?${queryParams.toString()}`);
+      return {
+        data: response.data || [],
+        meta: response.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 }
+      };
     } catch (error) {
       console.error('Error fetching tools:', error);
       throw error;
     }
   }
 
-  async getPublicBooks() {
+  async getPublicBooks(params?: { page?: number; per_page?: number }) {
     try {
-      const response: any = await this.request<unknown>('/products?category=book');
-      return response.data || [];
+      const queryParams = new URLSearchParams();
+      queryParams.append('category', 'book');
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+      
+      const response: any = await this.request<unknown>(`/products?${queryParams.toString()}`);
+      return {
+        data: response.data || [],
+        meta: response.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 }
+      };
     } catch (error) {
       console.error('Error fetching books:', error);
       throw error;
@@ -442,30 +458,54 @@ class ApiClient {
     }
   }
 
-  async getPublicPots() {
+  async getPublicPots(params?: { page?: number; per_page?: number }) {
     try {
-      const response: any = await this.request<unknown>('/products?category=pot');
-      return response.data || [];
+      const queryParams = new URLSearchParams();
+      queryParams.append('category', 'pot');
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+      
+      const response: any = await this.request<unknown>(`/products?${queryParams.toString()}`);
+      return {
+        data: response.data || [],
+        meta: response.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 }
+      };
     } catch (error) {
       console.error('Error fetching pots:', error);
       throw error;
     }
   }
 
-  async getPublicAccessories() {
+  async getPublicAccessories(params?: { page?: number; per_page?: number }) {
     try {
-      const response: any = await this.request<unknown>('/products?category=accessory');
-      return response.data || [];
+      const queryParams = new URLSearchParams();
+      queryParams.append('category', 'accessory');
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+      
+      const response: any = await this.request<unknown>(`/products?${queryParams.toString()}`);
+      return {
+        data: response.data || [],
+        meta: response.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 }
+      };
     } catch (error) {
       console.error('Error fetching accessories:', error);
       throw error;
     }
   }
 
-  async getPublicSuggestions() {
+  async getPublicSuggestions(params?: { page?: number; per_page?: number }) {
     try {
-      const response: any = await this.request<unknown>('/products?category=suggestion');
-      return response.data || [];
+      const queryParams = new URLSearchParams();
+      queryParams.append('category', 'suggestion');
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+      
+      const response: any = await this.request<unknown>(`/products?${queryParams.toString()}`);
+      return {
+        data: response.data || [],
+        meta: response.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 }
+      };
     } catch (error) {
       console.error('Error fetching suggestions:', error);
       throw error;
@@ -500,6 +540,37 @@ class ApiClient {
     } catch (error) {
       console.error('Error fetching contact message:', error);
       return Promise.resolve(null);
+    }
+  }
+
+  // Maintenance methods
+  async getMaintenanceStatus() {
+    try {
+      return await this.request<unknown>('/maintenance/status');
+    } catch (error) {
+      console.error('Error fetching maintenance status:', error);
+      throw error;
+    }
+  }
+
+  async getMaintenanceSettings() {
+    try {
+      return await this.request<unknown>('/admin/maintenance');
+    } catch (error) {
+      console.error('Error fetching maintenance settings:', error);
+      throw error;
+    }
+  }
+
+  async updateMaintenanceSettings(data: unknown) {
+    try {
+      return await this.request<unknown>('/admin/maintenance', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+    } catch (error) {
+      console.error('Error updating maintenance settings:', error);
+      throw error;
     }
   }
 
@@ -1230,15 +1301,15 @@ export const uploadService = {
 };
 
 export const publicService = {
-  getTools: () => apiClient.getPublicTools(),
+  getTools: (params?: { page?: number; per_page?: number }) => apiClient.getPublicTools(params),
   getArticles: () => apiClient.getPublicArticles(),
   getVideos: () => apiClient.getPublicVideos(),
-  getBooks: () => apiClient.getPublicBooks(),
+  getBooks: (params?: { page?: number; per_page?: number }) => apiClient.getPublicBooks(params),
   getEssentials: () => apiClient.getPublicEssentials(),
   getSeeds: () => apiClient.getPublicSeeds(),
-  getPots: () => apiClient.getPublicPots(),
-  getAccessories: () => apiClient.getPublicAccessories(),
-  getSuggestions: () => apiClient.getPublicSuggestions(),
+  getPots: (params?: { page?: number; per_page?: number }) => apiClient.getPublicPots(params),
+  getAccessories: (params?: { page?: number; per_page?: number }) => apiClient.getPublicAccessories(params),
+  getSuggestions: (params?: { page?: number; per_page?: number }) => apiClient.getPublicSuggestions(params),
   trackPageView: (page: string) => apiClient.trackPageView(page),
   deleteItem: (id: string, type: string) => apiClient.deleteItem(id, type),
   createItem: (data: unknown, type: string) => apiClient.createItem(data, type),
@@ -1251,6 +1322,12 @@ export const contactService = {
   getById: (id: string) => apiClient.getContactMessage(id),
   update: (id: string, data: unknown) => apiClient.updateContactMessage(id, data),
   delete: (id: string) => apiClient.deleteContactMessage(id),
+};
+
+export const maintenanceService = {
+  getStatus: () => apiClient.getMaintenanceStatus(),
+  getSettings: () => apiClient.getMaintenanceSettings(),
+  update: (data: unknown) => apiClient.updateMaintenanceSettings(data),
 };
 
 export const interactionService = {

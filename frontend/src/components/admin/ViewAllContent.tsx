@@ -8,7 +8,7 @@ import {
 import { useTheme } from '../../contexts/ThemeContext';
 import { useDebounce } from '../../hooks/useDebounce';
 import PageHeader from '../ui/PageHeader';
-import StatusBadge from '../ui/StatusBadge';
+import StatusBadge from '../StatusBadge';
 import Toast from '../ui/Toast';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import { ViewsChip, LikesChip, RatingChip, EditButton, DeleteButton } from '../ui/ContentIcons';
@@ -106,9 +106,9 @@ const ViewAllContent: React.FC = () => {
       );
       
       const apiPromise = Promise.all([
-        articlesService.getAll({ per_page: 100 }), // Get more items for comprehensive view
-        videosService.getAll({ per_page: 100 }),
-        productService.getAll({ per_page: 100 })
+        articlesService.getAll({ per_page: 1000, view_all: true }), // Get more items for comprehensive view (moderator can see all)
+        videosService.getAll({ per_page: 1000, view_all: true }),
+        productService.getAll({ per_page: 1000, view_all: true })
       ]);
       
       const [articlesResponse, videosResponse, productsResponse] = await Promise.race([

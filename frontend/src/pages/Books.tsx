@@ -67,18 +67,28 @@ const Books: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = isMobile ? 6 : 9;
 
   useEffect(() => {
     const loadBooks = async () => {
       try {
         setLoading(true);
-        const response = await publicService.getBooks();
+        const response = await publicService.getBooks({ 
+          page: currentPage, 
+          per_page: 50 // Load 50 items per request
+        });
         
-        // Handle API response format: {success: true, data: [...]}
+        // Handle API response format: {data: [...], meta: {...}}
         let booksData: Product[] = [];
-        if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
-          booksData = (response as any).data;
+        if (response && typeof response === 'object' && 'data' in response) {
+          booksData = response.data;
+          // Update total pages from server meta (for UI pagination display)
+          if (response.meta) {
+            const totalItems = response.meta.total || 0;
+            // Calculate pages based on client-side itemsPerPage for UI display
+            setTotalPages(Math.ceil(totalItems / itemsPerPage));
+          }
         } else if (Array.isArray(response)) {
           booksData = response;
         }
@@ -93,9 +103,9 @@ const Books: React.FC = () => {
     };
 
     loadBooks();
-  }, []);
+  }, [currentPage, itemsPerPage]);
 
-  // Filter books based on search term
+  // Filter books based on search term (client-side filtering for current page)
   const filteredBooks = books.filter(book => {
     const matchesSearch = book.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          book.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -105,14 +115,13 @@ const Books: React.FC = () => {
 
   // Reset to page 1 when search changes
   useEffect(() => {
-    setCurrentPage(1);
+    if (searchTerm) {
+      setCurrentPage(1);
+    }
   }, [searchTerm]);
 
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredBooks.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentBooks = filteredBooks.slice(startIndex, endIndex);
+  // Use filtered books for display (no client-side pagination, server handles it)
+  const currentBooks = filteredBooks;
 
   return (
     <div className="space-y-12">
