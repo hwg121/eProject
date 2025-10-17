@@ -129,7 +129,10 @@ const ViewAllContent: React.FC = () => {
           views: Number(article.views) || 0,
           likes: Number(article.likes) || 0,
           rating: Number(article.rating) || 0, // Ensure rating is a number
-          author: 'Admin', // Articles don't have author field in ArticleResource
+          author: article.authorUser?.name || article.creator?.name || 'Unknown Author',
+          authorUser: article.authorUser,
+          creator: article.creator,
+          author_id: article.author_id,
           created_at: article.created_at,
           updated_at: article.updated_at,
           thumbnail: article.featured_image || article.cover,
@@ -149,7 +152,10 @@ const ViewAllContent: React.FC = () => {
           views: Number(video.views) || 0,
           likes: Number(video.likes) || 0,
           rating: Number(video.rating) || 0, // Ensure rating is a number
-          author: video.instructor || 'Unknown',
+          author: video.authorUser?.name || video.creator?.name || 'Unknown Author',
+          authorUser: video.authorUser,
+          creator: video.creator,
+          author_id: video.author_id,
           created_at: video.created_at,
           updated_at: video.updated_at,
           thumbnail: video.thumbnail || video.featured_image,
@@ -169,7 +175,10 @@ const ViewAllContent: React.FC = () => {
           views: Number(product.views) || 0,
           likes: Number(product.likes) || 0,
           rating: Number(product.rating) || 0, // Ensure rating is a number
-          author: 'Admin', // Products don't have author field
+          author: product.authorUser?.name || product.creator?.name || 'Unknown Author',
+          authorUser: product.authorUser,
+          creator: product.creator,
+          author_id: product.author_id,
           created_at: product.created_at,
           updated_at: product.updated_at,
           thumbnail: product.image || product.featured_image,
@@ -918,11 +927,11 @@ const ViewAllContent: React.FC = () => {
                           <RatingChip value={Number(item.rating)} isDarkMode={isDarkMode} />
                         </TableCell>
                         
-                        <TableCell>
-                          <Typography variant="body2" sx={{ color: isDarkMode ? '#e2e8f0' : '#374151' }}>
-                            {item.authorUser?.name || item.creator?.name || 'System'}
-                          </Typography>
-                        </TableCell>
+        <TableCell>
+          <Typography variant="body2" sx={{ color: isDarkMode ? '#e2e8f0' : '#374151' }}>
+            {item.authorUser?.name || item.creator?.name || 'Unknown Author'}
+          </Typography>
+        </TableCell>
                         
                         <TableCell>
                           <Typography variant="body2" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b' }}>

@@ -34,14 +34,12 @@ class ArticleResource extends JsonResource
             'updated_at' => $this->updated_at,
             
             // Relationships
-            'authorUser' => $this->whenLoaded('authorUser', function () {
-                return $this->authorUser ? [
-                    'id' => $this->authorUser->id,
-                    'name' => $this->authorUser->name,
-                    'email' => $this->authorUser->email,
-                    'avatar' => $this->authorUser->avatar ?? null,
-                ] : null;
-            }),
+            'authorUser' => $this->authorUser ? [
+                'id' => $this->authorUser->id,
+                'name' => $this->authorUser->name,
+                'email' => $this->authorUser->email,
+                'avatar' => $this->authorUser->avatar ?? null,
+            ] : null,
             'tags' => TagResource::collection($this->whenLoaded('tags')),
             
             // Audit tracking

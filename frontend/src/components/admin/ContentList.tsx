@@ -700,11 +700,11 @@ const ContentList: React.FC<ContentListProps> = ({
                     <TableCell>
                       <RatingChip value={item.rating || 0} isDarkMode={isDarkMode} />
                     </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b' }}>
-                        {item.authorUser?.name || item.creator?.name || 'System'}
-                      </Typography>
-                    </TableCell>
+        <TableCell>
+          <Typography variant="body2" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b' }}>
+            {item.authorUser?.name || item.creator?.name || 'Unknown Author'}
+          </Typography>
+        </TableCell>
                     <TableCell>
                       <Typography variant="caption" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b' }}>
                         {formatTimeAgo(item.createdAt)}

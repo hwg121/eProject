@@ -857,11 +857,11 @@ const ProductList: React.FC<ProductListProps> = ({
                   <TableCell>
                     <RatingChip value={product.rating || 0} isDarkMode={isDarkMode} />
                   </TableCell>
-                  <TableCell>
-                    <Typography variant="body2" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b' }}>
-                      {product.authorUser?.name || product.creator?.name || 'System'}
-                    </Typography>
-                  </TableCell>
+        <TableCell>
+          <Typography variant="body2" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b' }}>
+            {product.authorUser?.name || product.creator?.name || 'Unknown Author'}
+          </Typography>
+        </TableCell>
                   <TableCell align="center">
                     <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
                       <Tooltip title={product.link ? "Open Product Link" : "View Product"}>

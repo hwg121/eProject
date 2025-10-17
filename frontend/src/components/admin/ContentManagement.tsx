@@ -266,9 +266,9 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
                       <h3 className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                         {item.title}
                       </h3>
-                      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {item.authorUser?.name || item.creator?.name || 'System'} • {item.category}
-                      </p>
+        <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          {item.authorUser?.name || item.creator?.name || 'Unknown Author'} • {item.category}
+        </p>
                       <div className="flex items-center space-x-4 mt-1">
                         <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(item.status)}`}>
                           {item.status}

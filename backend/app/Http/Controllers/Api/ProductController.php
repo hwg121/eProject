@@ -101,6 +101,18 @@ class ProductController extends Controller
             $maxPerPage = ($isAdmin || ($isModerator && $viewAll)) ? 1000 : 50;
             $perPage = min($requestedPerPage, $maxPerPage);
         $products = $query->paginate($perPage);
+        
+        // Debug: Log first product's authorUser relationship
+        if ($products->count() > 0) {
+            $firstProduct = $products->first();
+            \Log::info('ProductController::index - Debug authorUser', [
+                'product_id' => $firstProduct->id,
+                'author_id' => $firstProduct->author_id,
+                'authorUser_loaded' => $firstProduct->relationLoaded('authorUser'),
+                'authorUser_exists' => $firstProduct->authorUser ? 'YES' : 'NO',
+                'authorUser_name' => $firstProduct->authorUser ? $firstProduct->authorUser->name : 'NULL'
+            ]);
+        }
 
         return response()->json([
             'success' => true,
