@@ -128,7 +128,7 @@ const Suggestions: React.FC = () => {
             <img 
               src={item.image} 
               alt={item.name} 
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              className="w-full h-full object-contain bg-gray-50 group-hover:scale-110 transition-transform duration-300"
             />
           </div>
         )}

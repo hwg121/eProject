@@ -75,6 +75,19 @@ interface Product {
   likes?: number;
   createdAt: string;
   updatedAt: string;
+  // Author fields
+  author?: string; // Book author name
+  author_id?: number; // User ID who owns the content
+  authorUser?: {
+    id: number;
+    name: string;
+    email: string;
+    avatar?: string;
+  };
+  creator?: {
+    id: number;
+    name: string;
+  };
 }
 
 interface ProductListProps {
@@ -712,7 +725,7 @@ const ProductList: React.FC<ProductListProps> = ({
             </Typography>
           </Box>
         ) : (
-          <Table sx={{ minWidth: { xs: 900, md: 1100 } }}>
+          <Table sx={{ minWidth: { xs: 1100, md: 1300 } }}>
             <TableHead>
               <TableRow sx={{ bgcolor: isDarkMode ? '#0f172a' : '#f8fafc' }}>
                 <TableCell padding="checkbox">
@@ -733,6 +746,7 @@ const ProductList: React.FC<ProductListProps> = ({
                 <TableCell sx={{ fontWeight: 700, color: isDarkMode ? '#94a3b8' : '#475569' }}>Views</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: isDarkMode ? '#94a3b8' : '#475569' }}>Price</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: isDarkMode ? '#94a3b8' : '#475569' }}>Rating</TableCell>
+                <TableCell sx={{ fontWeight: 700, color: isDarkMode ? '#94a3b8' : '#475569' }}>Author</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 700, color: isDarkMode ? '#94a3b8' : '#475569' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -842,6 +856,11 @@ const ProductList: React.FC<ProductListProps> = ({
                   </TableCell>
                   <TableCell>
                     <RatingChip value={product.rating || 0} isDarkMode={isDarkMode} />
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b' }}>
+                      {product.authorUser?.name || product.creator?.name || 'System'}
+                    </Typography>
                   </TableCell>
                   <TableCell align="center">
                     <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>

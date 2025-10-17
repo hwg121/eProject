@@ -68,28 +68,19 @@ const Accessories: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = isMobile ? 6 : 9;
 
   useEffect(() => {
     const loadAccessories = async () => {
       try {
         setLoading(true);
-        const response = await publicService.getAccessories({ 
-          page: currentPage, 
-          per_page: 50 
-        });
+        // Load all accessories once, then handle pagination client-side
+        const response = await publicService.getAccessories();
         
         // Handle API response format: {data: [...], meta: {...}}
         let accessoriesData: Product[] = [];
         if (response && typeof response === 'object' && 'data' in response) {
           accessoriesData = response.data;
-          // Update total pages from server meta (for UI pagination display)
-          if (response.meta) {
-            const totalItems = response.meta.total || 0;
-            // Calculate pages based on client-side itemsPerPage for UI display
-            setTotalPages(Math.ceil(totalItems / itemsPerPage));
-          }
         } else if (Array.isArray(response)) {
           accessoriesData = response;
         }
@@ -104,7 +95,7 @@ const Accessories: React.FC = () => {
     };
 
     loadAccessories();
-  }, [currentPage, itemsPerPage]);
+  }, []);
 
   // Filter accessories based on search term (client-side filtering for current page)
   const filteredAccessories = accessories.filter(accessory => {
@@ -121,8 +112,11 @@ const Accessories: React.FC = () => {
     }
   }, [searchTerm]);
 
-  // Use filtered accessories for display (server handles pagination)
-  const currentAccessories = filteredAccessories;
+  // Client-side pagination calculations
+  const totalPages = Math.ceil(filteredAccessories.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentAccessories = filteredAccessories.slice(startIndex, endIndex);
 
   const renderAccessoryCard = (accessory: Product) => (
     <a 
@@ -139,7 +133,7 @@ const Accessories: React.FC = () => {
             <img 
               src={accessory.image} 
               alt={accessory.name} 
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              className="w-full h-full object-contain bg-gray-50 group-hover:scale-110 transition-transform duration-300"
             />
           </div>
         )}

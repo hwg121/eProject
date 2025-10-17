@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { TextField, MenuItem, Checkbox, FormControlLabel, Typography, Alert } from '@mui/material';
 import Toast from '../ui/Toast';
@@ -124,6 +124,13 @@ const ContentForm: React.FC<ContentFormProps & { users?: User[] }> = ({ type, it
       setFormData(processedItem);
     }
   }, [item, type]);
+
+  // Memoize tag IDs to prevent array recreation on every render
+  const tagIds = useMemo(() => {
+    return Array.isArray(formData.tags) 
+      ? formData.tags.map((tag: any) => typeof tag === 'object' && tag.id ? tag.id : tag)
+      : [];
+  }, [formData.tags]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -593,7 +600,7 @@ const ContentForm: React.FC<ContentFormProps & { users?: User[] }> = ({ type, it
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
         <div>
           <TagInput
-            value={Array.isArray(formData.tags) ? formData.tags.map((tag: any) => typeof tag === 'object' && tag.id ? tag.id : tag) : []}
+            value={tagIds}
             onChange={(tagIds) => setFormData({ ...formData, tags: tagIds })}
             label="Tags"
             placeholder="Select tags..."

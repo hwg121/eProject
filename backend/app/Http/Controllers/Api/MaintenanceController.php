@@ -106,8 +106,8 @@ class MaintenanceController extends Controller
             ]);
 
             // Verify security password
-            $securitySetting = SecuritySetting::first();
-            if (!$securitySetting || !Hash::check($request->security_password, $securitySetting->security_password)) {
+            $securitySetting = SecuritySetting::where('key', 'admin_verification_password')->first();
+            if (!$securitySetting || !Hash::check($request->security_password, $securitySetting->value)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid security password',
@@ -175,6 +175,68 @@ class MaintenanceController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update maintenance settings: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update maintenance message and estimated end time (no security password required)
+     */
+    public function updateContent(Request $request)
+    {
+        try {
+            // Validate request
+            $request->validate([
+                'message' => 'nullable|string|max:1000',
+                'estimated_end_at' => 'nullable|date',
+            ]);
+
+            // Update maintenance setting
+            $maintenance = MaintenanceSetting::current();
+            
+            $data = [];
+            
+            if ($request->has('message')) {
+                $data['message'] = $request->message;
+            }
+            
+            if ($request->has('estimated_end_at')) {
+                $data['estimated_end_at'] = $request->estimated_end_at;
+            }
+
+            $maintenance->update($data);
+
+            // Log activity
+            Log::info('Maintenance content updated', [
+                'user_id' => auth()->id(),
+                'updated_fields' => array_keys($data),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Maintenance content updated successfully',
+                'data' => [
+                    'is_enabled' => $maintenance->is_enabled,
+                    'message' => $maintenance->message,
+                    'started_at' => $maintenance->started_at,
+                    'estimated_end_at' => $maintenance->estimated_end_at,
+                ]
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('MaintenanceController::updateContent failed', [
+                'error' => $e->getMessage(),
+                'request' => $request->all(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update maintenance content: ' . $e->getMessage()
             ], 500);
         }
     }

@@ -78,6 +78,21 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
       ]
     },
     {
+      id: 'admin-management',
+      label: 'Admin Management',
+      icon: Shield,
+      emoji: '🛡️',
+      color: 'from-orange-500 to-amber-600',
+      description: 'Admin-only features',
+      adminOnly: true,
+      children: [
+        { id: 'approvals', label: 'Approval Management', adminOnly: true },
+        { id: 'campaign-settings', label: 'Campaign Settings', adminOnly: true },
+        { id: 'security-settings', label: 'Security Settings', adminOnly: true },
+        { id: 'maintenance-settings', label: 'Maintenance Mode', adminOnly: true }
+      ]
+    },
+    {
       id: 'tags',
       label: 'Tag Management',
       icon: Hash,
@@ -111,9 +126,7 @@ const MobileAdminNav: React.FC<MobileAdminNavProps> = ({
         { id: 'staff-management', label: 'Staff Members', adminOnly: true },
         { id: 'map-settings', label: 'Map Settings', adminOnly: true },
         { id: 'contact-settings', label: 'Contact Settings', adminOnly: true },
-        { id: 'contact-messages', label: 'Contact Messages' },
-        { id: 'campaign-settings', label: 'Campaign Settings', adminOnly: true },
-        { id: 'security-settings', label: 'Security Settings', adminOnly: true }
+        { id: 'contact-messages', label: 'Contact Messages' }
       ]
     }
   ];

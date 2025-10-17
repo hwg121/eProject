@@ -215,6 +215,7 @@ Route::middleware(['cors'])->group(function () {
         // Maintenance Settings (Admin only)
         Route::get('/admin/maintenance', [MaintenanceController::class, 'show']);
         Route::put('/admin/maintenance', [MaintenanceController::class, 'update']);
+        Route::put('/admin/maintenance/content', [MaintenanceController::class, 'updateContent']);
 
         // Product Management (admin routes) - REMOVED DUPLICATE (already defined at lines 69-80)
         

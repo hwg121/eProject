@@ -37,6 +37,29 @@ interface MaintenanceSettings {
 
 const AdminMaintenanceSettings: React.FC = () => {
   const { isDarkMode } = useTheme();
+  
+  // Helper function to convert datetime-local value to ISO string
+  const convertToISO = (datetimeLocalValue: string) => {
+    if (!datetimeLocalValue) return null;
+    // datetime-local gives us YYYY-MM-DDTHH:mm format
+    // We need to treat it as local time and convert to ISO
+    const date = new Date(datetimeLocalValue);
+    const result = date.toISOString();
+    console.log('convertToISO:', { datetimeLocalValue, result });
+    return result;
+  };
+  
+  // Helper function to convert ISO string to datetime-local value
+  const convertToDatetimeLocal = (isoString: string | null) => {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    // Get the local timezone offset and adjust
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - (offset * 60000));
+    const result = localDate.toISOString().slice(0, 16);
+    console.log('convertToDatetimeLocal:', { isoString, offset, result });
+    return result;
+  };
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<MaintenanceSettings>({
@@ -77,7 +100,7 @@ const AdminMaintenanceSettings: React.FC = () => {
   };
 
   const handleToggleChange = (checked: boolean) => {
-    // Prepare changes but don't apply yet
+    // Prepare changes for toggle only
     setPendingChanges({
       ...settings,
       is_enabled: checked,
@@ -90,15 +113,43 @@ const AdminMaintenanceSettings: React.FC = () => {
   };
 
   const handleEstimatedEndChange = (value: string) => {
-    setSettings(prev => ({ ...prev, estimated_end_at: value }));
+    setSettings(prev => ({ ...prev, estimated_end_at: convertToISO(value) }));
   };
 
-  const handleSaveWithSecurity = () => {
-    if (!pendingChanges) return;
-    
-    // Open security dialog
-    setPendingChanges(pendingChanges);
-    setShowSecurityDialog(true);
+  const handleSaveSettings = async () => {
+    // Save message and estimated_end_at without security password
+    try {
+      setSaving(true);
+      
+      const response: any = await maintenanceService.updateContent({
+        message: settings.message,
+        estimated_end_at: settings.estimated_end_at,
+      });
+
+      if (response.success) {
+        setSettings(response.data);
+        setToast({
+          show: true,
+          message: 'Settings updated successfully',
+          type: 'success'
+        });
+      } else {
+        setToast({
+          show: true,
+          message: response.message || 'Failed to update settings',
+          type: 'error'
+        });
+      }
+    } catch (error: any) {
+      console.error('Error updating settings:', error);
+      setToast({
+        show: true,
+        message: error.message || 'Failed to update settings',
+        type: 'error'
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSecurityConfirm = async () => {
@@ -198,6 +249,9 @@ const AdminMaintenanceSettings: React.FC = () => {
             <Typography variant="body2">
               <strong>Warning:</strong> When maintenance mode is enabled, all public pages will show the maintenance message. 
               Only administrators can access the site.
+              <br />
+              <strong>Note:</strong> You can edit the maintenance message and estimated end time anytime without security password. 
+              Only toggling maintenance mode on/off requires security password verification.
             </Typography>
           </Alert>
 
@@ -295,7 +349,7 @@ const AdminMaintenanceSettings: React.FC = () => {
             <TextField
               fullWidth
               type="datetime-local"
-              value={settings.estimated_end_at ? new Date(settings.estimated_end_at).toISOString().slice(0, 16) : ''}
+              value={convertToDatetimeLocal(settings.estimated_end_at)}
               onChange={(e) => handleEstimatedEndChange(e.target.value)}
               sx={{
                 '& .MuiOutlinedInput-root': {
@@ -322,7 +376,7 @@ const AdminMaintenanceSettings: React.FC = () => {
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button
               variant="contained"
-              onClick={handleSaveWithSecurity}
+              onClick={handleSaveSettings}
               disabled={saving}
               sx={{
                 backgroundColor: '#10b981',

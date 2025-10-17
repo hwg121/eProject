@@ -48,8 +48,8 @@ class TagController extends Controller
             
             Log::info('🔍 [TagController] Step 4: Sort applied', ['sortBy' => $sortBy, 'sortOrder' => $sortOrder]);
 
-            // Pagination
-            $perPage = min($request->get('per_page', 50), 100);
+            // Pagination (increased limit for tag input search)
+            $perPage = min($request->get('per_page', 50), 500);
             $tags = $query->paginate($perPage);
             
             Log::info('🔍 [TagController] Step 5: Query executed', [

@@ -69,28 +69,19 @@ const Pots: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = isMobile ? 6 : 9;
 
   useEffect(() => {
     const loadPots = async () => {
       try {
         setLoading(true);
-        const response = await publicService.getPots({ 
-          page: currentPage, 
-          per_page: 50 
-        });
+        // Load all pots once, then handle pagination client-side
+        const response = await publicService.getPots();
         
         // Handle API response format: {data: [...], meta: {...}}
         let potsData: Product[] = [];
         if (response && typeof response === 'object' && 'data' in response) {
           potsData = response.data;
-          // Update total pages from server meta (for UI pagination display)
-          if (response.meta) {
-            const totalItems = response.meta.total || 0;
-            // Calculate pages based on client-side itemsPerPage for UI display
-            setTotalPages(Math.ceil(totalItems / itemsPerPage));
-          }
         } else if (Array.isArray(response)) {
           potsData = response;
         }
@@ -105,7 +96,7 @@ const Pots: React.FC = () => {
     };
 
     loadPots();
-  }, [currentPage, itemsPerPage]);
+  }, []);
 
   // Filter pots based on search term (client-side filtering for current page)
   const filteredPots = pots.filter(pot => {
@@ -122,8 +113,11 @@ const Pots: React.FC = () => {
     }
   }, [searchTerm]);
 
-  // Use filtered pots for display (server handles pagination)
-  const currentPots = filteredPots;
+  // Client-side pagination calculations
+  const totalPages = Math.ceil(filteredPots.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentPots = filteredPots.slice(startIndex, endIndex);
 
   const renderPotCard = (pot: Product) => (
     <a 
@@ -140,7 +134,7 @@ const Pots: React.FC = () => {
             <img 
               src={pot.image} 
               alt={pot.name} 
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              className="w-full h-full object-contain bg-gray-50 group-hover:scale-110 transition-transform duration-300"
             />
           </div>
         )}

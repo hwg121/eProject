@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { TextField, MenuItem, Checkbox, FormControlLabel, Typography, Alert } from '@mui/material';
 import Toast from '../ui/Toast';
@@ -159,6 +159,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
     message: '',
     severity: 'success'
   });
+
+  // Memoize tag IDs to prevent array recreation on every render
+  const tagIds = useMemo(() => {
+    return Array.isArray(formData.tags) 
+      ? formData.tags.map(Number).filter(n => !isNaN(n)) 
+      : [];
+  }, [formData.tags]);
 
   const showToast = (message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
     setSnackbar({ open: true, message, severity });
@@ -813,7 +820,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       {/* Tags field for all categories */}
       <div>
         <TagInput
-          value={Array.isArray(formData.tags) ? formData.tags.map(Number).filter(n => !isNaN(n)) : []}
+          value={tagIds}
           onChange={(tagIds) => setFormData({ ...formData, tags: tagIds as any })}
           label="Tags"
           placeholder="Select tags..."

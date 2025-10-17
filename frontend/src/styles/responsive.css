@@ -350,7 +350,6 @@
 @media (max-width: 639px) {
   /* Reduce animations on very small screens */
   * {
-    animation-duration: 0.2s !important;
     transition-duration: 0.15s !important;
   }
   
@@ -374,7 +373,6 @@
 @media (min-width: 640px) and (max-width: 1023px) {
   /* Balanced animations */
   * {
-    animation-duration: 0.3s !important;
     transition-duration: 0.2s !important;
   }
   
@@ -392,7 +390,6 @@
 @media (min-width: 1024px) {
   /* Full animations */
   * {
-    animation-duration: 0.4s !important;
     transition-duration: 0.3s !important;
   }
   
@@ -420,7 +417,6 @@
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;

@@ -702,7 +702,7 @@ const ContentList: React.FC<ContentListProps> = ({
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b' }}>
-                        {item.author || item.instructor || 'Unknown'}
+                        {item.authorUser?.name || item.creator?.name || 'System'}
                       </Typography>
                     </TableCell>
                     <TableCell>

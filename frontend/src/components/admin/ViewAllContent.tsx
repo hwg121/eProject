@@ -920,7 +920,7 @@ const ViewAllContent: React.FC = () => {
                         
                         <TableCell>
                           <Typography variant="body2" sx={{ color: isDarkMode ? '#e2e8f0' : '#374151' }}>
-                            {item.author}
+                            {item.authorUser?.name || item.creator?.name || 'System'}
                           </Typography>
                         </TableCell>
                         

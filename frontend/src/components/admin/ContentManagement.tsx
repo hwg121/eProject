@@ -32,6 +32,14 @@ interface ContentItem {
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
   featured?: boolean;
   link?: string;
+  // Author tracking
+  author_id?: number;
+  authorUser?: {
+    id: number;
+    name: string;
+    email: string;
+    avatar?: string;
+  };
 }
 
 interface ContentManagementProps {
@@ -259,7 +267,7 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
                         {item.title}
                       </h3>
                       <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {item.author || item.instructor} • {item.category}
+                        {item.authorUser?.name || item.creator?.name || 'System'} • {item.category}
                       </p>
                       <div className="flex items-center space-x-4 mt-1">
                         <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(item.status)}`}>

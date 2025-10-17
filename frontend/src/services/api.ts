@@ -574,6 +574,18 @@ class ApiClient {
     }
   }
 
+  async updateMaintenanceContent(data: unknown) {
+    try {
+      return await this.request<unknown>('/admin/maintenance/content', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+    } catch (error) {
+      console.error('Error updating maintenance content:', error);
+      throw error;
+    }
+  }
+
   async updateContactMessage(id: string, data: unknown) {
     try {
       return await this.request<unknown>(`/contact-messages/${id}`, {
@@ -1328,6 +1340,7 @@ export const maintenanceService = {
   getStatus: () => apiClient.getMaintenanceStatus(),
   getSettings: () => apiClient.getMaintenanceSettings(),
   update: (data: unknown) => apiClient.updateMaintenanceSettings(data),
+  updateContent: (data: unknown) => apiClient.updateMaintenanceContent(data),
 };
 
 export const interactionService = {
