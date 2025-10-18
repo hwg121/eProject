@@ -38,6 +38,7 @@ class ProductResource extends JsonResource
             'link' => $this->link ?? '',
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'deleted_at' => $this->deleted_at,
             'createdAt' => $this->created_at, // Frontend camelCase
             'updatedAt' => $this->updated_at, // Frontend camelCase
             

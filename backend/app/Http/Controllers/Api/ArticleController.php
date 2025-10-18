@@ -482,5 +482,158 @@ class ArticleController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get trashed (soft deleted) articles
+     */
+    public function getTrashed(Request $request)
+    {
+        try {
+            // Only admin can access trashed items
+            if (auth()->user()->role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Only administrators can access deleted items.'
+                ], 403);
+            }
+            
+            $query = Article::onlyTrashed()->with(['tags', 'authorUser', 'creator', 'updater']);
+
+            // Search
+            if ($request->has('search') && $request->search) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                      ->orWhere('excerpt', 'like', "%{$search}%");
+                });
+            }
+
+            // Filter by category
+            if ($request->has('category_id')) {
+                $query->where('category_id', $request->category_id);
+            }
+
+            // Sort
+            $sortBy = $request->get('sortBy', 'deleted_at');
+            $sortOrder = $request->get('sortOrder', 'desc');
+            $query->orderBy($sortBy, $sortOrder);
+
+            // Paginate
+            $perPage = $request->get('per_page', 15);
+            $articles = $query->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => ArticleResource::collection($articles->items()),
+                'meta' => [
+                    'current_page' => $articles->currentPage(),
+                    'last_page' => $articles->lastPage(),
+                    'per_page' => $articles->perPage(),
+                    'total' => $articles->total(),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('ArticleController::getTrashed failed', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching trashed articles: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Restore a soft deleted article
+     */
+    public function restore($id)
+    {
+        try {
+            // Only admin can restore items
+            if (auth()->user()->role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Only administrators can restore deleted items.'
+                ], 403);
+            }
+            
+            $article = Article::onlyTrashed()->findOrFail($id);
+            $article->restore();
+
+            // Log restore activity
+            ActivityLog::logPublic(
+                'restored',
+                'article',
+                $article->id,
+                $article->title,
+                auth()->user() ? auth()->user()->name . " restored article: {$article->title}" : "Article restored: {$article->title}"
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Article restored successfully',
+                'data' => new ArticleResource($article)
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('ArticleController::restore failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to restore article: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Permanently delete a soft deleted article
+     */
+    public function forceDelete($id)
+    {
+        try {
+            // Only admin can force delete items
+            if (auth()->user()->role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Only administrators can permanently delete items.'
+                ], 403);
+            }
+            
+            $article = Article::onlyTrashed()->findOrFail($id);
+            $articleTitle = $article->title;
+            
+            $article->forceDelete();
+
+            // Log permanent deletion activity
+            ActivityLog::logPublic(
+                'force_deleted',
+                'article',
+                $id,
+                $articleTitle,
+                auth()->user() ? auth()->user()->name . " permanently deleted article: {$articleTitle}" : "Article permanently deleted: {$articleTitle}"
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Article permanently deleted'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('ArticleController::forceDelete failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to permanently delete article: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
 

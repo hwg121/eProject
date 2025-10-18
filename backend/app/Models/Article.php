@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Article extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'title',
@@ -72,7 +73,7 @@ class Article extends Model
     }
 
     /**
-     * Boot method to auto-track created_by and updated_by.
+     * Boot method to auto-track created_by, updated_by, and published_at.
      */
     protected static function boot()
     {
@@ -88,11 +89,21 @@ class Article extends Model
                     $model->author_id = auth()->id();
                 }
             }
+            
+            // Auto-set published_at when creating with published status
+            if ($model->status === 'published' && !$model->published_at) {
+                $model->published_at = now();
+            }
         });
         
         static::updating(function ($model) {
             if (auth()->check()) {
                 $model->updated_by = auth()->id();
+            }
+            
+            // Auto-set published_at when status changes to published
+            if ($model->isDirty('status') && $model->status === 'published' && !$model->published_at) {
+                $model->published_at = now();
             }
         });
     }

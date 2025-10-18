@@ -76,6 +76,11 @@ Route::middleware(['cors'])->group(function () {
         Route::put('/admin/products/{id}', [ProductController::class, 'update']);
         Route::post('/admin/products/{id}', [ProductController::class, 'update']); // Support POST with _method=PUT
         
+        // Products Soft Delete
+        Route::get('/admin/products/trashed/all', [ProductController::class, 'getTrashed']);
+        Route::post('/admin/products/{id}/restore', [ProductController::class, 'restore']);
+        Route::delete('/admin/products/{id}/force', [ProductController::class, 'forceDelete']);
+        
         // Legacy routes support
         Route::post('/tools/{id}', [ProductController::class, 'update']);
         Route::post('/books/{id}', [ProductController::class, 'update']);
@@ -127,6 +132,11 @@ Route::middleware(['cors'])->group(function () {
         Route::delete('/admin/users/{id}', [UserController::class, 'destroy']);
         Route::post('/admin/users/upload-avatar', [UserController::class, 'uploadAvatar']);
         
+        // Soft delete management
+        Route::get('/admin/users/trashed/all', [UserController::class, 'getTrashed']);
+        Route::post('/admin/users/{id}/restore', [UserController::class, 'restore']);
+        Route::delete('/admin/users/{id}/force', [UserController::class, 'forceDelete']);
+        
         // Security password management
         Route::put('/admin/security-password', [UserController::class, 'updateSecurityPassword']);
     });
@@ -166,6 +176,11 @@ Route::middleware(['cors'])->group(function () {
         Route::put('/admin/articles/{id}', [ArticleController::class, 'update']);
         Route::post('/admin/articles/{id}', [ArticleController::class, 'update']); // Support POST with _method=PUT
         Route::delete('/admin/articles/{id}', [ArticleController::class, 'destroy']);
+        
+        // Articles Soft Delete
+        Route::get('/admin/articles/trashed/all', [ArticleController::class, 'getTrashed']);
+        Route::post('/admin/articles/{id}/restore', [ArticleController::class, 'restore']);
+        Route::delete('/admin/articles/{id}/force', [ArticleController::class, 'forceDelete']);
 
         // Videos Admin
         Route::get('/admin/videos', [VideoController::class, 'index']);
@@ -174,6 +189,11 @@ Route::middleware(['cors'])->group(function () {
         Route::put('/admin/videos/{id}', [VideoController::class, 'update']);
         Route::post('/admin/videos/{id}', [VideoController::class, 'update']); // For _method=PUT
         Route::delete('/admin/videos/{id}', [VideoController::class, 'destroy']);
+        
+        // Videos Soft Delete
+        Route::get('/admin/videos/trashed/all', [VideoController::class, 'getTrashed']);
+        Route::post('/admin/videos/{id}/restore', [VideoController::class, 'restore']);
+        Route::delete('/admin/videos/{id}/force', [VideoController::class, 'forceDelete']);
         
         // About Us - New structure (Admin)
         // Hero Section

@@ -87,6 +87,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
 }) => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
+  
+  
   const [formData, setFormData] = useState<Partial<Product>>(() => {
     if (item) {
       // Handle both 'featured' and 'is_featured' fields
@@ -377,13 +379,69 @@ const ProductForm: React.FC<ProductFormProps> = ({
             label="Category"
             value={formData.category || 'tool'}
             onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
-            sx={textFieldStyles}
+            sx={{
+              ...textFieldStyles,
+              minWidth: '200px',
+              '& .MuiSelect-select': {
+                minWidth: '180px'
+              }
+            }}
           >
-            <MenuItem value="tool">Tool</MenuItem>
-            <MenuItem value="book">Book</MenuItem>
-            <MenuItem value="pot">Pot</MenuItem>
-            <MenuItem value="accessory">Accessory</MenuItem>
-            <MenuItem value="suggestion">Suggestion</MenuItem>
+            <MenuItem 
+              value="tool"
+              sx={{
+                whiteSpace: 'nowrap',
+                overflow: 'visible',
+                textOverflow: 'unset',
+                minWidth: '120px'
+              }}
+            >
+              Tool
+            </MenuItem>
+            <MenuItem 
+              value="book"
+              sx={{
+                whiteSpace: 'nowrap',
+                overflow: 'visible',
+                textOverflow: 'unset',
+                minWidth: '120px'
+              }}
+            >
+              Book
+            </MenuItem>
+            <MenuItem 
+              value="pot"
+              sx={{
+                whiteSpace: 'nowrap',
+                overflow: 'visible',
+                textOverflow: 'unset',
+                minWidth: '120px'
+              }}
+            >
+              Pot
+            </MenuItem>
+            <MenuItem 
+              value="accessory"
+              sx={{
+                whiteSpace: 'nowrap',
+                overflow: 'visible',
+                textOverflow: 'unset',
+                minWidth: '120px'
+              }}
+            >
+              Accessory
+            </MenuItem>
+            <MenuItem 
+              value="suggestion"
+              sx={{
+                whiteSpace: 'nowrap',
+                overflow: 'visible',
+                textOverflow: 'unset',
+                minWidth: '120px'
+              }}
+            >
+              Suggestion
+            </MenuItem>
           </TextField>
         </div>
 
@@ -914,7 +972,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       </div>
 
       {/* Created by / Updated by info */}
-      {item && (item as any).creator && (
+      {item && ((item as any).creator || (item as any).created_by) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg mb-4" style={{
           backgroundColor: isDarkMode ? '#374151' : '#f9fafb'
         }}>
@@ -923,7 +981,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               Created by
             </Typography>
             <Typography variant="body2" sx={{ color: isDarkMode ? '#e5e7eb' : '#1f2937' }}>
-              {((item as any).creator?.name || 'Unknown')} ({new Date((item as any).createdAt || item.createdAt || '').toLocaleString()})
+              {((item as any).creator?.name || 'Unknown')} ({new Date((item as any).created_at || (item as any).createdAt || item.createdAt || '').toLocaleString()})
             </Typography>
           </div>
           <div>
@@ -931,7 +989,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               Last updated by
             </Typography>
             <Typography variant="body2" sx={{ color: isDarkMode ? '#e5e7eb' : '#1f2937' }}>
-              {((item as any).updater?.name || 'Unknown')} ({new Date((item as any).updatedAt || item.updatedAt || '').toLocaleString()})
+              {((item as any).updater?.name || (item as any).creator?.name || 'Unknown')} ({new Date((item as any).updated_at || (item as any).updatedAt || item.updatedAt || '').toLocaleString()})
             </Typography>
           </div>
         </div>

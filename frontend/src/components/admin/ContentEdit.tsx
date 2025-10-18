@@ -40,7 +40,7 @@ const ContentEdit: React.FC<ContentEditProps> = ({
             <ArrowLeft className="w-5 h-5" />
           </motion.button>
           <div>
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`} style={{ whiteSpace: 'nowrap', overflow: 'visible' }}>
               Edit Content
             </h2>
             <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>

@@ -134,13 +134,28 @@ const ProductList: React.FC<ProductListProps> = ({
   const [activeTab, setActiveTab] = useState<'all' | 'tool' | 'book' | 'pot' | 'accessory' | 'suggestion'>('all');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkStatus, setBulkStatus] = useState<string>('');
+  const [selectedAuthor, setSelectedAuthor] = useState<string>('all');
+
+  // Get unique authors from products
+  const uniqueAuthors = React.useMemo(() => {
+    const authors = new Set<string>();
+    products.forEach(product => {
+      const authorName = product.authorUser?.name || product.creator?.name;
+      if (authorName) {
+        authors.add(authorName);
+      }
+    });
+    return Array.from(authors).sort();
+  }, [products]);
 
   const filteredProducts = products.filter((product) => {
     const productTitle = product.name || product.title || '';
     const matchesSearch = productTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (product.description?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     const matchesTab = activeTab === 'all' || product.category === activeTab;
-    return matchesSearch && matchesTab;
+    const authorName = product.authorUser?.name || product.creator?.name || '';
+    const matchesAuthor = selectedAuthor === 'all' || authorName === selectedAuthor;
+    return matchesSearch && matchesTab && matchesAuthor;
   });
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
@@ -573,7 +588,7 @@ const ProductList: React.FC<ProductListProps> = ({
 
       {/* Filters */}
       <Paper elevation={2} sx={{ p: { xs: 2, sm: 2.5, md: 3 }, mb: 3, background: isDarkMode ? '#1e293b' : '#ffffff', borderRadius: { xs: 1, sm: 2 } }}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: { xs: 1.5, sm: 2 } }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: { xs: 1.5, sm: 2 } }}>
           <TextField
             fullWidth
             placeholder="Search products..."
@@ -594,6 +609,24 @@ const ProductList: React.FC<ProductListProps> = ({
               },
             }}
           />
+          <FormControl fullWidth>
+            <InputLabel sx={{ '&.Mui-focused': { color: '#10b981' } }}>Filter by Author</InputLabel>
+            <Select
+              value={selectedAuthor}
+              onChange={(e) => setSelectedAuthor(e.target.value)}
+              label="Filter by Author"
+              sx={{
+                bgcolor: isDarkMode ? '#0f172a' : '#f8fafc',
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#10b981' },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#10b981' },
+              }}
+            >
+              <MenuItem value="all">All Authors</MenuItem>
+              {uniqueAuthors.map((author) => (
+                <MenuItem key={author} value={author}>{author}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <FormControl fullWidth>
             <InputLabel sx={{ '&.Mui-focused': { color: '#10b981' } }}>Sort By</InputLabel>
             <Select

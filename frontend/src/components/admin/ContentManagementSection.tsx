@@ -4,6 +4,7 @@ import ContentList from './ContentList';
 import ContentCreate from './ContentCreate';
 import ContentEdit from './ContentEdit';
 import { ContentItem } from '../../types/admin';
+import { ViewButton, EditButton, DeleteButton } from '../ui/ContentIcons';
 
 interface ContentManagementSectionProps {
   activeTab: string;

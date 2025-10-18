@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ProductList from './ProductList';
 import ProductCreate from './ProductCreate';
 import ProductEdit from './ProductEdit';
+import { ViewButton, EditButton, DeleteButton } from '../ui/ContentIcons';
 
 interface Product {
   id: string;

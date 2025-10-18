@@ -40,6 +40,8 @@ interface FormData {
 const ContentForm: React.FC<ContentFormProps & { users?: User[] }> = ({ type, item, categories, onSave, onCancel, isDarkMode, users = [] }) => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
+  
+  
   // Helper function to check if type is video
   const isVideoType = (type: string) => type === 'videos' || type === 'video' || type === 'Video';
   
@@ -238,7 +240,7 @@ const ContentForm: React.FC<ContentFormProps & { users?: User[] }> = ({ type, it
     <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data" noValidate>
       <div className="flex items-center justify-between mb-6">
         <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-          {item ? 'Edit' : 'Create'} {type.charAt(0).toUpperCase() + type.slice(1, -1)}
+          {item ? 'Edit' : 'Create'} {type.charAt(0).toUpperCase() + type.slice(1)}
         </h2>
       </div>
 
@@ -332,10 +334,27 @@ const ContentForm: React.FC<ContentFormProps & { users?: User[] }> = ({ type, it
                 : '')
             }
             disabled={type === 'Technique' || type === 'Video' || type === 'technique' || type === 'video'} // Lock for Technique and Video
-            sx={textFieldStyles}
+            sx={{
+              ...textFieldStyles,
+              minWidth: '200px',
+              '& .MuiSelect-select': {
+                minWidth: '180px'
+              }
+            }}
           >
             {categories && Array.isArray(categories) && categories.map((category) => (
-              <MenuItem key={category} value={category}>{category}</MenuItem>
+              <MenuItem 
+                key={category} 
+                value={category}
+                sx={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'visible',
+                  textOverflow: 'unset',
+                  minWidth: '120px'
+                }}
+              >
+                {category}
+              </MenuItem>
             ))}
           </TextField>
         </div>
@@ -721,7 +740,7 @@ const ContentForm: React.FC<ContentFormProps & { users?: User[] }> = ({ type, it
       </div>
 
       {/* Created by / Updated by info */}
-      {item && (item as any).creator && (
+      {item && ((item as any).creator || (item as any).created_by) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg mb-4" style={{
           backgroundColor: isDarkMode ? '#374151' : '#f9fafb'
         }}>
@@ -730,7 +749,7 @@ const ContentForm: React.FC<ContentFormProps & { users?: User[] }> = ({ type, it
               Created by
             </Typography>
             <Typography variant="body2" sx={{ color: isDarkMode ? '#e5e7eb' : '#1f2937' }}>
-              {((item as any).creator?.name || 'Unknown')} ({new Date((item as any).createdAt || item.createdAt || '').toLocaleString()})
+              {((item as any).creator?.name || 'Unknown')} ({new Date((item as any).created_at || (item as any).createdAt || item.createdAt || '').toLocaleString()})
             </Typography>
           </div>
           <div>
@@ -738,7 +757,7 @@ const ContentForm: React.FC<ContentFormProps & { users?: User[] }> = ({ type, it
               Last updated by
             </Typography>
             <Typography variant="body2" sx={{ color: isDarkMode ? '#e5e7eb' : '#1f2937' }}>
-              {((item as any).updater?.name || 'Unknown')} ({new Date((item as any).updatedAt || item.updatedAt || '').toLocaleString()})
+              {((item as any).updater?.name || (item as any).creator?.name || 'Unknown')} ({new Date((item as any).updated_at || (item as any).updatedAt || item.updatedAt || '').toLocaleString()})
             </Typography>
           </div>
         </div>

@@ -23,7 +23,8 @@ import {
   ThemeProvider,
   CssBaseline,
   Snackbar,
-  Alert
+  Alert,
+  Button
 } from '@mui/material';
 import { createAdminTheme } from '../theme/adminTheme';
 
@@ -55,6 +56,9 @@ import AdminMaintenanceSettings from './admin/AdminMaintenanceSettings';
 // Import Approval Management
 import ApprovalManagement from '../components/admin/ApprovalManagement';
 import RejectDialog from '../components/admin/RejectDialog';
+
+// Import Restore Management
+import RestoreManagement from '../components/admin/RestoreManagement';
 
 // Import types and utils
 import { 
@@ -167,11 +171,29 @@ const AdminDashboard: React.FC = () => {
       
       // Set editing item and switch to appropriate edit tab
       if (item.type === 'article' || item.type === 'video') {
-        setEditingItem({ ...item, id: actualId, category });
+        const editData = { 
+          ...item, 
+          id: actualId, 
+          category,
+          creator: item.creator,
+          updater: item.updater,
+          created_at: item.created_at,
+          updated_at: item.updated_at
+        };
+        setEditingItem(editData);
         setActiveTab('content-edit');
       } else {
         // For products
-        setEditingProduct({ ...item, id: actualId, category });
+        const editData = { 
+          ...item, 
+          id: actualId, 
+          category,
+          creator: item.creator,
+          updater: item.updater,
+          created_at: item.created_at,
+          updated_at: item.updated_at
+        };
+        setEditingProduct(editData);
         setActiveTab('product-edit');
       }
     };
@@ -2181,22 +2203,30 @@ Updated: ${product.updatedAt}
 
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                   {/* Home Button */}
-                  <IconButton
+                  <Button
                     onClick={() => window.location.href = '/'}
+                    startIcon={
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                      </svg>
+                    }
                     sx={{
                       bgcolor: isDarkMode ? '#1e293b' : '#f8fafc',
+                      color: isDarkMode ? '#e2e8f0' : '#1e293b',
+                      border: `1px solid ${isDarkMode ? '#334155' : '#e2e8f0'}`,
                       '&:hover': {
                         bgcolor: isDarkMode ? '#334155' : '#e2e8f0',
-                        transform: 'scale(1.05)',
+                        transform: 'scale(1.02)',
                       },
                       transition: 'all 0.2s',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      px: 2,
+                      py: 1
                     }}
-                    title="Go to Homepage"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                  </IconButton>
+                    Homepage
+                  </Button>
 
                   {/* Reload Current Page Data Button */}
                   <IconButton
@@ -2557,6 +2587,14 @@ Updated: ${product.updatedAt}
       {activeTab === 'contact-settings' && user?.role === 'admin' && <AdminContactSettings />}
       {activeTab === 'contact-messages' && <AdminContactMessages />}
       {activeTab === 'campaign-settings' && user?.role === 'admin' && <AdminCampaignSettings />}
+      {activeTab === 'restore-management' && user?.role === 'admin' && (
+        <RestoreManagement 
+          onSuccess={() => {
+            // Refresh data after restore
+            loadManagementData();
+          }}
+        />
+      )}
       {activeTab === 'security-settings' && user?.role === 'admin' && <AdminSecuritySettings />}
       {activeTab === 'maintenance-settings' && user?.role === 'admin' && <AdminMaintenanceSettings />}
 

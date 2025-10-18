@@ -6,6 +6,7 @@ import {
   Mail, Phone, MapPin, Clock, CheckCircle, XCircle
 } from 'lucide-react';
 import Card from '../ui/Card';
+import { ViewButton, EditButton, DeleteButton } from '../ui/ContentIcons';
 
 interface ContactMessage {
   id: string;
@@ -326,18 +327,7 @@ const ContactManagement: React.FC<ContactManagementProps> = ({
                   </div>
                   
                   <div className="flex items-center space-x-2 ml-4">
-                    <motion.button
-                      onClick={() => onView(message)}
-                      className={`p-2 rounded-lg ${
-                        isDarkMode 
-                          ? 'bg-gray-600 text-gray-300 hover:bg-gray-500' 
-                          : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                      } transition-colors`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </motion.button>
+                    <ViewButton tooltip="View" onClick={() => onView(message)} />
                     
                     {message.status !== 'replied' && (
                       <motion.button
@@ -354,31 +344,9 @@ const ContactManagement: React.FC<ContactManagementProps> = ({
                       </motion.button>
                     )}
                     
-                    <motion.button
-                      onClick={() => onEdit(message)}
-                      className={`p-2 rounded-lg ${
-                        isDarkMode 
-                          ? 'bg-blue-600 text-white hover:bg-blue-500' 
-                          : 'bg-blue-500 text-white hover:bg-blue-600'
-                      } transition-colors`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </motion.button>
+                    <EditButton tooltip="Edit" onClick={() => onEdit(message)} />
                     
-                    <motion.button
-                      onClick={() => onDelete(message.id)}
-                      className={`p-2 rounded-lg ${
-                        isDarkMode 
-                          ? 'bg-red-600 text-white hover:bg-red-500' 
-                          : 'bg-red-500 text-white hover:bg-red-600'
-                      } transition-colors`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </motion.button>
+                    <DeleteButton tooltip="Delete" onClick={() => onDelete(message.id)} />
                   </div>
                 </div>
               </motion.div>

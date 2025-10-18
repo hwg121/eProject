@@ -101,18 +101,6 @@ class ProductController extends Controller
             $maxPerPage = ($isAdmin || ($isModerator && $viewAll)) ? 1000 : 50;
             $perPage = min($requestedPerPage, $maxPerPage);
         $products = $query->paginate($perPage);
-        
-        // Debug: Log first product's authorUser relationship
-        if ($products->count() > 0) {
-            $firstProduct = $products->first();
-            \Log::info('ProductController::index - Debug authorUser', [
-                'product_id' => $firstProduct->id,
-                'author_id' => $firstProduct->author_id,
-                'authorUser_loaded' => $firstProduct->relationLoaded('authorUser'),
-                'authorUser_exists' => $firstProduct->authorUser ? 'YES' : 'NO',
-                'authorUser_name' => $firstProduct->authorUser ? $firstProduct->authorUser->name : 'NULL'
-            ]);
-        }
 
         return response()->json([
             'success' => true,
@@ -735,6 +723,141 @@ class ProductController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error deleting product: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get trashed (soft deleted) products
+     */
+    public function getTrashed(Request $request)
+    {
+        try {
+            // Only admin can access trashed items
+            if (auth()->user()->role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Only administrators can access deleted items.'
+                ], 403);
+            }
+            
+            $query = Product::onlyTrashed()->with(['tags', 'authorUser', 'creator', 'updater']);
+
+            // Search
+            if ($request->has('search') && $request->search) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
+
+            // Filter by category
+            if ($request->has('category') && $request->category) {
+                $query->byCategory($request->category);
+            }
+
+            // Sort
+            $sortBy = $request->get('sortBy', 'deleted_at');
+            $sortOrder = $request->get('sortOrder', 'desc');
+            $query->orderBy($sortBy, $sortOrder);
+
+            // Paginate
+            $perPage = $request->get('per_page', 15);
+            $products = $query->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => ProductResource::collection($products->items()),
+                'meta' => [
+                    'current_page' => $products->currentPage(),
+                    'last_page' => $products->lastPage(),
+                    'per_page' => $products->perPage(),
+                    'total' => $products->total(),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('ProductController::getTrashed failed', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching trashed products: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Restore a soft deleted product
+     */
+    public function restore($id)
+    {
+        try {
+            // Only admin can restore items
+            if (auth()->user()->role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Only administrators can restore deleted items.'
+                ], 403);
+            }
+            
+            $product = Product::onlyTrashed()->findOrFail($id);
+            $product->restore();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product restored successfully',
+                'data' => new ProductResource($product)
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('ProductController::restore failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to restore product: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Permanently delete a soft deleted product
+     */
+    public function forceDelete($id)
+    {
+        try {
+            // Only admin can force delete items
+            if (auth()->user()->role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Only administrators can permanently delete items.'
+                ], 403);
+            }
+            
+            $product = Product::onlyTrashed()->findOrFail($id);
+            $productName = $product->name;
+            
+            $product->forceDelete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product permanently deleted'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('ProductController::forceDelete failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to permanently delete product: ' . $e->getMessage()
             ], 500);
         }
     }

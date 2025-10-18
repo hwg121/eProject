@@ -659,4 +659,159 @@ class UserController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get trashed (soft deleted) users
+     */
+    public function getTrashed(Request $request): JsonResponse
+    {
+        try {
+            $query = User::onlyTrashed();
+
+            // Search
+            if ($request->has('search') && $request->search) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhere('phone', 'like', "%{$search}%");
+                });
+            }
+
+            // Filter by role
+            if ($request->has('role') && $request->role) {
+                $query->where('role', $request->role);
+            }
+
+            // Sort
+            $sortBy = $request->get('sortBy', 'deleted_at');
+            $sortOrder = $request->get('sortOrder', 'desc');
+            $query->orderBy($sortBy, $sortOrder);
+
+            // Paginate
+            $perPage = $request->get('per_page', 15);
+            $users = $query->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => $users->items(),
+                'meta' => [
+                    'current_page' => $users->currentPage(),
+                    'last_page' => $users->lastPage(),
+                    'per_page' => $users->perPage(),
+                    'total' => $users->total(),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('UserController::getTrashed failed', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching trashed users: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Restore a soft deleted user
+     */
+    public function restore(string $id): JsonResponse
+    {
+        try {
+            $user = User::onlyTrashed()->findOrFail($id);
+            $user->restore();
+
+            // Log restore activity
+            ActivityLog::logSecurity(
+                'restored',
+                auth()->user() ? auth()->user()->name . " restored user {$user->name}" : "User {$user->name} was restored",
+                [
+                    'user_email' => $user->email,
+                    'user_role' => $user->role
+                ],
+                'user',
+                $user->id,
+                $user->name
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'User restored successfully',
+                'data' => $user
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('UserController::restore failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to restore user: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Permanently delete a soft deleted user
+     */
+    public function forceDelete(string $id): JsonResponse
+    {
+        try {
+            $user = User::onlyTrashed()->findOrFail($id);
+            
+            // Store user info before deleting
+            $userName = $user->name;
+            $userEmail = $user->email;
+            $userRole = $user->role;
+
+            // Delete avatar from Cloudinary if exists
+            if ($user->avatar_public_id) {
+                try {
+                    $this->cloudinary->destroy($user->avatar_public_id);
+                } catch (\Exception $e) {
+                    Log::warning('Failed to delete avatar from Cloudinary', [
+                        'user_id' => $user->id,
+                        'public_id' => $user->avatar_public_id,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+
+            $user->forceDelete();
+
+            // Log permanent deletion activity
+            ActivityLog::logSecurity(
+                'force_deleted',
+                auth()->user() ? auth()->user()->name . " permanently deleted user {$userName}" : "User {$userName} was permanently deleted",
+                [
+                    'user_email' => $userEmail,
+                    'user_role' => $userRole
+                ],
+                'user',
+                $id,
+                $userName
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'User permanently deleted'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('UserController::forceDelete failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to permanently delete user: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

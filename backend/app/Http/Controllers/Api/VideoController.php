@@ -623,5 +623,153 @@ class VideoController extends Controller
         // Return null if we can't generate embed URL
         return null;
     }
+
+    /**
+     * Get trashed (soft deleted) videos
+     */
+    public function getTrashed(Request $request)
+    {
+        try {
+            // Only admin can access trashed items
+            if (auth()->user()->role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Only administrators can access deleted items.'
+                ], 403);
+            }
+            
+            $query = Video::onlyTrashed()->with(['tags', 'authorUser', 'creator', 'updater']);
+
+            // Search
+            if ($request->has('search') && $request->search) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
+
+            // Sort
+            $sortBy = $request->get('sortBy', 'deleted_at');
+            $sortOrder = $request->get('sortOrder', 'desc');
+            $query->orderBy($sortBy, $sortOrder);
+
+            // Paginate
+            $perPage = $request->get('per_page', 15);
+            $videos = $query->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => \App\Http\Resources\VideoResource::collection($videos->items()),
+                'meta' => [
+                    'current_page' => $videos->currentPage(),
+                    'last_page' => $videos->lastPage(),
+                    'per_page' => $videos->perPage(),
+                    'total' => $videos->total(),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('VideoController::getTrashed failed', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching trashed videos: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Restore a soft deleted video
+     */
+    public function restore($id)
+    {
+        try {
+            // Only admin can restore items
+            if (auth()->user()->role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Only administrators can restore deleted items.'
+                ], 403);
+            }
+            
+            $video = Video::onlyTrashed()->findOrFail($id);
+            $video->restore();
+
+            // Log restore activity
+            ActivityLog::logPublic(
+                'restored',
+                'video',
+                $video->id,
+                $video->title,
+                auth()->user() ? auth()->user()->name . " restored video: {$video->title}" : "Video restored: {$video->title}"
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Video restored successfully',
+                'data' => new \App\Http\Resources\VideoResource($video)
+            ]);
+        } catch (\Exception $e) {
+            Log::error('VideoController::restore failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to restore video: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Permanently delete a soft deleted video
+     */
+    public function forceDelete($id)
+    {
+        try {
+            // Only admin can force delete items
+            if (auth()->user()->role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Only administrators can permanently delete items.'
+                ], 403);
+            }
+            
+            $video = Video::onlyTrashed()->findOrFail($id);
+            $videoTitle = $video->title;
+            
+            $video->forceDelete();
+
+            // Log permanent deletion activity
+            ActivityLog::logPublic(
+                'force_deleted',
+                'video',
+                $id,
+                $videoTitle,
+                auth()->user() ? auth()->user()->name . " permanently deleted video: {$videoTitle}" : "Video permanently deleted: {$videoTitle}"
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Video permanently deleted'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('VideoController::forceDelete failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to permanently delete video: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
 
