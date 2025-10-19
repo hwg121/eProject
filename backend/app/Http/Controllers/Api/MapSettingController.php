@@ -186,7 +186,17 @@ class MapSettingController extends Controller
                 ], 404);
             }
 
+            $mapTitle = $mapSetting->title;
             $mapSetting->delete();
+            
+            // Log map setting deletion
+            ActivityLog::logPublic(
+                'deleted',
+                'map_setting',
+                $id,
+                $mapTitle,
+                auth()->user() ? auth()->user()->name . " deleted map setting: {$mapTitle}" : "Map setting deleted: {$mapTitle}"
+            );
 
             return response()->json([
                 'success' => true,

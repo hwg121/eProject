@@ -235,7 +235,17 @@ class StaffMemberController extends Controller
 
             // Skip Cloudinary deletion for now to avoid errors
             // Just delete from database
+            $staffName = $staffMember->name;
             $staffMember->delete();
+            
+            // Log staff member deletion
+            ActivityLog::logPublic(
+                'deleted',
+                'staff_member',
+                $id,
+                $staffName,
+                auth()->user() ? auth()->user()->name . " deleted staff member: {$staffName}" : "Staff member deleted: {$staffName}"
+            );
 
             return response()->json([
                 'success' => true,

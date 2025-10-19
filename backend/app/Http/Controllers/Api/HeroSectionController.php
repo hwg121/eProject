@@ -174,7 +174,17 @@ class HeroSectionController extends Controller
     {
         try {
             $heroSection = HeroSection::findOrFail($id);
+            $heroTitle = $heroSection->title;
             $heroSection->delete();
+            
+            // Log hero section deletion
+            ActivityLog::logPublic(
+                'deleted',
+                'hero_section',
+                $id,
+                $heroTitle,
+                auth()->user() ? auth()->user()->name . " deleted hero section: {$heroTitle}" : "Hero section deleted: {$heroTitle}"
+            );
 
             return response()->json([
                 'success' => true,

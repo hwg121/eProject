@@ -438,9 +438,11 @@ class TagController extends Controller
             $videosCount = $tag->videos()->count();
             $productsCount = $tag->products()->count();
             
+            $tagName = $tag->name;
+            
             Log::info('Deleting tag', [
                 'id' => $id,
-                'name' => $tag->name,
+                'name' => $tagName,
                 'articles_count' => $articlesCount,
                 'videos_count' => $videosCount,
                 'products_count' => $productsCount,
@@ -448,6 +450,15 @@ class TagController extends Controller
             
             // Delete tag (pivot table entries will be cascade deleted)
             $tag->delete();
+            
+            // Log tag deletion activity
+            ActivityLog::logPublic(
+                'deleted',
+                'tag',
+                $id,
+                $tagName,
+                auth()->user() ? auth()->user()->name . " deleted tag: {$tagName} ({$articlesCount} articles, {$videosCount} videos, {$productsCount} products)" : "Tag deleted: {$tagName}"
+            );
             
             return response()->json([
                 'success' => true,

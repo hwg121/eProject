@@ -91,7 +91,18 @@ class ContactController extends Controller
     {
         try {
             $message = ContactMessage::findOrFail($id);
+            $messageName = $message->name;
+            $messageSubject = $message->subject;
             $message->delete();
+            
+            // Log contact message deletion
+            ActivityLog::logPublic(
+                'deleted',
+                'contact_message',
+                $id,
+                $messageSubject,
+                auth()->user() ? auth()->user()->name . " deleted contact message from {$messageName}: {$messageSubject}" : "Contact message deleted: {$messageSubject}"
+            );
 
             return response()->json(null, 204);
         } catch (\Exception $e) {

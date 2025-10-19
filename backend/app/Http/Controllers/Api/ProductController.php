@@ -717,7 +717,18 @@ class ProductController extends Controller
             ], 403);
         }
         
+        $productName = $product->name;
+        $productCategory = $product->category;
         $product->delete();
+        
+        // Log product deletion activity
+        ActivityLog::logPublic(
+            'deleted',
+            'product',
+            $id,
+            $productName,
+            auth()->user() ? auth()->user()->name . " deleted {$productCategory}: {$productName}" : "Product deleted: {$productName}"
+        );
 
         return response()->json([
             'success' => true,
