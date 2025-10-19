@@ -1025,8 +1025,16 @@ const AdminDashboard: React.FC = () => {
           return;
       }
       
-      // Reload data after deletion
-      await loadData();
+      // Reload data based on current context
+      const isManagementTab = ['product-list', 'content-list', 'articles', 'videos'].includes(activeTab);
+      const isModerator = user?.role === 'moderator';
+      
+      if (isManagementTab && isModerator) {
+        await loadManagementData();
+      } else {
+        await loadData();
+      }
+      
       showToast('Item deleted successfully!', 'success');
     } catch (error: any) {
       console.error('Error deleting item:', error);
@@ -1068,7 +1076,17 @@ const AdminDashboard: React.FC = () => {
       });
 
       await Promise.all(deletePromises);
-      await loadData();
+      
+      // Reload data based on current context
+      const isManagementTab = ['product-list', 'content-list', 'articles', 'videos'].includes(activeTab);
+      const isModerator = user?.role === 'moderator';
+      
+      if (isManagementTab && isModerator) {
+        await loadManagementData();
+      } else {
+        await loadData();
+      }
+      
       showToast(`Successfully deleted ${ids.length} items!`, 'success');
     } catch (error: any) {
       console.error('Error bulk deleting:', error);
@@ -1136,7 +1154,17 @@ const AdminDashboard: React.FC = () => {
       console.log('Executing', updatePromises.length, 'update promises');
       await Promise.all(updatePromises);
       console.log('All updates completed, reloading data');
-      await loadData();
+      
+      // Reload data based on current context
+      const isManagementTab = ['product-list', 'content-list', 'articles', 'videos'].includes(activeTab);
+      const isModerator = user?.role === 'moderator';
+      
+      if (isManagementTab && isModerator) {
+        await loadManagementData();
+      } else {
+        await loadData();
+      }
+      
       showToast(`Successfully updated ${ids.length} items to ${status}!`, 'success');
     } catch (error: any) {
       console.error('Error bulk updating status:', error);
@@ -1161,7 +1189,17 @@ const AdminDashboard: React.FC = () => {
     try {
       const deletePromises = ids.map(id => productService.delete(id));
       await Promise.all(deletePromises);
-      await loadData();
+      
+      // Reload data based on current context
+      const isManagementTab = ['product-list', 'tools', 'books', 'pots', 'accessories', 'suggestions'].includes(activeTab);
+      const isModerator = user?.role === 'moderator';
+      
+      if (isManagementTab && isModerator) {
+        await loadManagementData();
+      } else {
+        await loadData();
+      }
+      
       showToast(`Successfully deleted ${ids.length} products!`, 'success');
     } catch (error: any) {
       console.error('Error bulk deleting products:', error);
@@ -1186,7 +1224,17 @@ const AdminDashboard: React.FC = () => {
     try {
       const updatePromises = ids.map(id => productService.update(id, { status }));
       await Promise.all(updatePromises);
-      await loadData();
+      
+      // Reload data based on current context
+      const isManagementTab = ['product-list', 'tools', 'books', 'pots', 'accessories', 'suggestions'].includes(activeTab);
+      const isModerator = user?.role === 'moderator';
+      
+      if (isManagementTab && isModerator) {
+        await loadManagementData();
+      } else {
+        await loadData();
+      }
+      
       showToast(`Successfully updated ${ids.length} products to ${status}!`, 'success');
     } catch (error: any) {
       console.error('Error bulk updating products:', error);
@@ -1211,7 +1259,19 @@ const AdminDashboard: React.FC = () => {
     try {
       // Only send status field - backend will detect this as status-only change
       await productService.update(id, { status: newStatus });
-      await loadData();
+      
+      // Reload data based on current context
+      const isManagementTab = ['product-list', 'content-list', 'articles', 'videos', 'tools', 'books', 'pots', 'accessories', 'suggestions'].includes(activeTab);
+      const isModerator = user?.role === 'moderator';
+      
+      if (isManagementTab && isModerator) {
+        // Moderator in management tab - reload only their own content
+        await loadManagementData();
+      } else {
+        // Admin or overview tab - reload all data
+        await loadData();
+      }
+      
       showToast(`Status updated to ${newStatus}!`, 'success');
     } catch (error: any) {
       console.error('Error updating status:', error);
@@ -1362,8 +1422,15 @@ const AdminDashboard: React.FC = () => {
       // Reset editing state
       setEditingItem(null);
       
-      // Reload data
-      await loadData();
+      // Reload data based on current context
+      const isManagementTab = ['product-list', 'content-list', 'articles', 'videos'].includes(activeTab);
+      const isModerator = user?.role === 'moderator';
+      
+      if (isManagementTab && isModerator) {
+        await loadManagementData();
+      } else {
+        await loadData();
+      }
       
       // Redirect to content-list after successful save
       setActiveTab('content-list');
@@ -1444,8 +1511,16 @@ const AdminDashboard: React.FC = () => {
           throw error;
       }
       
-      // Reload products data
-      await loadData();
+      // Reload data based on current context
+      const isManagementTab = ['product-list', 'tools', 'books', 'pots', 'accessories', 'suggestions'].includes(activeTab);
+      const isModerator = user?.role === 'moderator';
+      
+      if (isManagementTab && isModerator) {
+        await loadManagementData();
+      } else {
+        await loadData();
+      }
+      
       showToast('Product created successfully!', 'success');
       
       // Navigate back to list
@@ -1527,8 +1602,16 @@ const AdminDashboard: React.FC = () => {
       const result = await productService.update(updatedProduct.id, updatedProduct);
       console.log('AdminDashboard - Update result:', result);
       
-      // Reload products data
-      await loadData();
+      // Reload data based on current context
+      const isManagementTab = ['product-list', 'tools', 'books', 'pots', 'accessories', 'suggestions'].includes(activeTab);
+      const isModerator = user?.role === 'moderator';
+      
+      if (isManagementTab && isModerator) {
+        await loadManagementData();
+      } else {
+        await loadData();
+      }
+      
       console.log('AdminDashboard - Data reloaded');
       
       // Reset editing state and go back to list
@@ -1603,8 +1686,16 @@ const AdminDashboard: React.FC = () => {
           return;
       }
       
-      // Reload products data
-      await loadData();
+      // Reload data based on current context
+      const isManagementTab = ['product-list', 'tools', 'books', 'pots', 'accessories', 'suggestions'].includes(activeTab);
+      const isModerator = user?.role === 'moderator';
+      
+      if (isManagementTab && isModerator) {
+        await loadManagementData();
+      } else {
+        await loadData();
+      }
+      
       showToast('Product deleted successfully!', 'success');
     } catch (error: any) {
       console.error('Error deleting product:', error);
