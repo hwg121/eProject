@@ -75,10 +75,10 @@ const Suggestions: React.FC = () => {
         setLoading(true);
         const response = await publicService.getSuggestions();
         
-        // Handle API response format: {success: true, data: [...]}
+        // Handle API response format: {data: [...], meta: {...}}
         let suggestionsData: Product[] = [];
-        if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
-          suggestionsData = (response as any).data;
+        if (response && typeof response === 'object' && 'data' in response) {
+          suggestionsData = (response as any).data || [];
         } else if (Array.isArray(response)) {
           suggestionsData = response;
         }
