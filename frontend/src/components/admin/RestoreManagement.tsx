@@ -60,6 +60,19 @@ const RestoreManagement: React.FC<RestoreManagementProps> = ({ onSuccess }) => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [total, setTotal] = useState(0);
   
+  // Track counts for each category
+  const [counts, setCounts] = useState<{
+    users: number;
+    articles: number;
+    videos: number;
+    products: number;
+  }>({
+    users: 0,
+    articles: 0,
+    videos: 0,
+    products: 0
+  });
+  
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
@@ -69,9 +82,36 @@ const RestoreManagement: React.FC<RestoreManagementProps> = ({ onSuccess }) => {
     type: 'restore' | 'delete';
   } | null>(null);
 
+  // Fetch counts for all categories on mount
+  useEffect(() => {
+    fetchAllCounts();
+  }, []);
+
   useEffect(() => {
     fetchTrashedItems();
   }, [activeTab, page, rowsPerPage, searchTerm]);
+
+  const fetchAllCounts = async () => {
+    const categories: ('users' | 'articles' | 'videos' | 'products')[] = ['users', 'articles', 'videos', 'products'];
+    const newCounts = { users: 0, articles: 0, videos: 0, products: 0 };
+
+    await Promise.all(
+      categories.map(async (category) => {
+        try {
+          const endpoint = `/admin/${category}/trashed/all`;
+          const response: any = await apiClient.get(endpoint + '?page=1&per_page=1');
+          if (response.success && response.meta) {
+            newCounts[category] = response.meta.total || 0;
+          }
+        } catch (error) {
+          // Silently fail for individual categories
+          console.error(`Failed to fetch count for ${category}:`, error);
+        }
+      })
+    );
+
+    setCounts(newCounts);
+  };
 
   const fetchTrashedItems = async () => {
     setLoading(true);
@@ -104,6 +144,7 @@ const RestoreManagement: React.FC<RestoreManagementProps> = ({ onSuccess }) => {
           type: 'success'
         });
         fetchTrashedItems();
+        fetchAllCounts(); // Update badge counts
         onSuccess?.();
       }
     } catch (error: any) {
@@ -125,6 +166,7 @@ const RestoreManagement: React.FC<RestoreManagementProps> = ({ onSuccess }) => {
           type: 'success'
         });
         fetchTrashedItems();
+        fetchAllCounts(); // Update badge counts
       }
     } catch (error: any) {
       setToast({
@@ -342,18 +384,31 @@ const RestoreManagement: React.FC<RestoreManagementProps> = ({ onSuccess }) => {
       >
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl text-white">
-              <Trash2 className="h-6 w-6" />
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl text-white">
+                <Trash2 className="h-6 w-6" />
+              </div>
+              <div>
+                <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Restore Management
+                </h1>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Manage deleted items - Restore or permanently delete
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                Restore Management
-              </h1>
-              <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                Manage deleted items - Restore or permanently delete
-              </p>
-            </div>
+            <Tooltip title="Refresh counts">
+              <IconButton
+                onClick={fetchAllCounts}
+                sx={{ 
+                  color: isDarkMode ? 'white' : 'gray.700',
+                  '&:hover': { backgroundColor: isDarkMode ? 'grey.800' : 'grey.100' }
+                }}
+              >
+                <RefreshCw className="h-5 w-5" />
+              </IconButton>
+            </Tooltip>
           </div>
         </div>
 
@@ -401,6 +456,23 @@ const RestoreManagement: React.FC<RestoreManagementProps> = ({ onSuccess }) => {
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4" />
                   <span>Users</span>
+                  {counts.users > 0 && (
+                    <Badge 
+                      badgeContent={counts.users} 
+                      color="error" 
+                      max={999}
+                      sx={{ 
+                        '& .MuiBadge-badge': { 
+                          position: 'static',
+                          transform: 'none',
+                          fontSize: '0.75rem',
+                          height: '20px',
+                          minWidth: '20px',
+                          padding: '0 6px'
+                        } 
+                      }}
+                    />
+                  )}
                 </div>
               }
             />
@@ -410,6 +482,23 @@ const RestoreManagement: React.FC<RestoreManagementProps> = ({ onSuccess }) => {
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
                   <span>Articles</span>
+                  {counts.articles > 0 && (
+                    <Badge 
+                      badgeContent={counts.articles} 
+                      color="error" 
+                      max={999}
+                      sx={{ 
+                        '& .MuiBadge-badge': { 
+                          position: 'static',
+                          transform: 'none',
+                          fontSize: '0.75rem',
+                          height: '20px',
+                          minWidth: '20px',
+                          padding: '0 6px'
+                        } 
+                      }}
+                    />
+                  )}
                 </div>
               }
             />
@@ -419,6 +508,23 @@ const RestoreManagement: React.FC<RestoreManagementProps> = ({ onSuccess }) => {
                 <div className="flex items-center gap-2">
                   <VideoIcon className="h-4 w-4" />
                   <span>Videos</span>
+                  {counts.videos > 0 && (
+                    <Badge 
+                      badgeContent={counts.videos} 
+                      color="error" 
+                      max={999}
+                      sx={{ 
+                        '& .MuiBadge-badge': { 
+                          position: 'static',
+                          transform: 'none',
+                          fontSize: '0.75rem',
+                          height: '20px',
+                          minWidth: '20px',
+                          padding: '0 6px'
+                        } 
+                      }}
+                    />
+                  )}
                 </div>
               }
             />
@@ -428,6 +534,23 @@ const RestoreManagement: React.FC<RestoreManagementProps> = ({ onSuccess }) => {
                 <div className="flex items-center gap-2">
                   <Package className="h-4 w-4" />
                   <span>Products</span>
+                  {counts.products > 0 && (
+                    <Badge 
+                      badgeContent={counts.products} 
+                      color="error" 
+                      max={999}
+                      sx={{ 
+                        '& .MuiBadge-badge': { 
+                          position: 'static',
+                          transform: 'none',
+                          fontSize: '0.75rem',
+                          height: '20px',
+                          minWidth: '20px',
+                          padding: '0 6px'
+                        } 
+                      }}
+                    />
+                  )}
                 </div>
               }
             />

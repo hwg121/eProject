@@ -585,8 +585,10 @@ class ProductController extends Controller
                                (is_numeric($data['likes']) ? (int) $data['likes'] : 0);
             }
             
-            // Remove fields that shouldn't be updated
-            unset($data['id'], $data['createdAt'], $data['updatedAt']);
+            // Remove fields that shouldn't be updated (including audit tracking fields)
+            unset($data['id'], $data['createdAt'], $data['updatedAt'], 
+                  $data['created_by'], $data['updated_by'], $data['creator'], $data['updater'],
+                  $data['created_at'], $data['updated_at']);
             
             // If slug not provided but name changed, generate new slug with ID to prevent conflicts
             if (!isset($data['slug']) && isset($data['name'])) {

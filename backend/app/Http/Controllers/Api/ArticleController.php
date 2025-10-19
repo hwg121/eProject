@@ -320,6 +320,10 @@ class ArticleController extends Controller
                 }
             }
             
+            // Remove audit tracking fields that shouldn't be manually set
+            unset($data['created_by'], $data['updated_by'], $data['creator'], $data['updater'],
+                  $data['created_at'], $data['updated_at'], $data['createdAt'], $data['updatedAt']);
+            
             // Moderator logic for status validation
             if ($user->role === 'moderator') {
                 $currentStatus = $article->status;

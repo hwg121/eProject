@@ -862,7 +862,7 @@ const AdminContactMessages: React.FC = () => {
         open={confirmDialog.open}
         title={confirmDialog.title}
         message={confirmDialog.message}
-        type="warning"
+        type="error"
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => setConfirmDialog({ ...confirmDialog, open: false })}
         isDarkMode={isDarkMode}

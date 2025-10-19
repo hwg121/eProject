@@ -99,6 +99,12 @@ class Article extends Model
         static::updating(function ($model) {
             if (auth()->check()) {
                 $model->updated_by = auth()->id();
+                \Log::info('Article Model Observer - updating event:', [
+                    'article_id' => $model->id,
+                    'old_updated_by' => $model->getOriginal('updated_by'),
+                    'new_updated_by' => auth()->id(),
+                    'auth_user' => auth()->user()->name,
+                ]);
             }
             
             // Auto-set published_at when status changes to published

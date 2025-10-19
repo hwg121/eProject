@@ -2281,6 +2281,10 @@ Updated: ${product.updatedAt}
                           window.location.reload();
                         }
                         showToast('Data refreshed successfully!', 'success');
+                        // Refresh pending count for admin
+                        if (user?.role === 'admin') {
+                          await fetchPendingItems();
+                        }
                       } catch (error) {
                         console.error('Error refreshing data:', error);
                         showToast('Failed to refresh data', 'error');
@@ -2302,6 +2306,64 @@ Updated: ${product.updatedAt}
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                   </IconButton>
+
+                  {/* Pending Approvals Notification Bell (Admin Only) */}
+                  {user?.role === 'admin' && (
+                    <IconButton
+                      onClick={() => {
+                        setActiveTab('approvals');
+                        showToast('Navigated to Approval Management', 'info');
+                      }}
+                      sx={{
+                        bgcolor: pendingCount > 0 ? (isDarkMode ? '#dc2626' : '#fee2e2') : (isDarkMode ? '#1e293b' : '#f8fafc'),
+                        position: 'relative',
+                        '&:hover': {
+                          bgcolor: pendingCount > 0 ? (isDarkMode ? '#b91c1c' : '#fecaca') : (isDarkMode ? '#334155' : '#e2e8f0'),
+                          transform: 'scale(1.05)',
+                        },
+                        transition: 'all 0.3s',
+                        animation: pendingCount > 0 ? 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' : 'none',
+                        '@keyframes pulse': {
+                          '0%, 100%': { opacity: 1 },
+                          '50%': { opacity: 0.7 },
+                        }
+                      }}
+                      title={pendingCount > 0 ? `${pendingCount} pending approval(s)` : 'No pending approvals'}
+                    >
+                      <svg 
+                        className="w-5 h-5" 
+                        fill={pendingCount > 0 ? (isDarkMode ? '#fca5a5' : '#ef4444') : 'currentColor'} 
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" />
+                      </svg>
+                      {/* Badge with pending count */}
+                      {pendingCount > 0 && (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: -4,
+                            right: -4,
+                            bgcolor: '#ef4444',
+                            color: 'white',
+                            borderRadius: '50%',
+                            minWidth: 20,
+                            height: 20,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.75rem',
+                            fontWeight: 'bold',
+                            border: '2px solid',
+                            borderColor: isDarkMode ? '#0f172a' : '#ffffff',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                          }}
+                        >
+                          {pendingCount > 99 ? '99+' : pendingCount}
+                        </Box>
+                      )}
+                    </IconButton>
+                  )}
 
                   {/* Dark Mode Toggle */}
                   <DarkModeToggle />

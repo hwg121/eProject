@@ -6,6 +6,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import Card from '../components/ui/Card';
 
+/**
+ * Admin Login Credentials:
+ * Email: admin@greengroves.com
+ * Password: admin123
+ */
 const Login: React.FC = () => {
   const [email, setEmail] = useState(''); // Empty for production
   const [password, setPassword] = useState(''); // Empty for production
@@ -47,7 +52,7 @@ const Login: React.FC = () => {
       if (result.success) {
         navigate('/admin');
       } else {
-        setError(result.error || 'Invalid credentials. Please use: admin@greengroves.com / password123');
+        setError(result.error || 'Invalid credentials. Please check your email and password.');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -126,31 +131,6 @@ const Login: React.FC = () => {
             <p className={`font-medium ${
               isDarkMode ? 'text-emerald-400' : 'text-emerald-600'
             }`}>Admin Dashboard</p>
-          </motion.div>
-
-          {/* Demo credentials info */}
-          <motion.div
-            className={`border rounded-lg p-4 mb-6 ${
-              isDarkMode 
-                ? 'bg-emerald-900/20 border-emerald-700/30 text-emerald-300' 
-                : 'bg-emerald-50 border-emerald-200 text-emerald-700'
-            }`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            <h3 className={`font-semibold mb-2 ${
-              isDarkMode ? 'text-emerald-200' : 'text-emerald-800'
-            }`}>Demo Login Credentials:</h3>
-            <p className="text-sm">
-              <strong>Email:</strong> admin@greengroves.com<br />
-              <strong>Password:</strong> admin123
-            </p>
-            <p className={`text-xs mt-2 ${
-              isDarkMode ? 'text-emerald-400' : 'text-emerald-600'
-            }`}>
-              Fields are pre-filled for testing
-            </p>
           </motion.div>
 
           {/* Login Form */}
