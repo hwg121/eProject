@@ -54,6 +54,7 @@ const AdminContactMessages: React.FC = () => {
   const [filteredMessages, setFilteredMessages] = useState<ContactMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   
@@ -157,9 +158,11 @@ const AdminContactMessages: React.FC = () => {
     if (message.status === 'unread') {
       try {
         await contactService.update(message.id, { status: 'read' });
-        loadMessages();
+        await loadMessages();
+        setSuccess('Message marked as read');
       } catch (err) {
         console.error('Error marking message as read:', err);
+        setError('Failed to mark message as read');
       }
     }
   };
@@ -172,9 +175,11 @@ const AdminContactMessages: React.FC = () => {
       onConfirm: async () => {
         try {
           await contactService.delete(id);
-          loadMessages();
+          await loadMessages();
+          setSuccess('Message deleted successfully');
         } catch (err) {
-          setError('Failed to delete message');
+          const errorMsg = (err as any)?.response?.data?.message || (err as any)?.message || 'Failed to delete message';
+          setError(errorMsg);
           console.error('Error deleting message:', err);
         }
         setConfirmDialog({ ...confirmDialog, open: false });
@@ -185,9 +190,11 @@ const AdminContactMessages: React.FC = () => {
   const handleStatusChange = async (id: string, newStatus: 'unread' | 'read' | 'replied') => {
     try {
       await contactService.update(id, { status: newStatus });
-      loadMessages();
+      await loadMessages();
+      setSuccess(`Message marked as ${newStatus}`);
     } catch (err) {
-      setError('Failed to update message status');
+      const errorMsg = (err as any)?.response?.data?.message || (err as any)?.message || 'Failed to update message status';
+      setError(errorMsg);
       console.error('Error updating status:', err);
     }
   };
@@ -202,9 +209,11 @@ const AdminContactMessages: React.FC = () => {
           await Promise.all(selectedMessages.map(id => contactService.delete(id)));
           setSelectedMessages([]);
           setSelectAll(false);
-          loadMessages();
+          await loadMessages();
+          setSuccess(`${selectedMessages.length} messages deleted successfully`);
         } catch (err) {
-          setError('Failed to delete selected messages');
+          const errorMsg = (err as any)?.response?.data?.message || (err as any)?.message || 'Failed to delete selected messages';
+          setError(errorMsg);
           console.error('Error bulk deleting:', err);
         }
         setConfirmDialog({ ...confirmDialog, open: false });
@@ -217,9 +226,11 @@ const AdminContactMessages: React.FC = () => {
       await Promise.all(selectedMessages.map(id => contactService.update(id, { status: newStatus })));
       setSelectedMessages([]);
       setSelectAll(false);
-      loadMessages();
+      await loadMessages();
+      setSuccess(`${selectedMessages.length} messages marked as ${newStatus}`);
     } catch (err) {
-      setError('Failed to update selected messages');
+      const errorMsg = (err as any)?.response?.data?.message || (err as any)?.message || 'Failed to update selected messages';
+      setError(errorMsg);
       console.error('Error bulk updating status:', err);
     }
   };
@@ -269,7 +280,7 @@ const AdminContactMessages: React.FC = () => {
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
 
-      {/* Snackbar for errors */}
+      {/* Error Toast */}
       <Toast
         open={!!error}
         message={error || ''}
@@ -277,6 +288,16 @@ const AdminContactMessages: React.FC = () => {
         onClose={() => setError(null)}
         position={{ vertical: 'top', horizontal: 'center' }}
         autoHideDuration={6000}
+      />
+
+      {/* Success Toast */}
+      <Toast
+        open={!!success}
+        message={success || ''}
+        severity="success"
+        onClose={() => setSuccess(null)}
+        position={{ vertical: 'top', horizontal: 'center' }}
+        autoHideDuration={4000}
       />
 
       {/* Search and Filter Controls */}

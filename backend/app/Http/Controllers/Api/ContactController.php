@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ContactMessage;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
 class ContactController extends Controller
@@ -96,12 +98,17 @@ class ContactController extends Controller
             $message->delete();
             
             // Log contact message deletion
+            $user = Auth::user();
+            $description = $user 
+                ? "{$user->name} deleted contact message from {$messageName}: {$messageSubject}"
+                : "Contact message deleted: {$messageSubject}";
+            
             ActivityLog::logPublic(
                 'deleted',
                 'contact_message',
                 $id,
                 $messageSubject,
-                auth()->user() ? auth()->user()->name . " deleted contact message from {$messageName}: {$messageSubject}" : "Contact message deleted: {$messageSubject}"
+                $description
             );
 
             return response()->json(null, 204);

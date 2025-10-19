@@ -57,7 +57,8 @@ class ApiClient {
                                endpoint.includes('/auth/refresh') ||
                                endpoint.includes('/products') ||
                                endpoint.includes('/articles') ||
-                               endpoint.includes('/videos');
+                               endpoint.includes('/videos') ||
+                               endpoint.includes('/contact-messages');
     
     if (isProtectedEndpoint) {
       // Removed user_logged_out check - rely on token validation instead
@@ -527,7 +528,9 @@ class ApiClient {
 
   async getContactMessages() {
     try {
-      return await this.request<unknown[]>('/contact-messages');
+      return await this.request<unknown[]>('/contact-messages', {
+        method: 'GET',
+      });
     } catch (error) {
       console.error('Error fetching contact messages:', error);
       return Promise.resolve([]);
@@ -536,7 +539,9 @@ class ApiClient {
 
   async getContactMessage(id: string) {
     try {
-      return await this.request<unknown>(`/contact-messages/${id}`);
+      return await this.request<unknown>(`/contact-messages/${id}`, {
+        method: 'GET',
+      });
     } catch (error) {
       console.error('Error fetching contact message:', error);
       return Promise.resolve(null);
