@@ -378,12 +378,24 @@ class ArticleController extends Controller
             // Sync tags if provided
             if ($tags !== null) {
                 $article->tags()->sync($tags);
-                // Reload tags relationship after sync
-                $article->load('tags');
             }
             
-            // Reload relationships for response
-            $article->load(['authorUser', 'creator', 'updater']);
+            // IMPORTANT: Refresh model to get latest updated_by value from database
+            // Then reload all relationships for accurate response
+            $article->refresh();
+            $article->load(['tags', 'authorUser', 'creator', 'updater']);
+            
+            // Debug log to verify updated_by is correct
+            \Log::info('Article Updated - Audit Trail:', [
+                'article_id' => $article->id,
+                'author_id' => $article->author_id,
+                'created_by' => $article->created_by,
+                'updated_by' => $article->updated_by,
+                'current_user_id' => auth()->id(),
+                'current_user_name' => auth()->user()->name,
+                'updater_name' => $article->updater ? $article->updater->name : 'NULL',
+                'creator_name' => $article->creator ? $article->creator->name : 'NULL',
+            ]);
             
             // Log article update activity
             ActivityLog::logPublic(

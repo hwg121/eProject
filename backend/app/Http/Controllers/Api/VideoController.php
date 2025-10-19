@@ -498,6 +498,18 @@ class VideoController extends Controller
                 'updated_fields' => array_keys($validated)
             ]);
             
+            // Debug log to verify updated_by is correct
+            Log::info('Video Updated - Audit Trail:', [
+                'video_id' => $video->id,
+                'author_id' => $video->author_id,
+                'created_by' => $video->created_by,
+                'updated_by' => $video->updated_by,
+                'current_user_id' => auth()->id(),
+                'current_user_name' => auth()->user()->name,
+                'updater_name' => $video->updater ? $video->updater->name : 'NULL',
+                'creator_name' => $video->creator ? $video->creator->name : 'NULL',
+            ]);
+            
             // Log video update activity
             ActivityLog::logPublic(
                 'updated',

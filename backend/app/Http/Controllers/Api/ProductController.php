@@ -636,12 +636,24 @@ class ProductController extends Controller
             // Sync tags via pivot table if provided
             if ($tags !== null) {
                 $product->tags()->sync($tags);
-                // Reload tags relationship after sync
-                $product->load('tags');
             }
             
-            // Reload relationships for response
-            $product->load(['authorUser', 'creator', 'updater']);
+            // IMPORTANT: Refresh model to get latest updated_by value from database
+            // Then reload all relationships for accurate response
+            $product->refresh();
+            $product->load(['tags', 'authorUser', 'creator', 'updater']);
+            
+            // Debug log to verify updated_by is correct
+            \Log::info('Product Updated - Audit Trail:', [
+                'product_id' => $product->id,
+                'author_id' => $product->author_id,
+                'created_by' => $product->created_by,
+                'updated_by' => $product->updated_by,
+                'current_user_id' => auth()->id(),
+                'current_user_name' => auth()->user()->name,
+                'updater_name' => $product->updater ? $product->updater->name : 'NULL',
+                'creator_name' => $product->creator ? $product->creator->name : 'NULL',
+            ]);
             
             return response()->json([
                 'success' => true,
