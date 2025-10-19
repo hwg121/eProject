@@ -883,9 +883,9 @@ const ViewAllContent: React.FC = () => {
                         sx={{
                           borderBottom: '1px solid',
                           borderColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-                          transition: 'all 0.2s ease',
+                          transition: 'background-color 0.2s',
                           '&:hover': {
-                            bgcolor: isDarkMode ? 'rgba(16, 185, 129, 0.05)' : 'rgba(16, 185, 129, 0.03)'
+                            bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#f9fafb'
                           }
                         }}
                       >

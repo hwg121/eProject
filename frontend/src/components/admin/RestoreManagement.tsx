@@ -646,7 +646,7 @@ const RestoreManagement: React.FC<RestoreManagementProps> = ({ onSuccess }) => {
           onConfirm={confirmDialog.onConfirm}
           onCancel={() => setConfirmDialog(null)}
           confirmText={confirmDialog.type === 'restore' ? 'Restore' : 'Delete Permanently'}
-          confirmColor={confirmDialog.type === 'restore' ? 'success' : 'error'}
+          type={confirmDialog.type === 'restore' ? 'success' : 'error'}
         />
       )}
     </div>

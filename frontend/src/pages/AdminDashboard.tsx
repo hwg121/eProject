@@ -983,7 +983,7 @@ const AdminDashboard: React.FC = () => {
           console.error('Error in delete confirmation:', error);
         }
       },
-      'warning'
+      'error'
     );
   };
 
@@ -1655,7 +1655,7 @@ const AdminDashboard: React.FC = () => {
           console.error('Error in product delete confirmation:', error);
         }
       },
-      'warning'
+      'error'
     );
   };
 
@@ -1903,7 +1903,7 @@ Updated: ${product.updatedAt}
           showToast(errorMessage, 'error');
         }
       },
-      'warning'
+      'error'
     );
   }, [loadData, showConfirmDialog, showToast]);
 
