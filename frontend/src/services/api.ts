@@ -55,9 +55,6 @@ class ApiClient {
                                endpoint.includes('/auth/logout') ||
                                endpoint.includes('/auth/me') ||
                                endpoint.includes('/auth/refresh') ||
-                               endpoint.includes('/products') ||
-                               endpoint.includes('/articles') ||
-                               endpoint.includes('/videos') ||
                                endpoint.includes('/contact-messages');
     
     if (isProtectedEndpoint) {
