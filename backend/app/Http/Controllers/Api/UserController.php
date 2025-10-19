@@ -604,7 +604,7 @@ class UserController extends Controller
     {
         try {
             $validated = $request->validate([
-                'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:3072', // 3MB max
+                'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:3072', // 3MB max
                 'model_type' => 'required|string|in:user',
                 'user_id' => 'nullable|exists:users,id'
             ]);

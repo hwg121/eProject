@@ -2183,7 +2183,7 @@ Updated: ${product.updatedAt}
           </div>
           
           {/* Content Container with responsive spacing */}
-          <div className="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6 xl:space-y-8 max-w-full overflow-hidden">
+          <div className="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6 xl:space-y-8 max-w-full overflow-visible p-2">
           {/* Error Message */}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
@@ -2304,16 +2304,17 @@ Updated: ${product.updatedAt}
                     sx={{
                       bgcolor: isDarkMode ? '#1e293b' : '#f8fafc',
                       color: isDarkMode ? '#e2e8f0' : '#1e293b',
-                      border: `1px solid ${isDarkMode ? '#334155' : '#e2e8f0'}`,
+                      border: `2px solid ${isDarkMode ? '#334155' : '#e2e8f0'}`,
                       '&:hover': {
                         bgcolor: isDarkMode ? '#334155' : '#e2e8f0',
-                        transform: 'scale(1.02)',
+                        transform: 'scale(1.01)',
                       },
                       transition: 'all 0.2s',
                       textTransform: 'none',
                       fontWeight: 600,
                       px: 2,
-                      py: 1
+                      py: 1,
+                      margin: '2px'
                     }}
                   >
                     Homepage
@@ -2408,16 +2409,18 @@ Updated: ${product.updatedAt}
                       sx={{
                         bgcolor: pendingCount > 0 ? (isDarkMode ? '#dc2626' : '#fee2e2') : (isDarkMode ? '#1e293b' : '#f8fafc'),
                         position: 'relative',
+                        border: `2px solid ${pendingCount > 0 ? (isDarkMode ? '#b91c1c' : '#fecaca') : (isDarkMode ? '#334155' : '#e2e8f0')}`,
                         '&:hover': {
                           bgcolor: pendingCount > 0 ? (isDarkMode ? '#b91c1c' : '#fecaca') : (isDarkMode ? '#334155' : '#e2e8f0'),
-                          transform: 'scale(1.05)',
+                          transform: 'scale(1.02)',
                         },
                         transition: 'all 0.3s',
                         animation: pendingCount > 0 ? 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' : 'none',
                         '@keyframes pulse': {
                           '0%, 100%': { opacity: 1 },
                           '50%': { opacity: 0.7 },
-                        }
+                        },
+                        margin: '2px'
                       }}
                       title={pendingCount > 0 ? `${pendingCount} pending approval(s)` : 'No pending approvals'}
                     >
@@ -2468,10 +2471,12 @@ Updated: ${product.updatedAt}
                     }}
                     sx={{
                       p: 0,
+                      border: `2px solid ${isDarkMode ? '#334155' : '#e2e8f0'}`,
                       '&:hover': {
-                        transform: 'scale(1.05)',
+                        transform: 'scale(1.02)',
                       },
                       transition: 'transform 0.2s',
+                      margin: '2px'
                     }}
                   >
                     <Avatar
@@ -2743,8 +2748,8 @@ Updated: ${product.updatedAt}
       {activeTab === 'restore-management' && user?.role === 'admin' && (
         <RestoreManagement 
           onSuccess={() => {
-            // Refresh data after restore
-            loadManagementData();
+            // Refresh data after restore (admin always sees all data)
+            loadData();
           }}
         />
       )}

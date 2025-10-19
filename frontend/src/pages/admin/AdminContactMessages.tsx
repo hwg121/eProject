@@ -348,13 +348,13 @@ const AdminContactMessages: React.FC = () => {
           gap: 2, 
           mb: 3, 
           p: 2, 
-          bgcolor: '#f0fdf4', 
+          bgcolor: isDarkMode ? '#1e293b' : '#f0fdf4', 
           borderRadius: 2, 
-          border: '1px solid #d1fae5',
+          border: isDarkMode ? '1px solid #334155' : '1px solid #d1fae5',
           alignItems: 'center',
           flexWrap: 'wrap'
         }}>
-          <Typography variant="body2" sx={{ color: '#047857', fontWeight: 600 }}>
+          <Typography variant="body2" sx={{ color: isDarkMode ? '#94a3b8' : '#047857', fontWeight: 600 }}>
             {selectedMessages.length} selected
           </Typography>
           <Button

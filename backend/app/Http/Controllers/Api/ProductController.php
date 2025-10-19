@@ -382,6 +382,15 @@ class ProductController extends Controller
             
             // Load relationships for response
             $product->load(['authorUser', 'creator', 'updater']);
+            
+            // Log product creation activity
+            ActivityLog::logPublic(
+                'created',
+                'product',
+                $product->id,
+                $product->name,
+                auth()->user() ? auth()->user()->name . " created {$product->category}: {$product->name}" : "Product created: {$product->name}"
+            );
 
         return response()->json([
             'success' => true,
@@ -657,6 +666,15 @@ class ProductController extends Controller
                 'creator_name' => $product->creator ? $product->creator->name : 'NULL',
             ]);
             
+            // Log product update activity
+            ActivityLog::logPublic(
+                'updated',
+                'product',
+                $product->id,
+                $product->name,
+                auth()->user() ? auth()->user()->name . " updated {$product->category}: {$product->name}" : "Product updated: {$product->name}"
+            );
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Product updated successfully',
@@ -829,7 +847,18 @@ class ProductController extends Controller
             }
             
             $product = Product::onlyTrashed()->findOrFail($id);
+            $productName = $product->name;
+            $productCategory = $product->category;
             $product->restore();
+            
+            // Log restore activity
+            ActivityLog::logPublic(
+                'restored',
+                'product',
+                $id,
+                $productName,
+                auth()->user() ? auth()->user()->name . " restored {$productCategory}: {$productName}" : "Product restored: {$productName}"
+            );
 
             return response()->json([
                 'success' => true,
@@ -866,8 +895,18 @@ class ProductController extends Controller
             
             $product = Product::onlyTrashed()->findOrFail($id);
             $productName = $product->name;
+            $productCategory = $product->category;
             
             $product->forceDelete();
+            
+            // Log permanent deletion activity
+            ActivityLog::logPublic(
+                'force_deleted',
+                'product',
+                $id,
+                $productName,
+                auth()->user() ? auth()->user()->name . " permanently deleted {$productCategory}: {$productName}" : "Product permanently deleted: {$productName}"
+            );
 
             return response()->json([
                 'success' => true,
