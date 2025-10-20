@@ -46,7 +46,7 @@ const Ticker = () => {
 
   return (
     <div className="bg-green-600 text-white py-2 overflow-hidden">
-      <div className="flex items-center justify-center space-x-8 animate-pulse">
+      <div className="flex items-center justify-center space-x-8 slow-pulse">
         <div className="flex items-center space-x-2">
           <span className="text-sm font-medium">📅</span>
           <span className="text-sm">{formatDate(currentTime)}</span>

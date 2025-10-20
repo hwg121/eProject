@@ -326,7 +326,7 @@ const TagArchive: React.FC = () => {
                         <img
                           src={content.featured_image || content.thumbnail}
                           alt={getContentTitle(content)}
-                          className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="w-full h-40 object-contain bg-gray-50 group-hover:scale-105 transition-transform duration-300"
                           loading="lazy"
                         />
                       </div>

@@ -1,9 +1,8 @@
 import React from 'react';
-import { Check, X, Clock, Eye, EyeOff, CheckCircle, Ban } from 'lucide-react';
-import { useTheme } from '../../contexts/ThemeContext';
+import { Check, X, Clock, Eye, EyeOff, CheckCircle, Ban, FileText } from 'lucide-react';
 
 interface StatusBadgeProps {
-  status: 'active' | 'published' | 'archived' | 'inactive' | 'banned';
+  status: 'active' | 'published' | 'archived' | 'inactive' | 'banned' | 'draft' | 'pending';
   size?: 'small' | 'medium' | 'large';
   className?: string;
 }
@@ -13,55 +12,73 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
   size = 'medium',
   className = ''
 }) => {
-  const { isDarkMode } = useTheme();
-
   const getStatusConfig = (status: string) => {
-    switch (status) {
+    const normalizedStatus = status.toLowerCase();
+    
+    switch (normalizedStatus) {
+      case 'draft':
+        return {
+          label: 'Draft',
+          icon: FileText,
+          bgColor: '#f1f5f9',
+          textColor: '#475569',
+          iconColor: '#475569',
+          borderColor: '#e2e8f0'
+        };
+      case 'pending':
+        return {
+          label: 'Pending Review',
+          icon: Clock,
+          bgColor: '#fef3c7',
+          textColor: '#92400e',
+          iconColor: '#92400e',
+          borderColor: '#fde68a'
+        };
       case 'active':
       case 'published':
         return {
-          label: status === 'active' ? 'Active' : 'Published',
+          label: normalizedStatus === 'active' ? 'Active' : 'Published',
           icon: CheckCircle,
-          bgColor: isDarkMode ? '#064e3b' : '#d1fae5', // bg-green-100
-          textColor: isDarkMode ? '#6ee7b7' : '#166534', // text-green-800
-          iconColor: isDarkMode ? '#10b981' : '#166534',
+          bgColor: '#d1fae5',
+          textColor: '#166534',
+          iconColor: '#10b981',
           borderColor: 'transparent'
         };
       case 'archived':
         return {
           label: 'Archived',
           icon: X,
-          bgColor: isDarkMode ? '#1e293b' : '#f3f4f6',
-          textColor: isDarkMode ? '#94a3b8' : '#6b7280',
-          iconColor: isDarkMode ? '#94a3b8' : '#6b7280',
-          borderColor: isDarkMode ? '#334155' : '#e5e7eb'
+          bgColor: '#f3f4f6',
+          textColor: '#6b7280',
+          iconColor: '#6b7280',
+          borderColor: '#e5e7eb'
         };
       case 'inactive':
         return {
           label: 'Inactive',
           icon: EyeOff,
-          bgColor: isDarkMode ? '#7f1d1d' : '#fef2f2',
-          textColor: isDarkMode ? '#fca5a5' : '#dc2626',
-          iconColor: isDarkMode ? '#ef4444' : '#dc2626',
-          borderColor: isDarkMode ? '#991b1b' : '#fecaca'
+          bgColor: '#fef2f2',
+          textColor: '#dc2626',
+          iconColor: '#ef4444',
+          borderColor: '#fecaca'
         };
       case 'banned':
         return {
           label: 'Banned',
           icon: Ban,
-          bgColor: isDarkMode ? '#7f1d1d' : '#fee2e2', // bg-red-100
-          textColor: isDarkMode ? '#fca5a5' : '#dc2626', // text-red-800
-          iconColor: isDarkMode ? '#ef4444' : '#dc2626',
+          bgColor: '#fee2e2',
+          textColor: '#dc2626',
+          iconColor: '#ef4444',
           borderColor: 'transparent'
         };
       default:
         return {
           label: status,
           icon: Check,
-          bgColor: isDarkMode ? '#064e3b' : '#eafaf4',
-          textColor: isDarkMode ? '#6ee7b7' : '#047857',
-          iconColor: isDarkMode ? '#10b981' : '#10b981',
-          borderColor: isDarkMode ? '#065f46' : '#a7f3d0'
+          bgColor: '#eafaf4',
+          textColor: '#047857',
+          iconColor: '#10b981',
+          borderColor: '#a7f3d0'
         };
     }
   };

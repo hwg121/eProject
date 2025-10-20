@@ -1,10 +1,12 @@
+export type ContentStatus = 'draft' | 'pending' | 'published' | 'archived';
+
 export interface ContentItem {
   id: string;
   title: string;
   author?: string;
   instructor?: string;
   category: string;
-  status: 'published' | 'archived';
+  status: ContentStatus;
   views?: number;
   likes?: number;
   rating?: number;
@@ -35,6 +37,26 @@ export interface ContentItem {
   embedCode?: string;
   duration?: string;
   isbn?: string;
+  
+  // Author tracking fields
+  author_id?: number;
+  created_by?: number;
+  updated_by?: number;
+  author?: string; // Book author name (string)
+  authorUser?: {
+    id: number;
+    name: string;
+    email: string;
+    avatar?: string;
+  } | null; // User who owns the content
+  creator?: {
+    id: number;
+    name: string;
+  } | null;
+  updater?: {
+    id: number;
+    name: string;
+  } | null;
 }
 
 export interface ContactMessage {

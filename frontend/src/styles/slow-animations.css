@@ -1,0 +1,63 @@
+/* Ultra slow animations to replace fast Tailwind pulse */
+.slow-pulse {
+  animation: slowPulse 12s ease-in-out infinite;
+}
+
+.very-slow-pulse {
+  animation: verySlowPulse 16s ease-in-out infinite;
+}
+
+.ultra-slow-pulse {
+  animation: ultraSlowPulse 20s ease-in-out infinite;
+}
+
+.extremely-slow-pulse {
+  animation: extremelySlowPulse 25s ease-in-out infinite;
+}
+
+@keyframes slowPulse {
+  0%, 100% { 
+    opacity: 0.3; 
+    transform: scale(1); 
+  }
+  50% { 
+    opacity: 0.5; 
+    transform: scale(1.02); 
+  }
+}
+
+@keyframes verySlowPulse {
+  0%, 100% { 
+    opacity: 0.15; 
+    transform: scale(1); 
+  }
+  50% { 
+    opacity: 0.3; 
+    transform: scale(1.01); 
+  }
+}
+
+@keyframes ultraSlowPulse {
+  0%, 100% { 
+    opacity: 0.2; 
+    transform: scale(1); 
+  }
+  50% { 
+    opacity: 0.35; 
+    transform: scale(1.005); 
+  }
+}
+
+@keyframes extremelySlowPulse {
+  0%, 100% { 
+    opacity: 0.1; 
+    transform: scale(1); 
+  }
+  50% { 
+    opacity: 0.25; 
+    transform: scale(1.002); 
+  }
+}
+
+/* Override Tailwind's default pulse speed globally - EXTREMELY SLOW */
+/* REMOVED: This was causing all animations to be slow */

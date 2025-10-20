@@ -587,12 +587,12 @@ const TagManagement: React.FC<TagManagementProps> = ({ isDarkMode }) => {
         message="Are you sure you want to delete this tag? This action cannot be undone."
         confirmText="Delete"
         cancelText="Cancel"
+        type="error"
         onConfirm={handleConfirmDelete}
         onCancel={() => {
           setConfirmDialogOpen(false);
           setDeleteTagId(null);
         }}
-        severity="danger"
       />
 
       {/* Toast */}

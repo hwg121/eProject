@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -24,7 +25,6 @@ class Product extends Model
         'size',
         'color',
         'author',
-        'author_id',
         'pages',
         'published_year',
         'drainage_holes',
@@ -39,7 +39,10 @@ class Product extends Model
         'is_featured',
         'views',
         'likes',
-        'rating'
+        'rating',
+        'author_id',
+        'created_by',
+        'updated_by'
     ];
 
     protected $casts = [
@@ -99,18 +102,67 @@ class Product extends Model
     }
 
     /**
-     * Get the author that created this product.
-     */
-    public function author(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'author_id');
-    }
-
-    /**
      * Get the tags associated with this product.
      */
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class);
+    }
+
+    /**
+     * Get the author (owner) of this product.
+     * Named 'authorUser' to avoid conflict with 'author' column (book author name)
+     */
+    public function authorUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'author_id');
+    }
+
+    /**
+     * Get the user who created this product.
+     */
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Get the user who last updated this product.
+     */
+    public function updater(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    /**
+     * Boot method to auto-track created_by and updated_by.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::creating(function ($model) {
+            if (auth()->check()) {
+                $model->created_by = auth()->id();
+                $model->updated_by = auth()->id();
+                
+                // Auto-set author_id if not provided
+                if (!$model->author_id) {
+                    $model->author_id = auth()->id();
+                }
+            }
+        });
+        
+        static::updating(function ($model) {
+            if (auth()->check()) {
+                $model->updated_by = auth()->id();
+                \Log::info('Product Model Observer - updating event:', [
+                    'product_id' => $model->id,
+                    'old_updated_by' => $model->getOriginal('updated_by'),
+                    'new_updated_by' => auth()->id(),
+                    'auth_user' => auth()->user()->name,
+                ]);
+            }
+        });
     }
 }

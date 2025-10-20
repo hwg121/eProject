@@ -8,6 +8,7 @@ use App\Models\Tag;
 use App\Models\Article;
 use App\Models\Video;
 use App\Models\Product;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
@@ -48,8 +49,8 @@ class TagController extends Controller
             
             Log::info('🔍 [TagController] Step 4: Sort applied', ['sortBy' => $sortBy, 'sortOrder' => $sortOrder]);
 
-            // Pagination
-            $perPage = min($request->get('per_page', 50), 100);
+            // Pagination (increased limit for tag input search)
+            $perPage = min($request->get('per_page', 50), 500);
             $tags = $query->paginate($perPage);
             
             Log::info('🔍 [TagController] Step 5: Query executed', [
@@ -438,9 +439,11 @@ class TagController extends Controller
             $videosCount = $tag->videos()->count();
             $productsCount = $tag->products()->count();
             
+            $tagName = $tag->name;
+            
             Log::info('Deleting tag', [
                 'id' => $id,
-                'name' => $tag->name,
+                'name' => $tagName,
                 'articles_count' => $articlesCount,
                 'videos_count' => $videosCount,
                 'products_count' => $productsCount,
@@ -448,6 +451,15 @@ class TagController extends Controller
             
             // Delete tag (pivot table entries will be cascade deleted)
             $tag->delete();
+            
+            // Log tag deletion activity
+            ActivityLog::logPublic(
+                'deleted',
+                'tag',
+                $id,
+                $tagName,
+                auth()->user() ? auth()->user()->name . " deleted tag: {$tagName} ({$articlesCount} articles, {$videosCount} videos, {$productsCount} products)" : "Tag deleted: {$tagName}"
+            );
             
             return response()->json([
                 'success' => true,

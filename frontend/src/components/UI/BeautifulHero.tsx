@@ -80,7 +80,7 @@ const BeautifulHero: React.FC<BeautifulHeroProps> = ({
           className="mb-4 sm:mb-6 inline-block"
         >
           <div className="bg-white/20 dark:bg-white/30 backdrop-blur-md rounded-full px-3 sm:px-4 md:px-6 py-2 md:py-3 inline-flex items-center space-x-2 shadow-lg border border-white/30">
-            <Icon className="h-3 sm:h-4 md:h-5 w-3 sm:w-4 md:w-5 animate-pulse" />
+            <Icon className="h-3 sm:h-4 md:h-5 w-3 sm:w-4 md:w-5 slow-pulse" />
             <span className="text-xs sm:text-xs md:text-sm font-semibold tracking-wide">{badgeText}</span>
           </div>
         </motion.div>

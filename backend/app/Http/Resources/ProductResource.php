@@ -14,27 +14,6 @@ class ProductResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // Debug logging
-        \Log::info('ProductResource::toArray', [
-            'product_id' => $this->id,
-            'product_type' => get_class($this->resource),
-            'is_null' => is_null($this->resource),
-            'is_string' => is_string($this->resource),
-            'is_array' => is_array($this->resource),
-            'is_object' => is_object($this->resource),
-        ]);
-        
-        // Safety check
-        if (is_null($this->resource)) {
-            \Log::error('ProductResource: resource is null');
-            return [];
-        }
-        
-        if (is_string($this->resource)) {
-            \Log::error('ProductResource: resource is string', ['resource' => $this->resource]);
-            return [];
-        }
-        
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -53,15 +32,13 @@ class ProductResource extends JsonResource
             'color' => $this->color ?? '',
             'status' => $this->status ?? 'published',
             'is_featured' => (bool) ($this->is_featured ?? false),
-            'featured' => (bool) ($this->is_featured ?? false), // Frontend expects 'featured'
-            'is_published' => $this->status === 'published', // Derived from status
-            'author_id' => $this->author_id ?? null,
             'views' => $this->views ?? 0,
             'likes' => $this->likes ?? 0,
             'rating' => is_numeric($this->rating ?? 0) ? (float) $this->rating : 0.0,
             'link' => $this->link ?? '',
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'deleted_at' => $this->deleted_at,
             'createdAt' => $this->created_at, // Frontend camelCase
             'updatedAt' => $this->updated_at, // Frontend camelCase
             
@@ -83,18 +60,37 @@ class ProductResource extends JsonResource
             'plant_type' => $this->plant_type ?? '',
             'estimated_time' => $this->estimated_time ?? '',
             
-            // Author relationship (new)
-            'author_user' => $this->whenLoaded('author', function () {
-                return [
-                    'id' => $this->author->id,
-                    'name' => $this->author->name,
-                    'email' => $this->author->email,
-                    'role' => $this->author->role,
-                ];
-            }),
-            
             // Tags relationship
             'tags' => TagResource::collection($this->whenLoaded('tags')),
+            
+            // Author tracking
+            'author_id' => $this->author_id,
+            'created_by' => $this->created_by,
+            'updated_by' => $this->updated_by,
+            
+            // Author relationship (User who owns the content)
+            'authorUser' => $this->authorUser ? [
+                'id' => $this->authorUser->id,
+                'name' => $this->authorUser->name,
+                'email' => $this->authorUser->email,
+                'avatar' => $this->authorUser->avatar ?? null,
+            ] : null,
+            
+            // Creator relationship
+            'creator' => $this->whenLoaded('creator', function () {
+                return $this->creator ? [
+                    'id' => $this->creator->id,
+                    'name' => $this->creator->name,
+                ] : null;
+            }),
+            
+            // Updater relationship
+            'updater' => $this->whenLoaded('updater', function () {
+                return $this->updater ? [
+                    'id' => $this->updater->id,
+                    'name' => $this->updater->name,
+                ] : null;
+            }),
         ];
     }
 }

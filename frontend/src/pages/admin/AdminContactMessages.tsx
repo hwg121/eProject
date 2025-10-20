@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Eye, Trash2, X, Calendar, User, MessageSquare } from 'lucide-react';
+import { Mail, Eye, Trash2, X, Calendar, User, MessageSquare, Search, Filter, CheckSquare, Square, MoreVertical, CheckCircle, Clock, Reply, ChevronUp, ChevronDown } from 'lucide-react';
 import PageHeader from '../../components/ui/PageHeader';
 import Toast from '../../components/ui/Toast';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { useTheme } from '../../contexts/ThemeContext';
 import { contactService } from '../../services/api.ts';
+import { ViewButton, EditButton, DeleteButton } from '../../components/ui/ContentIcons';
 import {
   Card,
   CardContent,
@@ -31,7 +32,8 @@ import {
   TableHead,
   TableRow,
   Badge,
-  Divider
+  Divider,
+  MenuItem
 } from '@mui/material';
 
 interface ContactMessage {
@@ -49,10 +51,22 @@ interface ContactMessage {
 const AdminContactMessages: React.FC = () => {
   const { isDarkMode } = useTheme();
   const [messages, setMessages] = useState<ContactMessage[]>([]);
+  const [filteredMessages, setFilteredMessages] = useState<ContactMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
   const [showDetail, setShowDetail] = useState(false);
+  
+  // Search and Filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('created_at');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  
+  // Bulk actions
+  const [selectedMessages, setSelectedMessages] = useState<string[]>([]);
+  const [selectAll, setSelectAll] = useState(false);
   
   const [confirmDialog, setConfirmDialog] = useState({
     open: false,
@@ -64,6 +78,64 @@ const AdminContactMessages: React.FC = () => {
   useEffect(() => {
     loadMessages();
   }, []);
+
+  // Filter and sort messages
+  useEffect(() => {
+    let filtered = [...messages];
+
+    // Search filter
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase().trim();
+      filtered = filtered.filter(message => 
+        message.name.toLowerCase().includes(searchLower) ||
+        message.email.toLowerCase().includes(searchLower) ||
+        message.subject.toLowerCase().includes(searchLower) ||
+        message.message.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(message => message.status === statusFilter);
+    }
+
+    // Sort
+    filtered.sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (sortBy) {
+        case 'name':
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case 'email':
+          aValue = a.email.toLowerCase();
+          bValue = b.email.toLowerCase();
+          break;
+        case 'status':
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        case 'created_at':
+        default:
+          aValue = new Date(a.created_at).getTime();
+          bValue = new Date(b.created_at).getTime();
+          break;
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+
+    setFilteredMessages(filtered);
+    
+    // Reset select all when filtered results change
+    setSelectAll(false);
+    setSelectedMessages([]);
+  }, [messages, searchTerm, statusFilter, sortBy, sortOrder]);
 
   const loadMessages = async () => {
     try {
@@ -86,9 +158,11 @@ const AdminContactMessages: React.FC = () => {
     if (message.status === 'unread') {
       try {
         await contactService.update(message.id, { status: 'read' });
-        loadMessages();
+        await loadMessages();
+        setSuccess('Message marked as read');
       } catch (err) {
         console.error('Error marking message as read:', err);
+        setError('Failed to mark message as read');
       }
     }
   };
@@ -101,14 +175,86 @@ const AdminContactMessages: React.FC = () => {
       onConfirm: async () => {
         try {
           await contactService.delete(id);
-          loadMessages();
+          await loadMessages();
+          setSuccess('Message deleted successfully');
         } catch (err) {
-          setError('Failed to delete message');
+          const errorMsg = (err as any)?.response?.data?.message || (err as any)?.message || 'Failed to delete message';
+          setError(errorMsg);
           console.error('Error deleting message:', err);
         }
         setConfirmDialog({ ...confirmDialog, open: false });
       }
     });
+  };
+
+  const handleStatusChange = async (id: string, newStatus: 'unread' | 'read' | 'replied') => {
+    try {
+      await contactService.update(id, { status: newStatus });
+      await loadMessages();
+      setSuccess(`Message marked as ${newStatus}`);
+    } catch (err) {
+      const errorMsg = (err as any)?.response?.data?.message || (err as any)?.message || 'Failed to update message status';
+      setError(errorMsg);
+      console.error('Error updating status:', err);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    setConfirmDialog({
+      open: true,
+      title: 'Delete Selected Messages',
+      message: `Are you sure you want to delete ${selectedMessages.length} selected messages? This action cannot be undone.`,
+      onConfirm: async () => {
+        try {
+          await Promise.all(selectedMessages.map(id => contactService.delete(id)));
+          setSelectedMessages([]);
+          setSelectAll(false);
+          await loadMessages();
+          setSuccess(`${selectedMessages.length} messages deleted successfully`);
+        } catch (err) {
+          const errorMsg = (err as any)?.response?.data?.message || (err as any)?.message || 'Failed to delete selected messages';
+          setError(errorMsg);
+          console.error('Error bulk deleting:', err);
+        }
+        setConfirmDialog({ ...confirmDialog, open: false });
+      }
+    });
+  };
+
+  const handleBulkStatusChange = async (newStatus: 'unread' | 'read' | 'replied') => {
+    try {
+      await Promise.all(selectedMessages.map(id => contactService.update(id, { status: newStatus })));
+      setSelectedMessages([]);
+      setSelectAll(false);
+      await loadMessages();
+      setSuccess(`${selectedMessages.length} messages marked as ${newStatus}`);
+    } catch (err) {
+      const errorMsg = (err as any)?.response?.data?.message || (err as any)?.message || 'Failed to update selected messages';
+      setError(errorMsg);
+      console.error('Error bulk updating status:', err);
+    }
+  };
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedMessages([]);
+      setSelectAll(false);
+    } else {
+      setSelectedMessages(filteredMessages.map(m => m.id));
+      setSelectAll(true);
+    }
+  };
+
+  const handleSelectMessage = (id: string) => {
+    if (selectedMessages.includes(id)) {
+      const newSelected = selectedMessages.filter(msgId => msgId !== id);
+      setSelectedMessages(newSelected);
+      setSelectAll(false);
+    } else {
+      const newSelected = [...selectedMessages, id];
+      setSelectedMessages(newSelected);
+      setSelectAll(newSelected.length === filteredMessages.length);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -134,7 +280,7 @@ const AdminContactMessages: React.FC = () => {
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
 
-      {/* Snackbar for errors */}
+      {/* Error Toast */}
       <Toast
         open={!!error}
         message={error || ''}
@@ -144,13 +290,135 @@ const AdminContactMessages: React.FC = () => {
         autoHideDuration={6000}
       />
 
+      {/* Success Toast */}
+      <Toast
+        open={!!success}
+        message={success || ''}
+        severity="success"
+        onClose={() => setSuccess(null)}
+        position={{ vertical: 'top', horizontal: 'center' }}
+        autoHideDuration={4000}
+      />
+
+      {/* Search and Filter Controls */}
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', sm: 'row' },
+        gap: { xs: 2, sm: 3 }, 
+        mb: { xs: 3, sm: 4 }, 
+        mt: { xs: 2, sm: 3 },
+        alignItems: { xs: 'stretch', sm: 'center' }
+      }}>
+        {/* Search */}
+        <TextField
+          placeholder="Search messages..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: <Search className="w-4 h-4 mr-2 text-gray-400" />
+          }}
+          sx={{ 
+            flex: 1,
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 2
+            }
+          }}
+        />
+        
+        {/* Status Filter */}
+        <TextField
+          select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          sx={{ minWidth: 120 }}
+        >
+          <MenuItem value="all">All Status</MenuItem>
+          <MenuItem value="unread">Unread</MenuItem>
+          <MenuItem value="read">Read</MenuItem>
+          <MenuItem value="replied">Replied</MenuItem>
+        </TextField>
+        
+        {/* Sort */}
+        <TextField
+          select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          sx={{ minWidth: 120 }}
+        >
+          <MenuItem value="created_at">Date</MenuItem>
+          <MenuItem value="name">Name</MenuItem>
+          <MenuItem value="email">Email</MenuItem>
+          <MenuItem value="status">Status</MenuItem>
+        </TextField>
+        
+        {/* Sort Order */}
+        <Button
+          onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+          variant="outlined"
+          startIcon={sortOrder === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          sx={{ minWidth: 100 }}
+        >
+          {sortOrder === 'asc' ? 'Asc' : 'Desc'}
+        </Button>
+      </Box>
+
+      {/* Bulk Actions */}
+      {selectedMessages.length > 0 && (
+        <Box sx={{ 
+          display: 'flex', 
+          gap: 2, 
+          mb: 3, 
+          p: 2, 
+          bgcolor: isDarkMode ? '#1e293b' : '#f0fdf4', 
+          borderRadius: 2, 
+          border: isDarkMode ? '1px solid #334155' : '1px solid #d1fae5',
+          alignItems: 'center',
+          flexWrap: 'wrap'
+        }}>
+          <Typography variant="body2" sx={{ color: isDarkMode ? '#94a3b8' : '#047857', fontWeight: 600 }}>
+            {selectedMessages.length} selected
+          </Typography>
+          <Button
+            onClick={() => handleBulkStatusChange('read')}
+            size="small"
+            startIcon={<Eye className="w-4 h-4" />}
+            sx={{ color: '#3b82f6' }}
+          >
+            Mark as Read
+          </Button>
+          <Button
+            onClick={() => handleBulkStatusChange('replied')}
+            size="small"
+            startIcon={<Reply className="w-4 h-4" />}
+            sx={{ color: '#10b981' }}
+          >
+            Mark as Replied
+          </Button>
+          <Button
+            onClick={() => handleBulkStatusChange('unread')}
+            size="small"
+            startIcon={<Clock className="w-4 h-4" />}
+            sx={{ color: '#f59e0b' }}
+          >
+            Mark as Unread
+          </Button>
+          <Button
+            onClick={handleBulkDelete}
+            size="small"
+            startIcon={<Trash2 className="w-4 h-4" />}
+            sx={{ color: '#ef4444' }}
+          >
+            Delete Selected
+          </Button>
+        </Box>
+      )}
+
       {/* Stats - Responsive */}
       <Box sx={{ 
         display: 'grid', 
         gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, 
         gap: { xs: 2, sm: 3 }, 
-        mb: { xs: 3, sm: 4 }, 
-        mt: { xs: 2, sm: 3 } 
+        mb: { xs: 3, sm: 4 }
       }}>
         {[
           { label: 'Unread Messages', value: messages.filter(m => m.status === 'unread').length, color: '#3b82f6', gradient: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' },
@@ -201,18 +469,40 @@ const AdminContactMessages: React.FC = () => {
 
       {/* Messages List - Responsive */}
       <Box>
-        <Typography 
-          variant="h5" 
-          fontWeight={700} 
-          sx={{ 
-            mb: { xs: 2, sm: 3 }, 
-            color: '#047857',
-            fontSize: { xs: '1.25rem', sm: '1.5rem' }
-          }}
-        >
-          All Messages
-        </Typography>
-        {messages.length === 0 ? (
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          mb: { xs: 2, sm: 3 }
+        }}>
+          <Typography 
+            variant="h5" 
+            fontWeight={700} 
+            sx={{ 
+              color: '#047857',
+              fontSize: { xs: '1.25rem', sm: '1.5rem' }
+            }}
+          >
+            All Messages ({filteredMessages.length})
+          </Typography>
+          
+          {/* Select All */}
+          <Button
+            onClick={handleSelectAll}
+            startIcon={selectAll ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+            variant="outlined"
+            size="small"
+            sx={{ 
+              color: '#047857',
+              borderColor: '#047857',
+              '&:hover': { borderColor: '#059669', bgcolor: '#f0fdf4' }
+            }}
+          >
+            {selectAll ? 'Deselect All' : 'Select All'}
+          </Button>
+        </Box>
+        
+        {filteredMessages.length === 0 ? (
           <Paper elevation={2} sx={{ 
             p: { xs: 6, sm: 12 }, 
             textAlign: 'center', 
@@ -226,12 +516,24 @@ const AdminContactMessages: React.FC = () => {
                 fontSize: { xs: '0.875rem', sm: '1rem' }
               }}
             >
-              No messages yet
+              {messages.length === 0 ? 'No messages yet' : 'No messages match your filters'}
             </Typography>
+            {messages.length > 0 && (
+              <Button
+                onClick={() => {
+                  setSearchTerm('');
+                  setStatusFilter('all');
+                }}
+                variant="outlined"
+                sx={{ mt: 2, color: '#10b981', borderColor: '#10b981' }}
+              >
+                Clear Filters
+              </Button>
+            )}
           </Paper>
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.5, sm: 2 } }}>
-            {messages.map((message, index) => (
+            {filteredMessages.map((message, index) => (
               <Grow key={message.id} in={true} timeout={200 + index * 50}>
                 <Card sx={{
                   transition: 'all 0.3s ease',
@@ -248,6 +550,28 @@ const AdminContactMessages: React.FC = () => {
                       alignItems: { xs: 'stretch', sm: 'flex-start' },
                       gap: { xs: 2, sm: 0 }
                     }}>
+                      {/* Checkbox */}
+                      <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center',
+                        mr: { xs: 0, sm: 2 },
+                        mb: { xs: 1, sm: 0 }
+                      }}>
+                        <IconButton
+                          onClick={() => handleSelectMessage(message.id)}
+                          size="small"
+                          sx={{ 
+                            color: selectedMessages.includes(message.id) ? '#10b981' : '#d1d5db',
+                            '&:hover': { bgcolor: '#f0fdf4' }
+                          }}
+                        >
+                          {selectedMessages.includes(message.id) ? 
+                            <CheckSquare className="w-4 h-4" /> : 
+                            <Square className="w-4 h-4" />
+                          }
+                        </IconButton>
+                      </Box>
+                      
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Box sx={{ 
                           display: 'flex', 
@@ -330,22 +654,76 @@ const AdminContactMessages: React.FC = () => {
                         gap: { xs: 0.5, sm: 1 }, 
                         ml: { xs: 0, sm: 2 },
                         mt: { xs: 2, sm: 0 },
-                        justifyContent: { xs: 'flex-end', sm: 'flex-start' }
+                        justifyContent: { xs: 'flex-end', sm: 'flex-start' },
+                        flexWrap: 'wrap'
                       }}>
-                        <Tooltip title="View">
+                        {/* Status Change Buttons */}
+                        {message.status !== 'read' && (
+                          <Tooltip title="Mark as Read">
+                            <IconButton
+                              onClick={() => handleStatusChange(message.id, 'read')}
+                              size="small"
+                              sx={{ 
+                                color: '#3b82f6', 
+                                '&:hover': { bgcolor: '#dbeafe' },
+                                minWidth: '32px',
+                                minHeight: '32px'
+                              }}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        
+                        {message.status !== 'replied' && (
+                          <Tooltip title="Mark as Replied">
+                            <IconButton
+                              onClick={() => handleStatusChange(message.id, 'replied')}
+                              size="small"
+                              sx={{ 
+                                color: '#10b981', 
+                                '&:hover': { bgcolor: '#d1fae5' },
+                                minWidth: '32px',
+                                minHeight: '32px'
+                              }}
+                            >
+                              <Reply className="h-4 w-4" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        
+                        {message.status !== 'unread' && (
+                          <Tooltip title="Mark as Unread">
+                            <IconButton
+                              onClick={() => handleStatusChange(message.id, 'unread')}
+                              size="small"
+                              sx={{ 
+                                color: '#f59e0b', 
+                                '&:hover': { bgcolor: '#fef3c7' },
+                                minWidth: '32px',
+                                minHeight: '32px'
+                              }}
+                            >
+                              <Clock className="h-4 w-4" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        
+                        <Tooltip title="View Details">
                           <IconButton
                             onClick={() => handleView(message)}
                             size="small"
                             sx={{ 
-                              color: '#10b981', 
-                              '&:hover': { bgcolor: '#d1fae5' },
+                              color: '#6b7280', 
+                              '&:hover': { bgcolor: '#f3f4f6' },
                               minWidth: '32px',
                               minHeight: '32px'
                             }}
                           >
-                            <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
+                            <MoreVertical className="h-4 w-4" />
                           </IconButton>
                         </Tooltip>
+                        
                         <Tooltip title="Delete">
                           <IconButton
                             onClick={() => handleDelete(message.id)}
@@ -357,7 +735,7 @@ const AdminContactMessages: React.FC = () => {
                               minHeight: '32px'
                             }}
                           >
-                            <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                            <Trash2 className="h-4 w-4" />
                           </IconButton>
                         </Tooltip>
                       </Box>
@@ -505,7 +883,7 @@ const AdminContactMessages: React.FC = () => {
         open={confirmDialog.open}
         title={confirmDialog.title}
         message={confirmDialog.message}
-        type="warning"
+        type="error"
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => setConfirmDialog({ ...confirmDialog, open: false })}
         isDarkMode={isDarkMode}

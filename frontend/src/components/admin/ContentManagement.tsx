@@ -5,6 +5,7 @@ import {
   ChevronDown, ChevronUp, ChevronLeft, ChevronRight 
 } from 'lucide-react';
 import Card from '../ui/Card';
+import { ViewButton, EditButton, DeleteButton } from '../ui/ContentIcons';
 
 interface ContentItem {
   id: string;
@@ -32,6 +33,14 @@ interface ContentItem {
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
   featured?: boolean;
   link?: string;
+  // Author tracking
+  author_id?: number;
+  authorUser?: {
+    id: number;
+    name: string;
+    email: string;
+    avatar?: string;
+  };
 }
 
 interface ContentManagementProps {
@@ -258,9 +267,9 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
                       <h3 className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                         {item.title}
                       </h3>
-                      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {item.author || item.instructor} • {item.category}
-                      </p>
+        <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          {item.authorUser?.name || item.creator?.name || 'Unknown Author'} • {item.category}
+        </p>
                       <div className="flex items-center space-x-4 mt-1">
                         <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(item.status)}`}>
                           {item.status}
@@ -279,42 +288,9 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <motion.button
-                      onClick={() => onView(item)}
-                      className={`p-2 rounded-lg ${
-                        isDarkMode 
-                          ? 'bg-gray-600 text-gray-300 hover:bg-gray-500' 
-                          : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                      } transition-colors`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </motion.button>
-                    <motion.button
-                      onClick={() => onEdit(item)}
-                      className={`p-2 rounded-lg ${
-                        isDarkMode 
-                          ? 'bg-blue-600 text-white hover:bg-blue-500' 
-                          : 'bg-blue-500 text-white hover:bg-blue-600'
-                      } transition-colors`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </motion.button>
-                    <motion.button
-                      onClick={() => onDelete(item.id)}
-                      className={`p-2 rounded-lg ${
-                        isDarkMode 
-                          ? 'bg-red-600 text-white hover:bg-red-500' 
-                          : 'bg-red-500 text-white hover:bg-red-600'
-                      } transition-colors`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </motion.button>
+                    <ViewButton tooltip="View" onClick={() => onView(item)} />
+                    <EditButton tooltip="Edit" onClick={() => onEdit(item)} />
+                    <DeleteButton tooltip="Delete" onClick={() => onDelete(item.id)} />
                   </div>
                 </div>
               </motion.div>

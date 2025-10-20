@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Wrench, Star, ArrowRight, Sparkles, Heart, Users, Award, Zap, Hammer, Leaf, PlayCircle, Library, Lightbulb, Video, Sprout, UserCheck } from 'lucide-react';
@@ -6,11 +6,90 @@ import Card from '../components/ui/Card';
 import Carousel from '../components/ui/Carousel';
 import { performanceUtils } from '../utils/animations';
 import { useResponsiveDesign } from '../utils/responsiveDesign';
+import { publicService } from '../services/api';
+import { generateSlug } from '../utils/slug';
 import '../styles/statistics.css';
 import '../styles/hero-compact.css';
 
 const Home: React.FC = () => {
   const { isMobile } = useResponsiveDesign();
+  const [featuredContent, setFeaturedContent] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadFeaturedContent = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch articles, videos, and products in parallel
+        const [articlesResponse, videosResponse, booksResponse] = await Promise.all([
+          publicService.getArticles().catch(() => ({ success: true, data: [] })),
+          publicService.getVideos().catch(() => ({ success: true, data: [] })),
+          publicService.getBooks().catch(() => ({ success: true, data: [] }))
+        ]);
+
+        // Extract data from responses
+        const articles = Array.isArray(articlesResponse) ? articlesResponse : 
+                        (articlesResponse?.success && articlesResponse?.data) ? articlesResponse.data : [];
+        const videos = Array.isArray(videosResponse) ? videosResponse : 
+                      (videosResponse?.success && videosResponse?.data) ? videosResponse.data : [];
+        const books = Array.isArray(booksResponse) ? booksResponse : 
+                     (booksResponse?.success && booksResponse?.data) ? booksResponse.data : [];
+
+        // Create featured content array from real data
+        const content = [];
+        
+        // Add featured articles (first 2)
+        articles.slice(0, 2).forEach((article, index) => {
+          content.push({
+            id: `article-${article.id}`,
+            title: article.title,
+            description: article.excerpt || article.body?.substring(0, 150) + '...',
+            image: article.featured_image || article.cover || '/image.png',
+            badge: 'Featured Article',
+            link: `/article/${article.slug || generateSlug(article.title)}`
+          });
+        });
+
+        // Add featured videos (first 2)
+        videos.slice(0, 2).forEach((video, index) => {
+          content.push({
+            id: `video-${video.id}`,
+            title: video.title,
+            description: video.description?.substring(0, 150) + '...',
+            image: video.featured_image || video.thumbnail || '/image.png',
+            badge: 'Featured Video',
+            link: `/video/${video.slug || generateSlug(video.title)}`
+          });
+        });
+
+        // Add featured books (first 1)
+        books.slice(0, 1).forEach((book, index) => {
+          content.push({
+            id: `book-${book.id}`,
+            title: book.name || book.title,
+            description: book.description?.substring(0, 150) + '...',
+            image: book.image || book.featured_image || '/image.png',
+            badge: 'Featured Book',
+            link: `/books`
+          });
+        });
+
+        // Shuffle and limit to 6 items
+        const shuffled = content.sort(() => Math.random() - 0.5);
+        setFeaturedContent(shuffled.slice(0, 6));
+        
+      } catch (error) {
+        console.error('Error loading featured content:', error);
+        // Fallback to empty array
+        setFeaturedContent([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFeaturedContent();
+  }, []);
 
   const features = [
     {
@@ -119,32 +198,6 @@ const Home: React.FC = () => {
     }
   ];
 
-  const featuredContent = [
-    {
-      id: '1',
-      title: 'Container Gardening Mastery',
-      description: 'Transform any small space into a thriving garden paradise with our comprehensive container gardening guide.',
-      image: 'https://images.pexels.com/photos/1301856/pexels-photo-1301856.jpeg',
-      badge: 'Most Popular',
-      link: '/techniques'
-    },
-    {
-      id: '2',
-      title: 'Essential Garden Tools 2024',
-      description: 'Discover the must-have tools that every gardener needs for successful planting, pruning, and harvesting.',
-      image: 'https://images.pexels.com/photos/416978/pexels-photo-416978.jpeg',
-      badge: 'Expert Pick',
-      link: '/tools'
-    },
-    {
-      id: '3',
-      title: 'Organic Gardening Secrets',
-      description: 'Learn the time-tested methods for growing healthy, chemical-free vegetables and herbs in your own backyard.',
-      image: 'https://images.pexels.com/photos/1301856/pexels-photo-1301856.jpeg',
-      badge: 'Trending',
-      link: '/essentials'
-    }
-  ];
 
   return (
     <div className="main-container-compact">
@@ -165,10 +218,10 @@ const Home: React.FC = () => {
         <div className="hero-bg-element absolute inset-0 overflow-hidden">
           <div className={`absolute -top-16 -left-16 w-32 h-32 bg-white/10 rounded-full ${
             isMobile ? 'blur-lg' : 'blur-2xl'
-          } animate-pulse`} />
+          } slow-pulse`} />
           <div className={`absolute -bottom-16 -right-16 w-40 h-40 bg-white/5 rounded-full ${
             isMobile ? 'blur-lg' : 'blur-2xl'
-          } animate-pulse`} />
+          } slow-pulse`} style={{ animationDelay: '1s' }} />
         </div>
         
         <div className="relative z-10">
@@ -186,7 +239,7 @@ const Home: React.FC = () => {
             <div className="relative">
               <div className={`absolute inset-0 bg-white/20 rounded-full ${
                 isMobile ? 'blur-lg' : 'blur-2xl'
-              } animate-pulse`}></div>
+              } very-slow-pulse`}></div>
               <div className="hero-icon-compact relative bg-white/10 rounded-full backdrop-blur-sm border border-white/20 flex items-center justify-center">
                 <Sparkles className="text-white" />
               </div>
@@ -358,14 +411,25 @@ const Home: React.FC = () => {
           </p>
         </motion.div>
         
-        <Carousel 
-          items={featuredContent}
-          autoPlay={true}
-          interval={6000}
-          showDots={true}
-          showArrows={true}
-          className="shadow-2xl"
-        />
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+            <p className="mt-4 text-emerald-600">Loading featured content...</p>
+          </div>
+        ) : featuredContent.length > 0 ? (
+          <Carousel 
+            items={featuredContent}
+            autoPlay={true}
+            interval={6000}
+            showDots={true}
+            showArrows={true}
+            className="shadow-2xl"
+          />
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-emerald-600">No featured content available at the moment.</p>
+          </div>
+        )}
       </motion.section>
 
       {/* Features Grid */}

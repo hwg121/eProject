@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Save, X, Users, Upload, Image as ImageIcon, ArrowUp, ArrowDown } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import PageHeader from '../../components/ui/PageHeader';
-import StatusBadge from '../../components/ui/StatusBadge';
+import StatusBadge from '../../components/StatusBadge';
 import Toast from '../../components/ui/Toast';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { staffMemberService } from '../../services/api.ts';
@@ -224,7 +224,7 @@ const AdminStaffManagement: React.FC = () => {
     const newErrors: {[key: string]: string | null} = {};
     newErrors.name = validateText(formData.name, 2, 100, 'Name', true);
     newErrors.role = validateText(formData.role, 2, 50, 'Role', true);
-    newErrors.short_bio = validateText(formData.short_bio, 10, 1000, 'Bio', true);
+    newErrors.short_bio = validateText(formData.short_bio, 10, 100, 'Bio', true);
     newErrors.display_order = validateNumber(formData.display_order, 0, 1000, 'Display Order', false);
     
     if (hasErrors(newErrors)) {
@@ -488,14 +488,20 @@ const AdminStaffManagement: React.FC = () => {
                 </TableCell>
                 <TableCell>
                   <Avatar
-                    src={item.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(item.name)}
+                    src={item.avatar || undefined}
                     alt={item.name}
                     sx={{ 
                       width: { xs: 40, sm: 56 }, 
                       height: { xs: 40, sm: 56 },
-                      border: '3px solid #d1fae5'
+                      border: '3px solid #d1fae5',
+                      bgcolor: item.avatar ? 'transparent' : '#10b981',
+                      color: 'white',
+                      fontWeight: 700,
+                      fontSize: { xs: '1rem', sm: '1.25rem' }
                     }}
-                  />
+                  >
+                    {!item.avatar && item.name?.charAt(0)?.toUpperCase()}
+                  </Avatar>
                 </TableCell>
                 <TableCell>
                   <Typography 
@@ -679,10 +685,13 @@ const AdminStaffManagement: React.FC = () => {
                       width: 96,
                       height: 96,
                       border: '3px solid #d1fae5',
-                      bgcolor: avatarPreview ? 'transparent' : '#e5e7eb'
+                      bgcolor: avatarPreview ? 'transparent' : '#10b981',
+                      color: 'white',
+                      fontWeight: 700,
+                      fontSize: '2rem'
                     }}
                   >
-                    {!avatarPreview && <ImageIcon className="h-10 w-10 text-gray-400" />}
+                    {!avatarPreview && (formData.name?.charAt(0)?.toUpperCase() || <ImageIcon className="h-10 w-10 text-white" />)}
                   </Avatar>
                   <Box>
                     <Button
@@ -764,16 +773,16 @@ const AdminStaffManagement: React.FC = () => {
                 value={formData.short_bio}
                 onChange={(e) => {
                   const value = e.target.value;
-                  if (value.length > 1000) {
-                    setErrors({ ...errors, short_bio: 'Bio must not exceed 1000 characters' });
+                  if (value.length > 100) {
+                    setErrors({ ...errors, short_bio: 'Bio must not exceed 100 characters' });
                     return;
                   }
                   setFormData({ ...formData, short_bio: value });
                   setErrors({ ...errors, short_bio: null });
                 }}
                 error={!!errors.short_bio}
-                helperText={errors.short_bio || `${formData.short_bio.length}/1000 characters (min 10)`}
-                inputProps={{ maxLength: 1000 }}
+                helperText={errors.short_bio || `${formData.short_bio.length}/100 characters (min 10)`}
+                inputProps={{ maxLength: 100 }}
                 placeholder="Brief description about this staff member"
                 sx={textFieldStyles}
               />

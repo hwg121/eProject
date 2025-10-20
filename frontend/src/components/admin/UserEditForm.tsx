@@ -3,7 +3,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { apiClient } from '../../services/api';
 import ImageUpload from '../common/ImageUpload';
 import SecurityPasswordModal from './SecurityPasswordModal';
-import StatusBadge from '../ui/StatusBadge';
+import StatusBadge from '../StatusBadge';
 import Toast from '../ui/Toast';
 import {
   Box,

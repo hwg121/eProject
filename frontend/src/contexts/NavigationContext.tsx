@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Home, Zap, Hammer, Leaf, Flower as FlowerPot, Palette, Award, PlayCircle, Library, Heart, Users, Settings } from 'lucide-react';
+import { Home, Zap, Hammer, Leaf, Flower as FlowerPot, Palette, Award, PlayCircle, Library, Heart, Users, Settings, Tag } from 'lucide-react';
 
 export interface NavigationItem {
   path: string;
@@ -98,13 +98,22 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
     order: 8
   },
   { 
+    path: '/tags', 
+    icon: Tag, 
+    label: 'Tags', 
+    emoji: '🏷️', 
+    color: 'from-cyan-500 to-blue-500',
+    isVisible: true,
+    order: 9
+  },
+  { 
     path: '/about-us', 
     icon: Users, 
     label: 'About Us', 
     emoji: '👥', 
     color: 'from-teal-500 to-cyan-500',
     isVisible: true,
-    order: 9
+    order: 10
   }
 ];
 

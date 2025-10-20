@@ -1,68 +1,32 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Leaf, Mail, Lock, Eye, EyeOff, AlertCircle, User, UserPlus } from 'lucide-react';
+import { Leaf, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import Card from '../components/ui/Card';
-import { validateEmail, validatePassword, validateText } from '../utils/validation';
 
+/**
+ * Admin Login Credentials:
+ * Email: admin@greengroves.com
+ * Password: admin123
+ */
 const Login: React.FC = () => {
-  // Login form state
   const [email, setEmail] = useState(''); // Empty for production
   const [password, setPassword] = useState(''); // Empty for production
   const [showPassword, setShowPassword] = useState(false);
-  
-  // Registration form state
-  const [isRegisterMode, setIsRegisterMode] = useState(false);
-  const [regName, setRegName] = useState('');
-  const [regEmail, setRegEmail] = useState('');
-  const [regPassword, setRegPassword] = useState('');
-  const [regPasswordConfirm, setRegPasswordConfirm] = useState('');
-  const [showRegPassword, setShowRegPassword] = useState(false);
-  const [showRegPasswordConfirm, setShowRegPasswordConfirm] = useState(false);
-  
-  // Error state
   const [error, setError] = useState('');
-  const [regErrors, setRegErrors] = useState<{[key: string]: string | null}>({});
-  
-  const { login, register, isLoading } = useAuth();
+  const { login, isLoading } = useAuth();
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
 
-  // Validation helpers
-  const validateEmailFormat = (email: string): boolean => {
+  // Email validation helper
+  const validateEmail = (email: string): boolean => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
   };
 
-  // Registration validation
-  const validateRegistration = (): boolean => {
-    const newErrors: {[key: string]: string | null} = {};
-    
-    // Name validation
-    newErrors.name = validateText(regName, 2, 50, 'Name', true);
-    
-    // Email validation
-    newErrors.email = validateEmail(regEmail, true);
-    
-    // Password validation
-    newErrors.password = validatePassword(regPassword, true, 8, 128);
-    
-    // Password confirmation validation
-    if (!regPasswordConfirm.trim()) {
-      newErrors.password_confirmation = 'Please confirm your password';
-    } else if (regPassword !== regPasswordConfirm) {
-      newErrors.password_confirmation = 'Passwords do not match';
-    }
-    
-    setRegErrors(newErrors);
-    
-    // Check if there are any errors
-    return !Object.values(newErrors).some(error => error !== null);
-  };
-
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
@@ -72,7 +36,7 @@ const Login: React.FC = () => {
       return;
     }
     
-    if (!validateEmailFormat(email)) {
+    if (!validateEmail(email)) {
       setError('Please enter a valid email address (e.g., user@example.com)');
       return;
     }
@@ -88,40 +52,13 @@ const Login: React.FC = () => {
       if (result.success) {
         navigate('/admin');
       } else {
-        setError(result.error || 'Invalid credentials. Please use: admin@greengroves.com / password123');
+        setError(result.error || 'Invalid credentials. Please check your email and password.');
       }
     } catch (error) {
       console.error('Login error:', error);
       setError('Login failed. Please try again.');
     }
   };
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setRegErrors({});
-    
-    // Validate registration form
-    if (!validateRegistration()) {
-      setError('Please fix the validation errors below');
-      return;
-    }
-    
-    try {
-      const result = await register(regName, regEmail, regPassword, regPasswordConfirm);
-      
-      if (result.success) {
-        navigate('/admin');
-      } else {
-        setError(result.error || 'Registration failed');
-      }
-    } catch (error) {
-      console.error('Registration error:', error);
-      setError('Registration failed. Please try again.');
-    }
-  };
-
-  // Remove unused toggleMode function
 
   return (
     <div className={`min-h-screen flex items-center justify-center p-4 ${
@@ -196,79 +133,8 @@ const Login: React.FC = () => {
             }`}>Admin Dashboard</p>
           </motion.div>
 
-          {/* Mode Toggle */}
-          <motion.div
-            className="flex justify-center mb-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            <div className={`flex rounded-lg p-1 ${
-              isDarkMode 
-                ? 'bg-gray-800 border border-gray-700' 
-                : 'bg-gray-100 border border-gray-200'
-            }`}>
-              <button
-                type="button"
-                onClick={() => setIsRegisterMode(false)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                  !isRegisterMode
-                    ? 'bg-emerald-500 text-white shadow-sm'
-                    : isDarkMode 
-                      ? 'text-gray-300 hover:text-white' 
-                      : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <User className="h-4 w-4 inline mr-2" />
-                Login
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsRegisterMode(true)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                  isRegisterMode
-                    ? 'bg-emerald-500 text-white shadow-sm'
-                    : isDarkMode 
-                      ? 'text-gray-300 hover:text-white' 
-                      : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <UserPlus className="h-4 w-4 inline mr-2" />
-                Register
-              </button>
-            </div>
-          </motion.div>
-
-          {/* Demo credentials info - only show in login mode */}
-          {!isRegisterMode && (
-            <motion.div
-              className={`border rounded-lg p-4 mb-6 ${
-                isDarkMode 
-                  ? 'bg-emerald-900/20 border-emerald-700/30 text-emerald-300' 
-                  : 'bg-emerald-50 border-emerald-200 text-emerald-700'
-              }`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-            >
-              <h3 className={`font-semibold mb-2 ${
-                isDarkMode ? 'text-emerald-200' : 'text-emerald-800'
-              }`}>Demo Login Credentials:</h3>
-              <p className="text-sm">
-                <strong>Email:</strong> admin@greengroves.com<br />
-                <strong>Password:</strong> admin123
-              </p>
-              <p className={`text-xs mt-2 ${
-                isDarkMode ? 'text-emerald-400' : 'text-emerald-600'
-              }`}>
-                Fields are pre-filled for testing
-              </p>
-            </motion.div>
-          )}
-
           {/* Login Form */}
-          {!isRegisterMode && (
-            <form onSubmit={handleLogin} className="space-y-6" noValidate>
+          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             {error && (
               <motion.div
                 className={`border rounded-lg p-4 flex items-center space-x-2 ${
@@ -360,190 +226,6 @@ const Login: React.FC = () => {
               )}
             </motion.button>
           </form>
-          )}
-
-          {/* Registration Form */}
-          {isRegisterMode && (
-            <form onSubmit={handleRegister} className="space-y-6" noValidate>
-              {error && (
-                <motion.div
-                  className={`border rounded-lg p-4 flex items-center space-x-2 ${
-                    isDarkMode 
-                      ? 'bg-red-900/20 border-red-700/30 text-red-300' 
-                      : 'bg-red-50 border-red-200 text-red-700'
-                  }`}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                >
-                  <AlertCircle className="h-5 w-5 text-red-500" />
-                  <span>{error}</span>
-                </motion.div>
-              )}
-
-              {/* Name Field */}
-              <div>
-                <label className={`block font-semibold mb-2 ${
-                  isDarkMode ? 'text-emerald-300' : 'text-emerald-700'
-                }`}>
-                  Full Name *
-                </label>
-                <div className="relative">
-                  <User className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${
-                    isDarkMode ? 'text-emerald-400' : 'text-emerald-500'
-                  }`} />
-                  <input
-                    type="text"
-                    value={regName}
-                    onChange={(e) => setRegName(e.target.value)}
-                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors ${
-                      regErrors.name
-                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                        : isDarkMode
-                          ? 'bg-gray-800 border-gray-600 text-white'
-                          : 'bg-white border-gray-300 text-gray-900'
-                    }`}
-                    placeholder="Enter your full name"
-                    required
-                  />
-                </div>
-                {regErrors.name && (
-                  <p className="mt-1 text-sm text-red-500">{regErrors.name}</p>
-                )}
-              </div>
-
-              {/* Email Field */}
-              <div>
-                <label className={`block font-semibold mb-2 ${
-                  isDarkMode ? 'text-emerald-300' : 'text-emerald-700'
-                }`}>
-                  Email Address *
-                </label>
-                <div className="relative">
-                  <Mail className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${
-                    isDarkMode ? 'text-emerald-400' : 'text-emerald-500'
-                  }`} />
-                  <input
-                    type="email"
-                    value={regEmail}
-                    onChange={(e) => setRegEmail(e.target.value)}
-                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors ${
-                      regErrors.email
-                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                        : isDarkMode
-                          ? 'bg-gray-800 border-gray-600 text-white'
-                          : 'bg-white border-gray-300 text-gray-900'
-                    }`}
-                    placeholder="Enter your email address"
-                    required
-                  />
-                </div>
-                {regErrors.email && (
-                  <p className="mt-1 text-sm text-red-500">{regErrors.email}</p>
-                )}
-              </div>
-
-              {/* Password Field */}
-              <div>
-                <label className={`block font-semibold mb-2 ${
-                  isDarkMode ? 'text-emerald-300' : 'text-emerald-700'
-                }`}>
-                  Password *
-                </label>
-                <div className="relative">
-                  <Lock className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${
-                    isDarkMode ? 'text-emerald-400' : 'text-emerald-500'
-                  }`} />
-                  <input
-                    type={showRegPassword ? 'text' : 'password'}
-                    value={regPassword}
-                    onChange={(e) => setRegPassword(e.target.value)}
-                    className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors ${
-                      regErrors.password
-                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                        : isDarkMode
-                          ? 'bg-gray-800 border-gray-600 text-white'
-                          : 'bg-white border-gray-300 text-gray-900'
-                    }`}
-                    placeholder="Create a password (min 8 characters)"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowRegPassword(!showRegPassword)}
-                    className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${
-                      isDarkMode 
-                        ? 'text-emerald-400 hover:text-emerald-300' 
-                        : 'text-emerald-500 hover:text-emerald-700'
-                    }`}
-                  >
-                    {showRegPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-                {regErrors.password && (
-                  <p className="mt-1 text-sm text-red-500">{regErrors.password}</p>
-                )}
-              </div>
-
-              {/* Confirm Password Field */}
-              <div>
-                <label className={`block font-semibold mb-2 ${
-                  isDarkMode ? 'text-emerald-300' : 'text-emerald-700'
-                }`}>
-                  Confirm Password *
-                </label>
-                <div className="relative">
-                  <Lock className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${
-                    isDarkMode ? 'text-emerald-400' : 'text-emerald-500'
-                  }`} />
-                  <input
-                    type={showRegPasswordConfirm ? 'text' : 'password'}
-                    value={regPasswordConfirm}
-                    onChange={(e) => setRegPasswordConfirm(e.target.value)}
-                    className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors ${
-                      regErrors.password_confirmation
-                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                        : isDarkMode
-                          ? 'bg-gray-800 border-gray-600 text-white'
-                          : 'bg-white border-gray-300 text-gray-900'
-                    }`}
-                    placeholder="Confirm your password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowRegPasswordConfirm(!showRegPasswordConfirm)}
-                    className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${
-                      isDarkMode 
-                        ? 'text-emerald-400 hover:text-emerald-300' 
-                        : 'text-emerald-500 hover:text-emerald-700'
-                    }`}
-                  >
-                    {showRegPasswordConfirm ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-                {regErrors.password_confirmation && (
-                  <p className="mt-1 text-sm text-red-500">{regErrors.password_confirmation}</p>
-                )}
-              </div>
-
-              <motion.button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-gradient-to-r from-emerald-500 to-green-500 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {isLoading ? (
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Creating Account...</span>
-                  </div>
-                ) : (
-                  'Create Account'
-                )}
-              </motion.button>
-            </form>
-          )}
 
           <div className="mt-6 text-center">
             <p className={isDarkMode ? 'text-emerald-300' : 'text-emerald-600'}>

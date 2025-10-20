@@ -1,19 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { TextField, MenuItem, Checkbox, FormControlLabel, Typography } from '@mui/material';
+import { TextField, MenuItem, Checkbox, FormControlLabel, Typography, Alert } from '@mui/material';
 import Toast from '../ui/Toast';
 import ImageUpload from '../common/ImageUpload';
 import RichTextEditor from './RichTextEditor';
 import TagInput from './TagInput';
-import { ContentFormProps } from '../../types/admin';
+import { ContentFormProps, User, ContentStatus } from '../../types/admin';
 import { validateText, validateURL, validateNumber, hasErrors } from '../../utils/validation';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface FormData {
   title: string;
-  author_id?: number;
+  author?: string;
+  instructor?: string;
   category: string;
-  status: 'published' | 'archived';
+  status: ContentStatus;
   description?: string;
   excerpt?: string;
   tags?: number[] | { id: number; name: string; slug: string; }[];
@@ -33,9 +34,14 @@ interface FormData {
   content?: string;
   body?: string;
   slug?: string;
+  author_id?: number;
 }
 
-const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSave, onCancel, isDarkMode }) => {
+const ContentForm: React.FC<ContentFormProps & { users?: User[] }> = ({ type, item, categories, onSave, onCancel, isDarkMode, users = [] }) => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+  
+  
   // Helper function to check if type is video
   const isVideoType = (type: string) => type === 'videos' || type === 'video' || type === 'Video';
   
@@ -53,9 +59,6 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
   const showToast = (message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
     setSnackbar({ open: true, message, severity });
   };
-  
-  const [users, setUsers] = useState<Array<{id: number; name: string; role: string}>>([]);
-  const { user: currentUser } = useAuth();
   
   // Helper function for rating validation
   const handleRatingChange = (value: string) => {
@@ -80,6 +83,8 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
   const [formData, setFormData] = useState<FormData>(
     item || {
       title: '',
+      author: '',
+      instructor: '',
       category: type === 'Technique' || type === 'techniques' || type === 'article' ? 'Technique' : type === 'Video' || type === 'videos' || type === 'video' ? 'Video' : (categories && categories.length > 0 ? categories[0] : ''),
       status: 'published',
       description: '',
@@ -122,31 +127,12 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
     }
   }, [item, type]);
 
-  // Fetch users list for admin dropdown
-  useEffect(() => {
-    if (currentUser?.role === 'admin') {
-      const fetchUsers = async () => {
-        try {
-          const token = localStorage.getItem('auth_token');
-          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/users`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Accept': 'application/json',
-            },
-          });
-          if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.data) {
-              setUsers(data.data);
-            }
-          }
-        } catch (error) {
-          console.error('Failed to fetch users:', error);
-        }
-      };
-      fetchUsers();
-    }
-  }, [currentUser]);
+  // Memoize tag IDs to prevent array recreation on every render
+  const tagIds = useMemo(() => {
+    return Array.isArray(formData.tags) 
+      ? formData.tags.map((tag: any) => typeof tag === 'object' && tag.id ? tag.id : tag)
+      : [];
+  }, [formData.tags]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,8 +142,14 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
     
     newErrors.title = validateText(formData.title, 3, 200, 'Title', true);
     
-    // Description is required for all content types
-    newErrors.description = validateText(formData.description, 10, 5000, 'Description', true);
+    if (!isVideoType(type) && type !== 'suggestions') {
+      newErrors.author = validateText(formData.author, 2, 100, 'Author', true);
+    }
+    if (isVideoType(type)) {
+      newErrors.instructor = validateText(formData.instructor, 2, 100, 'Instructor', true);
+    }
+    
+    newErrors.description = validateText(formData.description, 10, 5000, 'Description', false);
     newErrors.excerpt = validateText(formData.excerpt, 10, 500, 'Excerpt', false);
     
     if (formData.video_url) {
@@ -199,7 +191,8 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
       ...formData,
       // Ensure required fields have values
       title: formData.title || '',
-      status: formData.status || 'published',
+      // Force pending for moderator, admin can set any status
+      status: isAdmin ? (formData.status || 'published') : 'pending',
       // Ensure content is saved properly to both content and body fields
       content: formData.content || '',
       body: formData.content || formData.body || '',
@@ -216,6 +209,8 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
       duration: formData.duration || '',
       // Ensure boolean fields are properly cast
       is_featured: Boolean(formData.featured || formData.is_featured),
+      // Include author_id if admin set it
+      author_id: formData.author_id,
       // Only include product-specific fields for products
       ...(isProductType ? {
         buyLink: formData.buyLink,
@@ -245,7 +240,7 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
     <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data" noValidate>
       <div className="flex items-center justify-between mb-6">
         <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-          {item ? 'Edit' : 'Create'} {type.charAt(0).toUpperCase() + type.slice(1, -1)}
+          {item ? 'Edit' : 'Create'} {type.charAt(0).toUpperCase() + type.slice(1)}
         </h2>
       </div>
 
@@ -295,24 +290,28 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
           />
         </div>
 
-        {currentUser?.role === 'admin' && (
+        {type !== 'suggestions' && (
           <div>
             <TextField
               fullWidth
-              select
               size="small"
-              label="Author"
-              value={formData.author_id || currentUser.id}
-              onChange={(e) => setFormData({ ...formData, author_id: parseInt(e.target.value) })}
+              label={isVideoType(type) ? 'Instructor' : 'Author'}
+              value={isVideoType(type) ? formData.instructor : formData.author}
+              onChange={(e) => {
+                const field = isVideoType(type) ? 'instructor' : 'author';
+                const value = e.target.value;
+                if (value.length > 100) {
+                  setErrors({ ...errors, [field]: `${isVideoType(type) ? 'Instructor' : 'Author'} name must not exceed 100 characters` });
+                  return;
+                }
+                setFormData({ ...formData, [field]: value });
+                setErrors({ ...errors, [field]: null });
+              }}
+              error={!!(isVideoType(type) ? errors.instructor : errors.author)}
+              helperText={(isVideoType(type) ? errors.instructor : errors.author) || `${((isVideoType(type) ? formData.instructor : formData.author) || '').length}/100 characters (min 2)`}
+              inputProps={{ maxLength: 100 }}
               sx={textFieldStyles}
-              helperText="Select the author for this content"
-            >
-              {users.map((user) => (
-                <MenuItem key={user.id} value={user.id}>
-                  {user.name} ({user.role})
-                </MenuItem>
-              ))}
-            </TextField>
+            />
           </div>
         )}
 
@@ -335,28 +334,87 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
                 : '')
             }
             disabled={type === 'Technique' || type === 'Video' || type === 'technique' || type === 'video'} // Lock for Technique and Video
-            sx={textFieldStyles}
+            sx={{
+              ...textFieldStyles,
+              minWidth: '200px',
+              '& .MuiSelect-select': {
+                minWidth: '180px'
+              }
+            }}
           >
             {categories && Array.isArray(categories) && categories.map((category) => (
-              <MenuItem key={category} value={category}>{category}</MenuItem>
+              <MenuItem 
+                key={category} 
+                value={category}
+                sx={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'visible',
+                  textOverflow: 'unset',
+                  minWidth: '120px'
+                }}
+              >
+                {category}
+              </MenuItem>
             ))}
           </TextField>
         </div>
 
-        <div>
-          <TextField
-            fullWidth
-            select
-            size="small"
-            label="Status"
-            value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value as 'published' | 'archived' })}
-            sx={textFieldStyles}
-          >
-            <MenuItem value="published">Published</MenuItem>
-            <MenuItem value="archived">Archived</MenuItem>
-          </TextField>
-        </div>
+        {/* Author dropdown - Admin only */}
+        {isAdmin && (
+          <div>
+            <TextField
+              fullWidth
+              select
+              size="small"
+              label="Author (Content Owner)"
+              value={formData.author_id || user?.id}
+              onChange={(e) => setFormData({ ...formData, author_id: Number(e.target.value) })}
+              sx={textFieldStyles}
+              helperText="Select the content author/owner"
+            >
+              {users.map(u => (
+                <MenuItem key={u.id} value={u.id}>
+                  {u.name} ({u.email}) - {u.role}
+                </MenuItem>
+              ))}
+            </TextField>
+          </div>
+        )}
+
+        {/* Status - Admin only */}
+        {isAdmin && (
+          <div>
+            <TextField
+              fullWidth
+              select
+              size="small"
+              label="Status"
+              value={formData.status}
+              onChange={(e) => setFormData({ ...formData, status: e.target.value as ContentStatus })}
+              sx={textFieldStyles}
+            >
+              <MenuItem value="draft">Draft</MenuItem>
+              <MenuItem value="pending">Pending Review</MenuItem>
+              <MenuItem value="published">Published</MenuItem>
+              <MenuItem value="archived">Archived</MenuItem>
+            </TextField>
+          </div>
+        )}
+        
+        {/* Moderator Alert - No status dropdown */}
+        {!isAdmin && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            {item ? (
+              <Typography variant="body2">
+                ⚠️ Saving changes will set status to <strong>Pending</strong> for admin review.
+              </Typography>
+            ) : (
+              <Typography variant="body2">
+                Your content will be submitted as <strong>Pending</strong> for admin approval.
+              </Typography>
+            )}
+          </Alert>
+        )}
 
         {(type === 'books' || type === 'suggestions') && (
           <>
@@ -539,7 +597,7 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
           fullWidth
           multiline
           rows={3}
-          label="Description (Short Summary) *"
+          label="Description (Short Summary)"
           value={formData.description || ''}
           onChange={(e) => {
             const value = e.target.value;
@@ -551,7 +609,7 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
             setErrors({ ...errors, description: null });
           }}
           error={!!errors.description}
-          helperText={errors.description || `${(formData.description || '').length}/5000 characters (min 10 required)`}
+          helperText={errors.description || `${(formData.description || '').length}/5000 characters (min 10 recommended)`}
           placeholder="Brief description for preview..."
           inputProps={{ maxLength: 5000 }}
           sx={textFieldStyles}
@@ -561,7 +619,7 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
         <div>
           <TagInput
-            value={Array.isArray(formData.tags) ? formData.tags.map((tag: any) => typeof tag === 'object' && tag.id ? tag.id : tag) : []}
+            value={tagIds}
             onChange={(tagIds) => setFormData({ ...formData, tags: tagIds })}
             label="Tags"
             placeholder="Select tags..."
@@ -680,6 +738,30 @@ const ContentForm: React.FC<ContentFormProps> = ({ type, item, categories, onSav
           label="Featured"
         />
       </div>
+
+      {/* Created by / Updated by info */}
+      {item && ((item as any).creator || (item as any).created_by) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg mb-4" style={{
+          backgroundColor: isDarkMode ? '#374151' : '#f9fafb'
+        }}>
+          <div>
+            <Typography variant="caption" sx={{ color: isDarkMode ? '#9ca3af' : '#6b7280' }}>
+              Created by
+            </Typography>
+            <Typography variant="body2" sx={{ color: isDarkMode ? '#e5e7eb' : '#1f2937' }}>
+              {((item as any).creator?.name || 'Unknown')} ({new Date((item as any).created_at || (item as any).createdAt || item.createdAt || '').toLocaleString()})
+            </Typography>
+          </div>
+          <div>
+            <Typography variant="caption" sx={{ color: isDarkMode ? '#9ca3af' : '#6b7280' }}>
+              Last updated by
+            </Typography>
+            <Typography variant="body2" sx={{ color: isDarkMode ? '#e5e7eb' : '#1f2937' }}>
+              {((item as any).updater?.name || (item as any).creator?.name || 'Unknown')} ({new Date((item as any).updated_at || (item as any).updatedAt || item.updatedAt || '').toLocaleString()})
+            </Typography>
+          </div>
+        </div>
+      )}
 
       <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
         <motion.button

@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { TextField, MenuItem, Checkbox, FormControlLabel, Typography } from '@mui/material';
+import { TextField, MenuItem, Checkbox, FormControlLabel, Typography, Alert } from '@mui/material';
 import Toast from '../ui/Toast';
 import TagInput from './TagInput';
 import ImageUpload from '../common/ImageUpload';
 import { validateNumber, validateURL, hasErrors } from '../../utils/validation';
 import { useAuth } from '../../contexts/AuthContext';
+import { User, ContentStatus } from '../../types/admin';
 
 interface Product {
   id?: string;
@@ -16,7 +17,7 @@ interface Product {
   image?: string;
   category: 'tool' | 'book' | 'pot' | 'accessory' | 'suggestion';
   subcategory?: string;
-  status: 'published' | 'archived';
+  status: ContentStatus;
   price?: number;
   brand?: string;
   material?: string;
@@ -30,7 +31,6 @@ interface Product {
   
   // Book specific
   author?: string;
-  author_id?: number;
   pages?: number;
   published_year?: number;
   
@@ -51,6 +51,19 @@ interface Product {
   // Generic link
   link?: string;
   
+  // Author tracking
+  author_id?: number;
+  created_by?: number;
+  updated_by?: number;
+  creator?: {
+    id: number;
+    name: string;
+  };
+  updater?: {
+    id: number;
+    name: string;
+  };
+  
   createdAt?: string;
   updatedAt?: string;
 }
@@ -62,14 +75,20 @@ interface ProductFormProps {
   onSave: (data: Partial<Product>) => void;
   onCancel: () => void;
   isDarkMode: boolean;
+  users?: User[];
 }
 
 const ProductForm: React.FC<ProductFormProps> = ({ 
   item, 
   onSave, 
   onCancel, 
-  isDarkMode 
+  isDarkMode,
+  users = []
 }) => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+  
+  
   const [formData, setFormData] = useState<Partial<Product>>(() => {
     if (item) {
       // Handle both 'featured' and 'is_featured' fields
@@ -108,7 +127,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
       
       // Book specific
       author: '',
-      author_id: undefined,
       pages: 0,
       published_year: new Date().getFullYear(),
       
@@ -144,12 +162,16 @@ const ProductForm: React.FC<ProductFormProps> = ({
     severity: 'success'
   });
 
+  // Memoize tag IDs to prevent array recreation on every render
+  const tagIds = useMemo(() => {
+    return Array.isArray(formData.tags) 
+      ? formData.tags.map(Number).filter(n => !isNaN(n)) 
+      : [];
+  }, [formData.tags]);
+
   const showToast = (message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
     setSnackbar({ open: true, message, severity });
   };
-  
-  const [users, setUsers] = useState<Array<{id: number; name: string; role: string}>>([]);
-  const { user: currentUser } = useAuth();
   
   // MUI TextField styles (matching Campaign Settings)
   const textFieldStyles = {
@@ -188,51 +210,21 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   }, [item]);
 
-  // Fetch users list for admin dropdown
-  useEffect(() => {
-    if (currentUser?.role === 'admin') {
-      const fetchUsers = async () => {
-        try {
-          const token = localStorage.getItem('auth_token');
-          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/users`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Accept': 'application/json',
-            },
-          });
-          if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.data) {
-              setUsers(data.data);
-            }
-          }
-        } catch (error) {
-          console.error('Failed to fetch users:', error);
-        }
-      };
-      fetchUsers();
-    }
-  }, [currentUser]);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Debug: log current form data
-    console.log('🔍 Form submit - Current formData:', formData);
     
     // Validation
     const newErrors: {[key: string]: string | null} = {};
     
     // Required field validations
-    if (!formData.name && !formData.title) {
+    const productName = formData.name || formData.title;
+    if (!productName || productName.trim() === '') {
       newErrors.name = 'Product name is required';
-    } else if ((formData.name || formData.title || '').trim().length > 0 && (formData.name || formData.title || '').trim().length < 2) {
-      newErrors.name = 'Product name must be at least 2 characters';
     }
     
-    if (!formData.description || formData.description.trim().length === 0) {
+    if (!formData.description || formData.description.trim() === '') {
       newErrors.description = 'Product description is required';
-    } else if (formData.description.trim().length < 10) {
+    } else if (formData.description.length < 10) {
       newErrors.description = 'Product description must be at least 10 characters';
     }
     
@@ -241,7 +233,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
     
     // Field length validations
-    if (formData.name && formData.name.length > 100) {
+    if (productName && productName.length > 100) {
       newErrors.name = 'Product name must not exceed 100 characters';
     }
     
@@ -253,15 +245,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
       newErrors.brand = 'Brand must not exceed 50 characters';
     }
     
-    if (formData.author && formData.author.trim().length > 0) {
-      if (formData.author.trim().length < 2) {
-        newErrors.author = 'Author name must be at least 2 characters';
-      } else if (formData.author.length > 100) {
-        newErrors.author = 'Author name must not exceed 100 characters';
-      }
+    if (formData.author && formData.author.length > 100) {
+      newErrors.author = 'Author name must not exceed 100 characters';
     }
     
-    // Number validations - only validate if value is provided and not 0
+    // Number validations
     if (formData.price !== undefined && formData.price !== null && formData.price !== 0) {
       newErrors.price = validateNumber(formData.price, 0, 999999, 'Price', false);
     }
@@ -274,7 +262,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       newErrors.pages = validateNumber(formData.pages, 1, 10000, 'Pages', false);
     }
     
-    if (formData.published_year !== undefined && formData.published_year !== null && formData.published_year !== 0 && formData.published_year !== new Date().getFullYear()) {
+    if (formData.published_year !== undefined && formData.published_year !== null) {
       newErrors.published_year = validateNumber(formData.published_year, 1900, 2100, 'Published Year', false);
     }
     
@@ -283,25 +271,12 @@ const ProductForm: React.FC<ProductFormProps> = ({
       newErrors.link = validateURL(formData.link, false);
     }
     
-    // Author ID validation (for admin dropdown) - only validate if value exists
-    if (formData.author_id !== undefined && formData.author_id !== null && formData.author_id !== '') {
-      if (!Number.isInteger(formData.author_id) || formData.author_id <= 0) {
-        newErrors.author_id = 'Please select a valid author';
-      }
-    }
-    
     // Check if there are any errors
     if (hasErrors(newErrors)) {
-      console.log('❌ Validation errors:', newErrors);
-      console.log('❌ Form data:', formData);
-      console.log('❌ Error details:', Object.entries(newErrors).filter(([key, value]) => value !== null));
-      console.log('❌ hasErrors result:', hasErrors(newErrors));
       setErrors(newErrors);
       showToast('Please fix validation errors', 'error');
       return;
     }
-    
-    console.log('✅ Validation passed - no errors found');
     
     // Clear errors if validation passes
     setErrors({});
@@ -316,8 +291,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
       subcategory: formData.subcategory || '',
       // Tags should be array of tag IDs
       tags: Array.isArray(formData.tags) ? formData.tags : [],
-      // Handle author_id - only include if it's a valid number
-      author_id: (formData.author_id && Number.isInteger(formData.author_id) && formData.author_id > 0) ? formData.author_id : undefined,
       rating: (() => {
           const ratingValue = parseFloat(formData.rating as any) || 0;
         return ratingValue;
@@ -330,15 +303,12 @@ const ProductForm: React.FC<ProductFormProps> = ({
       published_year: parseInt(formData.published_year as any) || undefined,
       // Ensure link is included
       link: formData.link || undefined,
-      // Ensure status and is_published are in sync
-      status: formData.status || 'published',
-      is_published: formData.is_published !== undefined ? formData.is_published : formData.status === 'published'
+      // Force pending for moderator, admin can set any status
+      status: isAdmin ? (formData.status || 'published') : 'pending',
+      is_published: formData.is_published !== undefined ? formData.is_published : formData.status === 'published',
+      // Include author_id if admin set it
+      author_id: formData.author_id
     };
-    
-    // Debug: log the data being sent
-    console.log('🔍 ProductForm - Submitting data:', processedData);
-    console.log('🔍 Name:', processedData.name, 'Length:', processedData.name?.length);
-    console.log('🔍 Description:', processedData.description?.substring(0, 50) + '...', 'Length:', processedData.description?.length);
     
     // Call parent's onSave - parent will handle success/error messages
     onSave(processedData);
@@ -357,7 +327,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
           <TextField
             fullWidth
             size="small"
-            label="Name *"
+            label="Name"
             value={formData.title || formData.name || ''}
             onChange={(e) => {
               const value = e.target.value;
@@ -365,15 +335,41 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 setErrors({ ...errors, name: 'Name must not exceed 100 characters' });
                 return;
               }
+              if (value.trim() === '' && value.length > 0) {
+                setErrors({ ...errors, name: 'Product name is required' });
+                setFormData({ ...formData, title: value, name: value });
+                return;
+              }
               setFormData({ ...formData, title: value, name: value });
               setErrors({ ...errors, name: null });
             }}
             error={!!errors.name}
-            helperText={errors.name || `${(formData.title || formData.name || '').length}/100 characters (min 2 required)`}
+            helperText={errors.name || `${(formData.title || formData.name || '').length}/100 characters (min 2)`}
             inputProps={{ maxLength: 100 }}
             sx={textFieldStyles}
           />
         </div>
+
+        {isAdmin && (
+          <div>
+            <TextField
+              fullWidth
+              select
+              size="small"
+              label="Author (Content Owner)"
+              value={formData.author_id || user?.id}
+              onChange={(e) => setFormData({ ...formData, author_id: Number(e.target.value) })}
+              sx={textFieldStyles}
+              helperText="Select the content author/owner"
+            >
+              {users.map(u => (
+                <MenuItem key={u.id} value={u.id}>
+                  {u.name} ({u.email}) - {u.role}
+                </MenuItem>
+              ))}
+            </TextField>
+          </div>
+        )}
 
         <div>
           <TextField
@@ -383,13 +379,69 @@ const ProductForm: React.FC<ProductFormProps> = ({
             label="Category"
             value={formData.category || 'tool'}
             onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
-            sx={textFieldStyles}
+            sx={{
+              ...textFieldStyles,
+              minWidth: '200px',
+              '& .MuiSelect-select': {
+                minWidth: '180px'
+              }
+            }}
           >
-            <MenuItem value="tool">Tool</MenuItem>
-            <MenuItem value="book">Book</MenuItem>
-            <MenuItem value="pot">Pot</MenuItem>
-            <MenuItem value="accessory">Accessory</MenuItem>
-            <MenuItem value="suggestion">Suggestion</MenuItem>
+            <MenuItem 
+              value="tool"
+              sx={{
+                whiteSpace: 'nowrap',
+                overflow: 'visible',
+                textOverflow: 'unset',
+                minWidth: '120px'
+              }}
+            >
+              Tool
+            </MenuItem>
+            <MenuItem 
+              value="book"
+              sx={{
+                whiteSpace: 'nowrap',
+                overflow: 'visible',
+                textOverflow: 'unset',
+                minWidth: '120px'
+              }}
+            >
+              Book
+            </MenuItem>
+            <MenuItem 
+              value="pot"
+              sx={{
+                whiteSpace: 'nowrap',
+                overflow: 'visible',
+                textOverflow: 'unset',
+                minWidth: '120px'
+              }}
+            >
+              Pot
+            </MenuItem>
+            <MenuItem 
+              value="accessory"
+              sx={{
+                whiteSpace: 'nowrap',
+                overflow: 'visible',
+                textOverflow: 'unset',
+                minWidth: '120px'
+              }}
+            >
+              Accessory
+            </MenuItem>
+            <MenuItem 
+              value="suggestion"
+              sx={{
+                whiteSpace: 'nowrap',
+                overflow: 'visible',
+                textOverflow: 'unset',
+                minWidth: '120px'
+              }}
+            >
+              Suggestion
+            </MenuItem>
           </TextField>
         </div>
 
@@ -562,7 +614,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             fullWidth
             multiline
             rows={4}
-            label="Description *"
+            label="Description"
             value={formData.description || ''}
             onChange={(e) => {
               const value = e.target.value;
@@ -570,11 +622,21 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 setErrors({ ...errors, description: 'Description must not exceed 5000 characters' });
                 return;
               }
+              if (value.trim() === '' && value.length > 0) {
+                setErrors({ ...errors, description: 'Product description is required' });
+                setFormData({ ...formData, description: value });
+                return;
+              }
+              if (value.length > 0 && value.length < 10) {
+                setErrors({ ...errors, description: 'Description must be at least 10 characters' });
+                setFormData({ ...formData, description: value });
+                return;
+              }
               setFormData({ ...formData, description: value });
               setErrors({ ...errors, description: null });
             }}
             error={!!errors.description}
-            helperText={errors.description || `${(formData.description || '').length}/5000 characters (min 10 required)`}
+            helperText={errors.description || `${(formData.description || '').length}/5000 characters (min 10)`}
             inputProps={{ maxLength: 5000 }}
             placeholder="Short product description..."
             sx={textFieldStyles}
@@ -596,29 +658,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
         />
       </div>
 
-      {/* Author dropdown for admin */}
-      {currentUser?.role === 'admin' && (
-        <div>
-          <TextField
-            fullWidth
-            select
-            size="small"
-            label="Content Author"
-            value={formData.author_id || (currentUser?.id ? parseInt(currentUser.id.toString()) : '')}
-            onChange={(e) => setFormData({ ...formData, author_id: parseInt(e.target.value) })}
-            sx={textFieldStyles}
-            error={!!errors.author_id}
-            helperText={errors.author_id || "Select the author/creator of this product entry"}
-          >
-            {users.map((user) => (
-              <MenuItem key={user.id} value={user.id}>
-                {user.name} ({user.role})
-              </MenuItem>
-            ))}
-          </TextField>
-        </div>
-      )}
-
       {/* Category-specific fields */}
 
       {formData.category === 'book' && (
@@ -639,7 +678,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 setErrors({ ...errors, author: null });
               }}
               error={!!errors.author}
-              helperText={errors.author || `${(formData.author || '').length}/100 characters (min 2 if provided)`}
+              helperText={errors.author || `${(formData.author || '').length}/100 characters (min 2)`}
               inputProps={{ maxLength: 100 }}
               placeholder="Author name"
               sx={textFieldStyles}
@@ -839,7 +878,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       {/* Tags field for all categories */}
       <div>
         <TagInput
-          value={Array.isArray(formData.tags) ? formData.tags.map(Number).filter(n => !isNaN(n)) : []}
+          value={tagIds}
           onChange={(tagIds) => setFormData({ ...formData, tags: tagIds as any })}
           label="Tags"
           placeholder="Select tags..."
@@ -855,11 +894,19 @@ const ProductForm: React.FC<ProductFormProps> = ({
           label="Link (URL or Text)"
           value={formData.link || ''}
           onChange={(e) => {
-            setFormData({ ...formData, link: e.target.value });
-            setErrors({ ...errors, link: null });
+            const value = e.target.value;
+            setFormData({ ...formData, link: value });
+            
+            // Real-time URL validation if value is not empty
+            if (value && value.trim() !== '') {
+              const urlError = validateURL(value, false);
+              setErrors({ ...errors, link: urlError });
+            } else {
+              setErrors({ ...errors, link: null });
+            }
           }}
           error={!!errors.link}
-          helperText={errors.link}
+          helperText={errors.link || 'Enter a valid URL (https://example.com) or any text reference'}
           placeholder="https://example.com or any text reference"
           sx={textFieldStyles}
         />
@@ -880,30 +927,73 @@ const ProductForm: React.FC<ProductFormProps> = ({
           </label>
         </div>
 
-        {/* Status Dropdown */}
-        <div>
-          <label htmlFor="status" className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            Status
-          </label>
-          <select
-            id="status"
-            value={formData.status || 'published'}
-            onChange={(e) => setFormData({ 
-              ...formData, 
-              status: e.target.value as 'published' | 'archived',
-              is_published: e.target.value === 'published' // Auto-set is_published based on status
-            })}
-            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
-              isDarkMode 
-                ? 'bg-gray-800 border-gray-600 text-white' 
-                : 'bg-white border-gray-300 text-gray-900'
-            }`}
-          >
-            <option value="published">Published</option>
-            <option value="archived">Archived</option>
-          </select>
-        </div>
+        {/* Status - Admin only */}
+        {isAdmin && (
+          <div>
+            <label htmlFor="status" className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              Status
+            </label>
+            <select
+              id="status"
+              value={formData.status || 'published'}
+              onChange={(e) => setFormData({ 
+                ...formData, 
+                status: e.target.value as ContentStatus,
+                is_published: e.target.value === 'published'
+              })}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
+                isDarkMode 
+                  ? 'bg-gray-800 border-gray-600 text-white' 
+                  : 'bg-white border-gray-300 text-gray-900'
+              }`}
+            >
+              <option value="draft">Draft</option>
+              <option value="pending">Pending Review</option>
+              <option value="published">Published</option>
+              <option value="archived">Archived</option>
+            </select>
+          </div>
+        )}
+        
+        {/* Moderator Alert - No status dropdown */}
+        {!isAdmin && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            {item ? (
+              <Typography variant="body2">
+                ⚠️ Saving changes will set status to <strong>Pending</strong> for admin review.
+              </Typography>
+            ) : (
+              <Typography variant="body2">
+                Your content will be submitted as <strong>Pending</strong> for admin approval.
+              </Typography>
+            )}
+          </Alert>
+        )}
       </div>
+
+      {/* Created by / Updated by info */}
+      {item && ((item as any).creator || (item as any).created_by) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg mb-4" style={{
+          backgroundColor: isDarkMode ? '#374151' : '#f9fafb'
+        }}>
+          <div>
+            <Typography variant="caption" sx={{ color: isDarkMode ? '#9ca3af' : '#6b7280' }}>
+              Created by
+            </Typography>
+            <Typography variant="body2" sx={{ color: isDarkMode ? '#e5e7eb' : '#1f2937' }}>
+              {((item as any).creator?.name || 'Unknown')} ({new Date((item as any).created_at || (item as any).createdAt || item.createdAt || '').toLocaleString()})
+            </Typography>
+          </div>
+          <div>
+            <Typography variant="caption" sx={{ color: isDarkMode ? '#9ca3af' : '#6b7280' }}>
+              Last updated by
+            </Typography>
+            <Typography variant="body2" sx={{ color: isDarkMode ? '#e5e7eb' : '#1f2937' }}>
+              {((item as any).updater?.name || (item as any).creator?.name || 'Unknown')} ({new Date((item as any).updated_at || (item as any).updatedAt || item.updatedAt || '').toLocaleString()})
+            </Typography>
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center justify-end space-x-4 pt-6">
         <motion.button

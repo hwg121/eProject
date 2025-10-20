@@ -22,7 +22,7 @@ const Card: React.FC<CardProps> = ({
   return (
     <motion.div
       className={`
-        relative overflow-hidden rounded-3xl p-4 sm:p-6 lg:p-8 transition-all duration-700 group
+        relative overflow-visible rounded-3xl p-4 sm:p-6 lg:p-8 transition-all duration-700 group m-2
         ${gradient 
           ? isDarkMode
             ? 'bg-gradient-to-br from-gray-900/50 via-emerald-900/30 to-green-900/40 backdrop-blur-2xl border border-emerald-400/30' 
@@ -41,8 +41,8 @@ const Card: React.FC<CardProps> = ({
         }
         ${hover 
           ? isDarkMode
-            ? 'hover:shadow-3xl hover:shadow-emerald-400/40 hover:scale-[1.02] hover:border-emerald-400/50 hover:bg-gray-900/50' 
-            : 'hover:shadow-3xl hover:shadow-emerald-200/40 hover:scale-[1.02] hover:border-emerald-200/60'
+            ? 'hover:shadow-3xl hover:shadow-emerald-400/40 hover:scale-[1.01] hover:border-emerald-400/50 hover:bg-gray-900/50' 
+            : 'hover:shadow-3xl hover:shadow-emerald-200/40 hover:scale-[1.01] hover:border-emerald-200/60'
           : ''
         } 
         ${className}
@@ -56,7 +56,7 @@ const Card: React.FC<CardProps> = ({
         stiffness: 100
       }}
       whileHover={hover ? { 
-        y: -8,
+        y: -4,
         transition: { type: "spring", stiffness: 400, damping: 25 }
       } : {}}
     >

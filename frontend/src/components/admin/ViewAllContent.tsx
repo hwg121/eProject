@@ -8,10 +8,10 @@ import {
 import { useTheme } from '../../contexts/ThemeContext';
 import { useDebounce } from '../../hooks/useDebounce';
 import PageHeader from '../ui/PageHeader';
-import StatusBadge from '../ui/StatusBadge';
+import StatusBadge from '../StatusBadge';
 import Toast from '../ui/Toast';
 import ConfirmDialog from '../ui/ConfirmDialog';
-import { ViewsChip, LikesChip, RatingChip, EditButton, DeleteButton } from '../ui/ContentIcons';
+import { ViewsChip, LikesChip, RatingChip, ViewButton, EditButton, DeleteButton } from '../ui/ContentIcons';
 import { articlesService, videosService, productService } from '../../services/api';
 import {
   Card,
@@ -56,6 +56,9 @@ interface ContentItem {
   updated_at: string;
   thumbnail?: string;
   category?: string;
+  authorUser?: { id: number; name: string; email?: string; avatar?: string | null } | null;
+  creator?: { id: number; name: string } | null;
+  updater?: { id: number; name: string } | null;
 }
 
 type SortField = 'views' | 'likes' | 'rating' | 'created_at' | 'title';
@@ -106,9 +109,9 @@ const ViewAllContent: React.FC = () => {
       );
       
       const apiPromise = Promise.all([
-        articlesService.getAll({ per_page: 100 }), // Get more items for comprehensive view
-        videosService.getAll({ per_page: 100 }),
-        productService.getAll({ per_page: 100 })
+        articlesService.getAll({ per_page: 1000, view_all: true }), // Get more items for comprehensive view (moderator can see all)
+        videosService.getAll({ per_page: 1000, view_all: true }),
+        productService.getAll({ per_page: 1000, view_all: true })
       ]);
       
       const [articlesResponse, videosResponse, productsResponse] = await Promise.race([
@@ -129,7 +132,11 @@ const ViewAllContent: React.FC = () => {
           views: Number(article.views) || 0,
           likes: Number(article.likes) || 0,
           rating: Number(article.rating) || 0, // Ensure rating is a number
-          author: 'Admin', // Articles don't have author field in ArticleResource
+          author: article.authorUser?.name || article.creator?.name || 'Unknown Author',
+          authorUser: article.authorUser,
+          creator: article.creator,
+          updater: article.updater,
+          author_id: article.author_id,
           created_at: article.created_at,
           updated_at: article.updated_at,
           thumbnail: article.featured_image || article.cover,
@@ -149,7 +156,11 @@ const ViewAllContent: React.FC = () => {
           views: Number(video.views) || 0,
           likes: Number(video.likes) || 0,
           rating: Number(video.rating) || 0, // Ensure rating is a number
-          author: video.instructor || 'Unknown',
+          author: video.authorUser?.name || video.creator?.name || 'Unknown Author',
+          authorUser: video.authorUser,
+          creator: video.creator,
+          updater: video.updater,
+          author_id: video.author_id,
           created_at: video.created_at,
           updated_at: video.updated_at,
           thumbnail: video.thumbnail || video.featured_image,
@@ -169,7 +180,11 @@ const ViewAllContent: React.FC = () => {
           views: Number(product.views) || 0,
           likes: Number(product.likes) || 0,
           rating: Number(product.rating) || 0, // Ensure rating is a number
-          author: 'Admin', // Products don't have author field
+          author: product.authorUser?.name || product.creator?.name || 'Unknown Author',
+          authorUser: product.authorUser,
+          creator: product.creator,
+          updater: product.updater,
+          author_id: product.author_id,
           created_at: product.created_at,
           updated_at: product.updated_at,
           thumbnail: product.image || product.featured_image,
@@ -415,6 +430,23 @@ const ViewAllContent: React.FC = () => {
     );
   };
   
+  const handleView = (item: ContentItem) => {
+    // Mở link trực tiếp tới bài viết/sản phẩm
+    let url = '';
+    
+    if (item.type === 'article') {
+      url = `/article/${item.slug}`;
+    } else if (item.type === 'video') {
+      url = `/video/${item.slug}`;
+    } else if (item.type === 'product') {
+      url = `/product/${item.slug}`;
+    }
+    
+    if (url) {
+      window.open(url, '_blank');
+    }
+  };
+
   const handleEdit = (item: ContentItem) => {
     // Emit custom event để AdminDashboard handle
     const event = new CustomEvent('viewall-edit', { 
@@ -544,8 +576,8 @@ const ViewAllContent: React.FC = () => {
                 borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: `0 8px 20px ${stat.color}30`,
+                  transform: 'translateY(-2px)',
+                  boxShadow: `0 4px 12px ${stat.color}20`,
                   borderColor: stat.color
                 }
               }}
@@ -770,7 +802,7 @@ const ViewAllContent: React.FC = () => {
             overflowX: 'auto',
             maxWidth: '100%'
           }}>
-            <Table sx={{ minWidth: { xs: 800, md: 1200 } }}>
+            <Table sx={{ minWidth: { xs: 800, md: 1400 } }}>
               <TableHead>
                 <TableRow sx={{ bgcolor: isDarkMode ? '#1e293b' : '#f8fafc' }}>
                   <TableCell padding="checkbox">
@@ -810,7 +842,9 @@ const ViewAllContent: React.FC = () => {
                       )}
                     </Box>
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Author</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Author (Owner)</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Created By</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Last Updated By</TableCell>
                   <TableCell sx={{ fontWeight: 700, cursor: 'pointer' }} onClick={() => handleSort('created_at')}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       Created
@@ -825,7 +859,7 @@ const ViewAllContent: React.FC = () => {
               <TableBody>
                 {filteredContent.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} align="center" sx={{ py: 8 }}>
+                    <TableCell colSpan={12} align="center" sx={{ py: 8 }}>
                       <Typography variant="body1" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b', mb: 1 }}>
                         No content found
                       </Typography>
@@ -849,9 +883,9 @@ const ViewAllContent: React.FC = () => {
                         sx={{
                           borderBottom: '1px solid',
                           borderColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-                          transition: 'all 0.2s ease',
+                          transition: 'background-color 0.2s',
                           '&:hover': {
-                            bgcolor: isDarkMode ? 'rgba(16, 185, 129, 0.05)' : 'rgba(16, 185, 129, 0.03)'
+                            bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#f9fafb'
                           }
                         }}
                       >
@@ -901,7 +935,7 @@ const ViewAllContent: React.FC = () => {
                         
                         <TableCell>
                           <StatusBadge 
-                            status={item.status as 'published' | 'archived' | 'inactive'} 
+                            status={item.status as 'draft' | 'pending' | 'published' | 'archived'} 
                             size="small"
                           />
                         </TableCell>
@@ -918,9 +952,27 @@ const ViewAllContent: React.FC = () => {
                           <RatingChip value={Number(item.rating)} isDarkMode={isDarkMode} />
                         </TableCell>
                         
+        <TableCell>
+          <Typography variant="body2" sx={{ color: isDarkMode ? '#e2e8f0' : '#374151', fontWeight: 500 }}>
+            {item.authorUser?.name || item.creator?.name || 'Unknown Author'}
+          </Typography>
+        </TableCell>
+                        
                         <TableCell>
-                          <Typography variant="body2" sx={{ color: isDarkMode ? '#e2e8f0' : '#374151' }}>
-                            {item.author}
+                          <Typography variant="body2" sx={{ 
+                            color: isDarkMode ? '#94a3b8' : '#64748b',
+                            fontStyle: item.creator ? 'normal' : 'italic'
+                          }}>
+                            {item.creator?.name || '-'}
+                          </Typography>
+                        </TableCell>
+                        
+                        <TableCell>
+                          <Typography variant="body2" sx={{ 
+                            color: isDarkMode ? '#94a3b8' : '#64748b',
+                            fontStyle: item.updater ? 'normal' : 'italic'
+                          }}>
+                            {item.updater?.name || '-'}
                           </Typography>
                         </TableCell>
                         
@@ -932,6 +984,7 @@ const ViewAllContent: React.FC = () => {
                         
                         <TableCell>
                           <Box sx={{ display: 'flex', gap: 1 }}>
+                            <ViewButton tooltip="View" onClick={() => handleView(item)} />
                             <EditButton tooltip="Edit" onClick={() => handleEdit(item)} />
                             <DeleteButton tooltip="Delete" onClick={() => handleDelete(item)} />
                           </Box>

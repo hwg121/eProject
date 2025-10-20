@@ -5,23 +5,28 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
-use App\Models\User;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Traits\AuthorizesContent;
 
 class ProductController extends Controller
 {
+    use AuthorizesContent;
+
     /**
      * Display a listing of products.
      */
     public function index(Request $request)
     {
         try {
-        $query = Product::query()->with(['tags', 'author']);
+        $query = Product::query()->with(['tags', 'authorUser', 'creator', 'updater']);
 
             // Filter by status
             // Check if user is authenticated admin/moderator
-            $isAdmin = auth()->check() && in_array(auth()->user()->role, ['admin', 'moderator']);
+            $user = auth()->user();
+            $isAdmin = $user && $user->role === 'admin';
+            $isModerator = $user && $user->role === 'moderator';
             
             // Debug logging
             \Log::info('ProductController::index - Debug', [
@@ -33,19 +38,27 @@ class ProductController extends Controller
             ]);
             
             if ($isAdmin) {
-                // If moderator, only show own content + published content
-                if (auth()->user()->role === 'moderator') {
-                    $query->where(function($q) {
-                        $q->where('author_id', auth()->id())
-                          ->orWhere('status', 'published');
-                    });
-                }
-                
                 // Admin can see all, but if status param provided, filter by it
                 if ($request->has('status') && $request->status !== 'all') {
                     $query->where('status', $request->status);
                 }
                 // If no status param or status=all, show all products for admin
+            } else if ($isModerator) {
+                // Moderator behavior depends on view_all parameter:
+                // - view_all=true: See all content (for analytics/overview)
+                // - view_all=false or not set: Only see their own content (for management)
+                $viewAll = $request->get('view_all', false) === 'true' || $request->get('view_all', false) === true;
+                
+                if (!$viewAll) {
+                    // Default: Only show moderator's own content
+                    $query->where('author_id', $user->id);
+                }
+                // If view_all=true, don't filter by author_id (show all for analytics)
+                
+                // Filter by status if provided
+                if ($request->has('status') && $request->status !== 'all') {
+                    $query->where('status', $request->status);
+                }
             } else {
                 // Public access: only show published products
                 $query->where('status', 'published');
@@ -82,8 +95,12 @@ class ProductController extends Controller
         $sortOrder = $request->get('sortOrder', 'desc');
         $query->orderBy($sortBy, $sortOrder);
 
-            // Pagination
-            $perPage = min($request->get('per_page', 15), 50);
+            // Pagination - Allow higher limit for admin dashboard
+            $requestedPerPage = $request->get('per_page', 15);
+            // Admin and moderator (when view_all=true for analytics) can fetch more items
+            $viewAll = $request->get('view_all', false) === 'true' || $request->get('view_all', false) === true;
+            $maxPerPage = ($isAdmin || ($isModerator && $viewAll)) ? 1000 : 50;
+            $perPage = min($requestedPerPage, $maxPerPage);
         $products = $query->paginate($perPage);
 
         return response()->json([
@@ -117,14 +134,21 @@ class ProductController extends Controller
     {
         try {
             // Check if user is authenticated admin/moderator
-            $isAdmin = auth()->check() && in_array(auth()->user()->role, ['admin', 'moderator']);
+            $user = auth()->user();
+            $isAdmin = $user && $user->role === 'admin';
+            $isModerator = $user && $user->role === 'moderator';
             
             if ($isAdmin) {
                 // Admin can view any product (including archived)
-                $product = Product::with(['tags', 'author'])->findOrFail($id);
+                $product = Product::with(['tags', 'authorUser', 'creator', 'updater'])->findOrFail($id);
+            } else if ($isModerator) {
+                // Moderator can view their own products (any status)
+                $product = Product::with(['tags', 'authorUser', 'creator', 'updater'])
+                    ->where('author_id', $user->id)
+                    ->findOrFail($id);
             } else {
                 // Public can only view published products
-                $product = Product::with(['tags', 'author'])->published()->findOrFail($id);
+                $product = Product::with(['tags', 'authorUser', 'creator', 'updater'])->published()->findOrFail($id);
             }
             
             // Use atomic increment to prevent race conditions
@@ -155,7 +179,7 @@ class ProductController extends Controller
     public function getByCategory($category)
     {
         try {
-            $products = Product::with(['tags', 'author'])
+            $products = Product::with('tags')
                 ->published()
                 ->byCategory($category)
                 ->orderBy('created_at', 'desc')
@@ -179,7 +203,7 @@ class ProductController extends Controller
     public function getFeatured()
     {
         try {
-            $products = Product::with(['tags', 'author'])
+            $products = Product::with('tags')
                 ->published()
                 ->featured()
                 ->orderBy('created_at', 'desc')
@@ -206,9 +230,25 @@ class ProductController extends Controller
             // Prepare data for validation
             $data = $request->all();
             
+            // Set default status based on role
+            if (!isset($data['status']) || !$this->canSetStatus($data['status'])) {
+                $data['status'] = $this->getDefaultStatus();
+            }
+            
+            // Admin can set author_id, moderator cannot
+            if (auth()->user()->role === 'admin') {
+                // Admin can specify author_id from request, default to self
+                if (!isset($data['author_id'])) {
+                    $data['author_id'] = auth()->id();
+                }
+            } else {
+                // Moderator: force author to self
+                $data['author_id'] = auth()->id();
+            }
+            
             // Remove fields that shouldn't be created (both camelCase and snake_case)
             $fieldsToRemove = ['id', 'created_at', 'updated_at', 'createdAt', 'updatedAt', 
-                              'category_id', 'author_id', 'images', 'main_image'];
+                              'category_id', 'images', 'main_image'];
             foreach ($fieldsToRemove as $field) {
                 unset($data[$field]);
             }
@@ -296,16 +336,6 @@ class ProductController extends Controller
             // Merge prepared data back to request
             $request->replace($data);
             
-            // Auto-assign author based on role (before validation)
-            if (auth()->user()->role === 'admin' && $request->has('author_id')) {
-                // Admin can select author
-                $data['author_id'] = $request->author_id;
-            } else {
-                // Moderator or no selection: assign to self
-                $data['author_id'] = auth()->id();
-            }
-            $request->replace($data);
-            
             $validated = $request->validate([
                 'name' => 'required|string|min:2|max:100',
                 'slug' => 'sometimes|string|max:255|unique:products',
@@ -320,11 +350,12 @@ class ProductController extends Controller
                 'material' => 'nullable|string|max:100',
                 'size' => 'nullable|string|max:50',
                 'color' => 'nullable|string|max:50',
-                'status' => 'nullable|in:published,archived',
+                'status' => 'nullable|in:draft,pending,published,archived',
                 'is_featured' => 'nullable|boolean',
                 'rating' => 'nullable|numeric|min:0|max:5',
                 'views' => 'nullable|integer|min:0',
                 'likes' => 'nullable|integer|min:0',
+                'author_id' => auth()->user()->role === 'admin' ? 'nullable|exists:users,id' : 'nullable',
                 // Category-specific fields
                 'usage' => 'nullable|string',
                 'video_url' => 'nullable|string',
@@ -339,14 +370,7 @@ class ProductController extends Controller
                 'plant_type' => 'nullable|string|max:100',
                 'estimated_time' => 'nullable|string|max:50',
                 'link' => 'nullable|string',
-                'author_id' => 'nullable|integer|exists:users,id',
             ]);
-
-            // Get author for logging
-            $author = User::find($validated['author_id']);
-            if (!$author) {
-                $author = auth()->user();
-            }
 
             $product = Product::create($validated);
             
@@ -357,18 +381,16 @@ class ProductController extends Controller
                 $product->load('tags');
             }
             
+            // Load relationships for response
+            $product->load(['authorUser', 'creator', 'updater']);
+            
             // Log product creation activity
-            \App\Models\ActivityLog::logPublic(
+            ActivityLog::logPublic(
                 'created',
                 'product',
                 $product->id,
                 $product->name,
-                auth()->user()->name . " created product and assigned to " . $author->name,
-                [
-                    'author_id' => $author->id,
-                    'author_name' => $author->name,
-                    'category' => $product->category
-                ]
+                auth()->user() ? auth()->user()->name . " created {$product->category}: {$product->name}" : "Product created: {$product->name}"
             );
 
         return response()->json([
@@ -414,27 +436,76 @@ class ProductController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $product = Product::with(['tags', 'author'])->findOrFail($id);
+            $product = Product::with(['tags', 'authorUser', 'creator', 'updater'])->findOrFail($id);
             
-            // Check permission: only author or admin can update
-            if (auth()->user()->role !== 'admin' && $product->author_id !== auth()->id()) {
+            // Authorization check - moderator can only modify their own content
+            if (!$this->canModifyContent($product)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'You can only edit your own products.'
+                    'message' => 'Unauthorized. You can only modify your own content.'
                 ], 403);
             }
             
-            // Track author changes for logging
-            $oldAuthorId = $product->author_id;
-            $oldAuthor = $product->author;
-            
             // Handle camelCase mapping first
             $data = $request->all();
+            $user = auth()->user();
             
-            \Log::info('Product Update - Raw Request Data:', [
-                'rating_from_request' => $data['rating'] ?? 'not_set',
-                'all_data' => $data
+            // Detect if this is a STATUS-ONLY change (quick action)
+            $providedFields = array_keys($data);
+            $isStatusOnly = count($providedFields) === 1 && isset($data['status']);
+            
+            // Detect if content was actually changed
+            $contentFields = ['name', 'title', 'description', 'content', 'image', 'price', 'brand', 
+                             'material', 'size', 'color', 'author', 'pages', 'published_year', 
+                             'drainage_holes', 'is_waterproof', 'is_durable', 'difficulty_level', 
+                             'season', 'plant_type', 'estimated_time', 'link', 'subcategory'];
+            $isContentChanged = false;
+            foreach ($contentFields as $field) {
+                if (isset($data[$field]) && $data[$field] != $product->$field) {
+                    $isContentChanged = true;
+                    break;
+                }
+            }
+            
+            \Log::info('Product Update - Detection:', [
+                'product_id' => $id,
+                'user_role' => $user->role,
+                'current_status' => $product->status,
+                'new_status' => $data['status'] ?? 'not_set',
+                'isStatusOnly' => $isStatusOnly,
+                'isContentChanged' => $isContentChanged,
+                'provided_fields' => $providedFields
             ]);
+            
+            // Moderator logic for status validation
+            if ($user->role === 'moderator') {
+                $currentStatus = $product->status;
+                $newStatus = $data['status'] ?? $currentStatus;
+                
+                if ($isStatusOnly) {
+                    // Quick status change - use transition rules
+                    if (!$this->canTransitionStatus($currentStatus, $newStatus, false)) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Invalid status transition. You cannot set this status.'
+                        ], 403);
+                    }
+                } else if ($isContentChanged && $currentStatus === 'published') {
+                    // Content edit on published item - force to pending
+                    $data['status'] = 'pending';
+                    \Log::info('Moderator edited published content - forcing to pending', [
+                        'product_id' => $id,
+                        'user_id' => $user->id,
+                        'original_status' => $currentStatus
+                    ]);
+                }
+                
+                // Prevent moderator from changing author
+                unset($data['author_id']);
+            }
+            
+            // Admin can change author_id if provided
+            // (no restrictions for admin)
             
             // Map camelCase to snake_case
             if (isset($data['imageUrl'])) {
@@ -524,8 +595,10 @@ class ProductController extends Controller
                                (is_numeric($data['likes']) ? (int) $data['likes'] : 0);
             }
             
-            // Remove fields that shouldn't be updated
-            unset($data['id'], $data['createdAt'], $data['updatedAt']);
+            // Remove fields that shouldn't be updated (including audit tracking fields)
+            unset($data['id'], $data['createdAt'], $data['updatedAt'], 
+                  $data['created_by'], $data['updated_by'], $data['creator'], $data['updater'],
+                  $data['created_at'], $data['updated_at']);
             
             // If slug not provided but name changed, generate new slug with ID to prevent conflicts
             if (!isset($data['slug']) && isset($data['name'])) {
@@ -549,11 +622,12 @@ class ProductController extends Controller
                 'material' => 'nullable|string|max:100',
                 'size' => 'nullable|string|max:50',
                 'color' => 'nullable|string|max:50',
-                'status' => 'sometimes|required|in:published,archived',
+                'status' => 'sometimes|required|in:draft,pending,published,archived',
                 'is_featured' => 'nullable|boolean',
                 'rating' => 'nullable|numeric|min:0|max:5',
                 'views' => 'nullable|integer|min:0',
                 'likes' => 'nullable|integer|min:0',
+                'author_id' => auth()->user()->role === 'admin' ? 'nullable|exists:users,id' : 'nullable',
                 'usage' => 'nullable|string',
                 'video_url' => 'nullable|string',
                 'author' => 'nullable|string|min:2|max:100',
@@ -567,41 +641,40 @@ class ProductController extends Controller
                 'plant_type' => 'nullable|string|max:100',
                 'estimated_time' => 'nullable|string|max:50',
                 'link' => 'nullable|string',
-                'author_id' => 'nullable|integer|exists:users,id',
             ]);
-
-            // Handle author_id updates (admin only)
-            if ($request->has('author_id') && auth()->user()->role === 'admin') {
-                $validated['author_id'] = $request->author_id;
-            }
 
             $product->update($validated);
             
             // Sync tags via pivot table if provided
             if ($tags !== null) {
                 $product->tags()->sync($tags);
-                // Reload tags relationship after sync
-                $product->load('tags');
             }
             
-            // Log transfer if author changed
-            if ($oldAuthorId && isset($validated['author_id']) && $oldAuthorId != $validated['author_id']) {
-                $newAuthor = User::find($validated['author_id']);
-                \App\Models\ActivityLog::logPublic(
-                    'transferred',
-                    'product',
-                    $product->id,
-                    $product->name,
-                    "Admin transferred product from " . $oldAuthor->name . " to " . $newAuthor->name,
-                    [
-                        'old_author_id' => $oldAuthorId,
-                        'new_author_id' => $validated['author_id'],
-                        'old_author_name' => $oldAuthor->name,
-                        'new_author_name' => $newAuthor->name,
-                        'changed_by' => auth()->user()->name
-                    ]
-                );
-            }
+            // IMPORTANT: Refresh model to get latest updated_by value from database
+            // Then reload all relationships for accurate response
+            $product->refresh();
+            $product->load(['tags', 'authorUser', 'creator', 'updater']);
+            
+            // Debug log to verify updated_by is correct
+            \Log::info('Product Updated - Audit Trail:', [
+                'product_id' => $product->id,
+                'author_id' => $product->author_id,
+                'created_by' => $product->created_by,
+                'updated_by' => $product->updated_by,
+                'current_user_id' => auth()->id(),
+                'current_user_name' => auth()->user()->name,
+                'updater_name' => $product->updater ? $product->updater->name : 'NULL',
+                'creator_name' => $product->creator ? $product->creator->name : 'NULL',
+            ]);
+            
+            // Log product update activity
+            ActivityLog::logPublic(
+                'updated',
+                'product',
+                $product->id,
+                $product->name,
+                auth()->user() ? auth()->user()->name . " updated {$product->category}: {$product->name}" : "Product updated: {$product->name}"
+            );
             
             return response()->json([
                 'success' => true,
@@ -654,7 +727,27 @@ class ProductController extends Controller
     {
         try {
         $product = Product::findOrFail($id);
+        
+        // Authorization check - moderator can only delete their own content
+        if (!$this->canModifyContent($product)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. You can only delete your own content.'
+            ], 403);
+        }
+        
+        $productName = $product->name;
+        $productCategory = $product->category;
         $product->delete();
+        
+        // Log product deletion activity
+        ActivityLog::logPublic(
+            'deleted',
+            'product',
+            $id,
+            $productName,
+            auth()->user() ? auth()->user()->name . " deleted {$productCategory}: {$productName}" : "Product deleted: {$productName}"
+        );
 
         return response()->json([
             'success' => true,
@@ -674,6 +767,162 @@ class ProductController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error deleting product: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get trashed (soft deleted) products
+     */
+    public function getTrashed(Request $request)
+    {
+        try {
+            // Only admin can access trashed items
+            if (auth()->user()->role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Only administrators can access deleted items.'
+                ], 403);
+            }
+            
+            $query = Product::onlyTrashed()->with(['tags', 'authorUser', 'creator', 'updater']);
+
+            // Search
+            if ($request->has('search') && $request->search) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
+
+            // Filter by category
+            if ($request->has('category') && $request->category) {
+                $query->byCategory($request->category);
+            }
+
+            // Sort
+            $sortBy = $request->get('sortBy', 'deleted_at');
+            $sortOrder = $request->get('sortOrder', 'desc');
+            $query->orderBy($sortBy, $sortOrder);
+
+            // Paginate
+            $perPage = $request->get('per_page', 15);
+            $products = $query->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => ProductResource::collection($products->items()),
+                'meta' => [
+                    'current_page' => $products->currentPage(),
+                    'last_page' => $products->lastPage(),
+                    'per_page' => $products->perPage(),
+                    'total' => $products->total(),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('ProductController::getTrashed failed', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching trashed products: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Restore a soft deleted product
+     */
+    public function restore($id)
+    {
+        try {
+            // Only admin can restore items
+            if (auth()->user()->role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Only administrators can restore deleted items.'
+                ], 403);
+            }
+            
+            $product = Product::onlyTrashed()->findOrFail($id);
+            $productName = $product->name;
+            $productCategory = $product->category;
+            $product->restore();
+            
+            // Log restore activity
+            ActivityLog::logPublic(
+                'restored',
+                'product',
+                $id,
+                $productName,
+                auth()->user() ? auth()->user()->name . " restored {$productCategory}: {$productName}" : "Product restored: {$productName}"
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product restored successfully',
+                'data' => new ProductResource($product)
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('ProductController::restore failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to restore product: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Permanently delete a soft deleted product
+     */
+    public function forceDelete($id)
+    {
+        try {
+            // Only admin can force delete items
+            if (auth()->user()->role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Only administrators can permanently delete items.'
+                ], 403);
+            }
+            
+            $product = Product::onlyTrashed()->findOrFail($id);
+            $productName = $product->name;
+            $productCategory = $product->category;
+            
+            $product->forceDelete();
+            
+            // Log permanent deletion activity
+            ActivityLog::logPublic(
+                'force_deleted',
+                'product',
+                $id,
+                $productName,
+                auth()->user() ? auth()->user()->name . " permanently deleted {$productCategory}: {$productName}" : "Product permanently deleted: {$productName}"
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product permanently deleted'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('ProductController::forceDelete failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to permanently delete product: ' . $e->getMessage()
             ], 500);
         }
     }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ContactSetting;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
@@ -204,7 +205,17 @@ class ContactSettingController extends Controller
     {
         try {
             $contactSetting = ContactSetting::findOrFail($id);
+            $contactType = $contactSetting->type;
             $contactSetting->delete();
+            
+            // Log contact setting deletion
+            ActivityLog::logPublic(
+                'deleted',
+                'contact_setting',
+                $id,
+                $contactType,
+                auth()->user() ? auth()->user()->name . " deleted contact setting: {$contactType}" : "Contact setting deleted: {$contactType}"
+            );
 
             return response()->json([
                 'success' => true,

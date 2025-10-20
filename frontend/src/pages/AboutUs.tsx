@@ -205,7 +205,7 @@ const AboutUs: React.FC = () => {
           <div className="relative mb-6">
             <div className="animate-spin rounded-full h-20 w-20 border-4 border-emerald-200 mx-auto"></div>
             <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-emerald-600 mx-auto absolute inset-0"></div>
-            <Sparkles className="h-8 w-8 text-emerald-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+            <Sparkles className="h-8 w-8 text-emerald-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 slow-pulse" />
           </div>
           <motion.p 
             className="text-xl font-semibold text-emerald-600"
@@ -291,7 +291,7 @@ const AboutUs: React.FC = () => {
                 className="mb-6 inline-block"
               >
                 <div className="bg-white/20 dark:bg-white/30 backdrop-blur-md rounded-full px-4 md:px-6 py-2 md:py-3 inline-flex items-center space-x-2 shadow-lg border border-white/30">
-                  <Sparkles className="h-4 md:h-5 w-4 md:w-5 animate-pulse" />
+                  <Sparkles className="h-4 md:h-5 w-4 md:w-5 very-slow-pulse" />
                   <span className="text-xs md:text-sm font-semibold tracking-wide">Welcome to Our Story</span>
                 </div>
               </motion.div>
@@ -933,22 +933,22 @@ const AboutUs: React.FC = () => {
           >
             <div className="group relative h-full">
               {/* Card Glow */}
-              <div className="absolute inset-0 bg-gradient-to-br from-gray-400/30 to-gray-500/30 dark:from-gray-400/40 dark:to-gray-500/40 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/30 to-green-500/30 dark:from-emerald-400/40 dark:to-green-500/40 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               
-              <Card className="relative h-full text-center p-6 md:p-8 lg:p-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-gray-100 dark:border-gray-700/50 group-hover:border-gray-300 dark:group-hover:border-gray-500 transition-all duration-500 group-hover:shadow-2xl">
+              <Card className="relative h-full text-center p-6 md:p-8 lg:p-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-emerald-100 dark:border-emerald-700/50 group-hover:border-emerald-300 dark:group-hover:border-emerald-500 transition-all duration-500 group-hover:shadow-2xl">
                 <motion.div 
-                  className="bg-gradient-to-br from-gray-500 to-gray-600 dark:from-gray-600 dark:to-gray-700 w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-lg group-hover:shadow-xl"
+                  className="bg-gradient-to-br from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-green-700 w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-lg group-hover:shadow-xl"
                   whileHover={{ scale: [1, 1.2, 1.2, 1.2, 1], rotate: [0, 0, 5, -5, 0] }}
                   transition={{ duration: 0.6 }}
                 >
                   <MapPin className="h-8 w-8 md:h-10 md:w-10 text-white" />
                 </motion.div>
-                <h3 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-200 mb-3 md:mb-4 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">Address</h3>
-                <p className="text-base md:text-lg text-gray-600 dark:text-gray-300 font-semibold mb-3 line-clamp-2">
+                <h3 className="text-xl md:text-2xl font-bold text-emerald-800 dark:text-emerald-200 mb-3 md:mb-4 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Address</h3>
+                <p className="text-base md:text-lg text-emerald-600 dark:text-emerald-300 font-semibold mb-3 line-clamp-2">
               {contactSettings?.address || mapSetting?.address || 'Ho Chi Minh City, Vietnam'}
             </p>
-                <div className="inline-block px-3 md:px-4 py-1.5 md:py-2 bg-gray-100 dark:bg-gray-800/50 rounded-full">
-                  <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-medium">Visit us anytime!</p>
+                <div className="inline-block px-3 md:px-4 py-1.5 md:py-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-full">
+                  <p className="text-xs md:text-sm text-emerald-700 dark:text-emerald-300 font-medium">Visit us anytime!</p>
                 </div>
           </Card>
             </div>

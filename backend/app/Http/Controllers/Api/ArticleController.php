@@ -6,13 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ArticleResource;
 use App\Models\Article;
 use App\Models\ActivityLog;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
+use App\Http\Controllers\Traits\AuthorizesContent;
 
 class ArticleController extends Controller
 {
+    use AuthorizesContent;
+
     /**
      * Display a listing of articles.
      */
@@ -33,26 +35,36 @@ class ArticleController extends Controller
                 ]);
             }
 
-            $query = Article::query()->with(['tags', 'author']);
+            $query = Article::query()->with(['tags', 'authorUser', 'creator', 'updater']);
 
             // Filter by status
             // Check if user is authenticated admin/moderator
-            $isAdmin = auth()->check() && in_array(auth()->user()->role, ['admin', 'moderator']);
+            $user = auth()->user();
+            $isAdmin = $user && $user->role === 'admin';
+            $isModerator = $user && $user->role === 'moderator';
             
             if ($isAdmin) {
-                // If moderator, only show own content + published content
-                if (auth()->user()->role === 'moderator') {
-                    $query->where(function($q) {
-                        $q->where('author_id', auth()->id())
-                          ->orWhere('status', 'published');
-                    });
-                }
-                
                 // Admin can see all, but if status param provided, filter by it
                 if ($request->has('status') && $request->status !== 'all') {
                     $query->where('status', $request->status);
                 }
-                // If no status param or status=all, admin shows all articles
+                // If no status param or status=all, show all articles for admin
+            } else if ($isModerator) {
+                // Moderator behavior depends on view_all parameter:
+                // - view_all=true: See all content (for analytics/overview)
+                // - view_all=false or not set: Only see their own content (for management)
+                $viewAll = $request->get('view_all', false) === 'true' || $request->get('view_all', false) === true;
+                
+                if (!$viewAll) {
+                    // Default: Only show moderator's own content
+                    $query->where('author_id', $user->id);
+                }
+                // If view_all=true, don't filter by author_id (show all for analytics)
+                
+                // Filter by status if provided
+                if ($request->has('status') && $request->status !== 'all') {
+                    $query->where('status', $request->status);
+                }
             } else {
                 // Public access: only show published articles
                 $query->where('status', 'published');
@@ -79,8 +91,12 @@ class ArticleController extends Controller
             $sortOrder = $request->get('sortOrder', 'desc');
             $query->orderBy($sortBy, $sortOrder);
 
-            // Pagination
-            $perPage = min($request->get('per_page', 15), 50);
+            // Pagination - Allow higher limit for admin dashboard
+            $requestedPerPage = $request->get('per_page', 15);
+            // Admin and moderator (when view_all=true for analytics) can fetch more items
+            $viewAll = $request->get('view_all', false) === 'true' || $request->get('view_all', false) === true;
+            $maxPerPage = ($isAdmin || ($isModerator && $viewAll)) ? 1000 : 50;
+            $perPage = min($requestedPerPage, $maxPerPage);
             $articles = $query->paginate($perPage);
 
             return response()->json([
@@ -120,14 +136,21 @@ class ArticleController extends Controller
     {
         try {
             // Check if user is authenticated admin/moderator
-            $isAdmin = auth()->check() && in_array(auth()->user()->role, ['admin', 'moderator']);
+            $user = auth()->user();
+            $isAdmin = $user && $user->role === 'admin';
+            $isModerator = $user && $user->role === 'moderator';
             
             if ($isAdmin) {
                 // Admin can view any article
-                $article = Article::with(['tags', 'author'])->findOrFail($id);
+                $article = Article::with(['tags', 'authorUser', 'creator', 'updater'])->findOrFail($id);
+            } else if ($isModerator) {
+                // Moderator can view their own articles (any status)
+                $article = Article::with(['tags', 'authorUser', 'creator', 'updater'])
+                    ->where('author_id', $user->id)
+                    ->findOrFail($id);
             } else {
                 // Public can only view published articles
-                $article = Article::with(['tags', 'author'])->where('status', 'published')->findOrFail($id);
+                $article = Article::with(['tags', 'authorUser', 'creator', 'updater'])->where('status', 'published')->findOrFail($id);
             }
             
             // Use atomic increment to prevent race conditions
@@ -155,6 +178,26 @@ class ArticleController extends Controller
     public function store(Request $request)
     {
         try {
+            $data = $request->all();
+            
+            // Set default status based on role
+            if (!isset($data['status']) || !$this->canSetStatus($data['status'])) {
+                $data['status'] = $this->getDefaultStatus();
+            }
+            
+            // Admin can set author_id, moderator cannot
+            if (auth()->user()->role === 'admin') {
+                // Admin can specify author_id from request, default to self
+                if (!isset($data['author_id'])) {
+                    $data['author_id'] = auth()->id();
+                }
+            } else {
+                // Moderator: force author to self
+                $data['author_id'] = auth()->id();
+            }
+            
+            $request->merge($data);
+            
             $validated = $request->validate([
                 'title' => 'required|string|min:3|max:200',
                 'slug' => 'required|string|max:255|unique:articles,slug',
@@ -163,10 +206,10 @@ class ArticleController extends Controller
                 'content' => 'nullable|string',
                 'featured_image' => 'nullable|string',
                 'cover' => 'nullable|string',
-                'status' => 'required|in:published,archived',
+                'status' => 'required|in:draft,pending,published,archived',
                 'category' => 'nullable|string|max:100', // Accept category as string like Video
                 'category_id' => 'nullable|exists:categories,id',
-                'author_id' => 'nullable|exists:users,id',
+                'author_id' => auth()->user()->role === 'admin' ? 'nullable|exists:users,id' : 'nullable',
                 'published_at' => 'nullable|date',
                 'views' => 'nullable|integer',
                 'likes' => 'nullable|integer',
@@ -182,17 +225,6 @@ class ArticleController extends Controller
             $tags = $validated['tags'] ?? [];
             unset($validated['tags']);
             
-            // Auto-assign author based on role
-            if (auth()->user()->role === 'admin' && $request->has('author_id')) {
-                // Admin can select author
-                $validated['author_id'] = $request->author_id;
-                $author = User::findOrFail($request->author_id);
-            } else {
-                // Moderator or no selection: assign to self
-                $validated['author_id'] = auth()->id();
-                $author = auth()->user();
-            }
-            
             $article = Article::create($validated);
             
             // Sync tags
@@ -201,6 +233,9 @@ class ArticleController extends Controller
                 // Load tags relationship to return in response
                 $article->load('tags');
             }
+            
+            // Load relationships for response
+            $article->load(['authorUser', 'creator', 'updater']);
             
             \Log::info('ArticleController::store - Article created:', [
                 'id' => $article->id,
@@ -213,12 +248,8 @@ class ArticleController extends Controller
                 'article',
                 $article->id,
                 $article->title,
-                auth()->user()->name . " created article and assigned to " . $author->name,
-                [
-                    'author_id' => $author->id,
-                    'author_name' => $author->name,
-                    'status' => $article->status
-                ]
+                auth()->user() ? auth()->user()->name . " created article: {$article->title}" : "Article created: {$article->title}",
+                ['status' => $article->status]
             );
             
             return response()->json([
@@ -261,19 +292,65 @@ class ArticleController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $article = Article::with(['tags', 'author'])->findOrFail($id);
+            $article = Article::with(['tags', 'authorUser', 'creator', 'updater'])->findOrFail($id);
             
-            // Check permission: only author or admin can update
-            if (auth()->user()->role !== 'admin' && $article->author_id !== auth()->id()) {
+            // Authorization check - moderator can only modify their own content
+            if (!$this->canModifyContent($article)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'You can only edit your own articles.'
+                    'message' => 'Unauthorized. You can only modify your own content.'
                 ], 403);
             }
             
-            // Track author changes for logging
-            $oldAuthorId = $article->author_id;
-            $oldAuthor = $article->author;
+            $data = $request->all();
+            $user = auth()->user();
+            
+            // Detect if this is a STATUS-ONLY change (quick action)
+            $providedFields = array_keys($data);
+            $isStatusOnly = count($providedFields) === 1 && isset($data['status']);
+            
+            // Detect if content was actually changed
+            $contentFields = ['title', 'slug', 'excerpt', 'body', 'content', 'featured_image', 
+                             'cover', 'category', 'category_id'];
+            $isContentChanged = false;
+            foreach ($contentFields as $field) {
+                if (isset($data[$field]) && $data[$field] != $article->$field) {
+                    $isContentChanged = true;
+                    break;
+                }
+            }
+            
+            // Remove audit tracking fields that shouldn't be manually set
+            unset($data['created_by'], $data['updated_by'], $data['creator'], $data['updater'],
+                  $data['created_at'], $data['updated_at'], $data['createdAt'], $data['updatedAt']);
+            
+            // Moderator logic for status validation
+            if ($user->role === 'moderator') {
+                $currentStatus = $article->status;
+                $newStatus = $data['status'] ?? $currentStatus;
+                
+                if ($isStatusOnly) {
+                    // Quick status change - use transition rules
+                    if (!$this->canTransitionStatus($currentStatus, $newStatus, false)) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Invalid status transition. You cannot set this status.'
+                        ], 403);
+                    }
+                } else if ($isContentChanged && $currentStatus === 'published') {
+                    // Content edit on published item - force to pending
+                    $data['status'] = 'pending';
+                    \Log::info('Moderator edited published content - forcing to pending', [
+                        'article_id' => $id,
+                        'user_id' => $user->id
+                    ]);
+                }
+                
+                // Prevent moderator from changing author
+                unset($data['author_id']);
+            }
+            
+            $request->merge($data);
             
             $validated = $request->validate([
                 'title' => 'sometimes|required|string|min:3|max:200',
@@ -283,10 +360,10 @@ class ArticleController extends Controller
                 'content' => 'nullable|string',
                 'featured_image' => 'nullable|string',
                 'cover' => 'nullable|string',
-                'status' => 'sometimes|required|in:published,archived',
+                'status' => 'sometimes|required|in:draft,pending,published,archived',
                 'category' => 'nullable|string|max:100', // Accept category as string like Video
                 'category_id' => 'nullable|exists:categories,id',
-                'author_id' => 'nullable|exists:users,id',
+                'author_id' => auth()->user()->role === 'admin' ? 'nullable|exists:users,id' : 'nullable',
                 'published_at' => 'nullable|date',
                 'views' => 'nullable|integer',
                 'likes' => 'nullable|integer',
@@ -300,48 +377,39 @@ class ArticleController extends Controller
             $tags = $validated['tags'] ?? null;
             unset($validated['tags']);
 
-            // Handle author_id updates (admin only)
-            if ($request->has('author_id') && auth()->user()->role === 'admin') {
-                $validated['author_id'] = $request->author_id;
-            }
-
             $article->update($validated);
             
             // Sync tags if provided
             if ($tags !== null) {
                 $article->tags()->sync($tags);
-                // Reload tags relationship after sync
-                $article->load('tags');
             }
             
-            // Log transfer if author changed
-            if ($oldAuthorId && isset($validated['author_id']) && $oldAuthorId != $validated['author_id']) {
-                $newAuthor = User::find($validated['author_id']);
-                ActivityLog::logPublic(
-                    'transferred',
-                    'article',
-                    $article->id,
-                    $article->title,
-                    "Admin transferred article from " . $oldAuthor->name . " to " . $newAuthor->name,
-                    [
-                        'old_author_id' => $oldAuthorId,
-                        'new_author_id' => $validated['author_id'],
-                        'old_author_name' => $oldAuthor->name,
-                        'new_author_name' => $newAuthor->name,
-                        'changed_by' => auth()->user()->name
-                    ]
-                );
-            } else {
-                // Log normal article update activity
-                ActivityLog::logPublic(
-                    'updated',
-                    'article',
-                    $article->id,
-                    $article->title,
-                    auth()->user() ? auth()->user()->name . " updated article: {$article->title}" : "Article updated: {$article->title}",
-                    ['status' => $article->status, 'changed_fields' => array_keys($validated)]
-                );
-            }
+            // IMPORTANT: Refresh model to get latest updated_by value from database
+            // Then reload all relationships for accurate response
+            $article->refresh();
+            $article->load(['tags', 'authorUser', 'creator', 'updater']);
+            
+            // Debug log to verify updated_by is correct
+            \Log::info('Article Updated - Audit Trail:', [
+                'article_id' => $article->id,
+                'author_id' => $article->author_id,
+                'created_by' => $article->created_by,
+                'updated_by' => $article->updated_by,
+                'current_user_id' => auth()->id(),
+                'current_user_name' => auth()->user()->name,
+                'updater_name' => $article->updater ? $article->updater->name : 'NULL',
+                'creator_name' => $article->creator ? $article->creator->name : 'NULL',
+            ]);
+            
+            // Log article update activity
+            ActivityLog::logPublic(
+                'updated',
+                'article',
+                $article->id,
+                $article->title,
+                auth()->user() ? auth()->user()->name . " updated article: {$article->title}" : "Article updated: {$article->title}",
+                ['status' => $article->status, 'changed_fields' => array_keys($validated)]
+            );
             
             return response()->json([
                 'success' => true,
@@ -388,6 +456,15 @@ class ArticleController extends Controller
     {
         try {
             $article = Article::findOrFail($id);
+            
+            // Authorization check - moderator can only delete their own content
+            if (!$this->canModifyContent($article)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. You can only delete your own content.'
+                ], 403);
+            }
+            
             $articleTitle = $article->title;
             $article->delete();
             
@@ -418,6 +495,159 @@ class ArticleController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error deleting article: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get trashed (soft deleted) articles
+     */
+    public function getTrashed(Request $request)
+    {
+        try {
+            // Only admin can access trashed items
+            if (auth()->user()->role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Only administrators can access deleted items.'
+                ], 403);
+            }
+            
+            $query = Article::onlyTrashed()->with(['tags', 'authorUser', 'creator', 'updater']);
+
+            // Search
+            if ($request->has('search') && $request->search) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                      ->orWhere('excerpt', 'like', "%{$search}%");
+                });
+            }
+
+            // Filter by category
+            if ($request->has('category_id')) {
+                $query->where('category_id', $request->category_id);
+            }
+
+            // Sort
+            $sortBy = $request->get('sortBy', 'deleted_at');
+            $sortOrder = $request->get('sortOrder', 'desc');
+            $query->orderBy($sortBy, $sortOrder);
+
+            // Paginate
+            $perPage = $request->get('per_page', 15);
+            $articles = $query->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => ArticleResource::collection($articles->items()),
+                'meta' => [
+                    'current_page' => $articles->currentPage(),
+                    'last_page' => $articles->lastPage(),
+                    'per_page' => $articles->perPage(),
+                    'total' => $articles->total(),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('ArticleController::getTrashed failed', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching trashed articles: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Restore a soft deleted article
+     */
+    public function restore($id)
+    {
+        try {
+            // Only admin can restore items
+            if (auth()->user()->role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Only administrators can restore deleted items.'
+                ], 403);
+            }
+            
+            $article = Article::onlyTrashed()->findOrFail($id);
+            $article->restore();
+
+            // Log restore activity
+            ActivityLog::logPublic(
+                'restored',
+                'article',
+                $article->id,
+                $article->title,
+                auth()->user() ? auth()->user()->name . " restored article: {$article->title}" : "Article restored: {$article->title}"
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Article restored successfully',
+                'data' => new ArticleResource($article)
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('ArticleController::restore failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to restore article: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Permanently delete a soft deleted article
+     */
+    public function forceDelete($id)
+    {
+        try {
+            // Only admin can force delete items
+            if (auth()->user()->role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Only administrators can permanently delete items.'
+                ], 403);
+            }
+            
+            $article = Article::onlyTrashed()->findOrFail($id);
+            $articleTitle = $article->title;
+            
+            $article->forceDelete();
+
+            // Log permanent deletion activity
+            ActivityLog::logPublic(
+                'force_deleted',
+                'article',
+                $id,
+                $articleTitle,
+                auth()->user() ? auth()->user()->name . " permanently deleted article: {$articleTitle}" : "Article permanently deleted: {$articleTitle}"
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Article permanently deleted'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('ArticleController::forceDelete failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to permanently delete article: ' . $e->getMessage()
             ], 500);
         }
     }

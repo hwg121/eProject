@@ -4,7 +4,7 @@ import { Card, TextField, Checkbox, FormControlLabel } from '@mui/material';
 import { useTheme } from '../../contexts/ThemeContext';
 import Toast from '../../components/ui/Toast';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
-import StatusBadge from '../../components/ui/StatusBadge';
+import StatusBadge from '../../components/StatusBadge';
 import { heroSectionService } from '../../services/api';
 import { validateText, hasErrors } from '../../utils/validation';
 
@@ -432,7 +432,7 @@ const AdminHeroSection: React.FC = () => {
         open={confirmDialog.open}
         title={confirmDialog.title}
         message={confirmDialog.message}
-        type="warning"
+        type="error"
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => setConfirmDialog({ ...confirmDialog, open: false })}
         isDarkMode={isDarkMode}

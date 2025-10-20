@@ -50,7 +50,7 @@ const VisitorCounter = () => {
   if (loading) {
     return (
       <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-        <div className="animate-pulse">👥 Loading...</div>
+        <div className="animate-pulse" style={{ animationDuration: '2s' }}>👥 Loading...</div>
       </div>
     );
   }

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Autocomplete, TextField, Chip, CircularProgress, Tooltip } from '@mui/material';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Autocomplete, TextField, Chip, CircularProgress, Tooltip, FilterOptionsState, createFilterOptions } from '@mui/material';
 import { Tag, Plus } from 'lucide-react';
 import { tagService } from '../../services/api';
 
@@ -44,7 +44,7 @@ const TagInput: React.FC<TagInputProps> = ({
       
       
       const response = await tagService.getAllAdmin({
-        per_page: 100,
+        per_page: 500, // Increased limit for better search experience
         sortBy: 'name',
         sortOrder: 'asc',
       });
@@ -76,14 +76,34 @@ const TagInput: React.FC<TagInputProps> = ({
     }
   };
 
-  // Get selected tag objects from IDs
-  const selectedTags = tags.filter(tag => value.includes(tag.id));
+  // Get selected tag objects from IDs - memoized to prevent unnecessary recalculations
+  const selectedTags = useMemo(() => {
+    return tags.filter(tag => value.includes(tag.id));
+  }, [tags, value]);
 
-  // Handle tag selection change
-  const handleChange = (_event: any, newValue: Tag[]) => {
+  // Handle tag selection change - useCallback to prevent re-creation
+  const handleChange = useCallback((_event: any, newValue: Tag[]) => {
     const tagIds = newValue.map(tag => tag.id);
     onChange(tagIds);
-  };
+  }, [onChange]);
+
+  // Custom filter options for better search (search in name, slug, and description)
+  // Memoized to prevent re-creation on every render
+  const filterOptions = useMemo(() => 
+    createFilterOptions<Tag>({
+      matchFrom: 'any',
+      stringify: (option) => {
+        // Search across name, slug, and description
+        const searchString = [
+          option.name,
+          option.slug,
+          option.description || ''
+        ].join(' ').toLowerCase();
+        return searchString;
+      },
+      trim: true,
+    }), 
+  []);
 
   // MUI TextField styles with green theme
   const textFieldStyles = {
@@ -109,15 +129,16 @@ const TagInput: React.FC<TagInputProps> = ({
       onInputChange={(_event, newInputValue) => setInputValue(newInputValue)}
       getOptionLabel={(option) => option.name}
       isOptionEqualToValue={(option, value) => option.id === value.id}
+      filterOptions={filterOptions}
       loading={loading}
       disabled={disabled}
       renderInput={(params) => (
         <TextField
           {...params}
           label={label}
-          placeholder={selectedTags.length === 0 ? placeholder : ''}
+          placeholder={selectedTags.length === 0 ? (placeholder || 'Search and select tags...') : ''}
           error={!!error}
-          helperText={error || helperText}
+          helperText={error || helperText || 'Type to search by name, slug, or description'}
           sx={textFieldStyles}
           InputProps={{
             ...params.InputProps,
@@ -172,8 +193,12 @@ const TagInput: React.FC<TagInputProps> = ({
       noOptionsText={
         <div className="text-center py-4">
           <Tag className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-          <p className="text-sm text-gray-600">No tags available</p>
-          <p className="text-xs text-gray-500 mt-1">Create tags in Tag Management</p>
+          <p className="text-sm text-gray-600">
+            {inputValue ? `No tags found matching "${inputValue}"` : 'No tags available'}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            {inputValue ? 'Try a different search term' : 'Create tags in Tag Management'}
+          </p>
         </div>
       }
       sx={{

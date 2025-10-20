@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\StaffMember;
+use App\Models\ActivityLog;
 use App\Services\CloudinaryService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -57,8 +58,8 @@ class StaffMemberController extends Controller
             $validated = $request->validate([
                 'name' => 'required|string|min:2|max:100',
                 'role' => 'required|string|min:2|max:50',
-                'short_bio' => 'required|string|min:10|max:1000',
-                'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:3072', // 3MB max
+                'short_bio' => 'required|string|min:10|max:100',
+                'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:3072', // 3MB max
                 'display_order' => 'nullable|integer|min:0|max:1000',
                 'is_active' => 'boolean',
             ], [
@@ -70,7 +71,7 @@ class StaffMemberController extends Controller
                 'role.max' => 'Role must not exceed 50 characters.',
                 'short_bio.required' => 'Bio is required.',
                 'short_bio.min' => 'Bio must be at least 10 characters.',
-                'short_bio.max' => 'Bio must not exceed 1000 characters.',
+                'short_bio.max' => 'Bio must not exceed 100 characters.',
                 'display_order.min' => 'Display order cannot be negative.',
                 'display_order.max' => 'Display order cannot exceed 1000.',
             ]);
@@ -143,8 +144,8 @@ class StaffMemberController extends Controller
             $validated = $request->validate([
                 'name' => 'sometimes|required|string|min:2|max:100',
                 'role' => 'sometimes|required|string|min:2|max:50',
-                'short_bio' => 'sometimes|required|string|min:10|max:1000',
-                'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:3072',
+                'short_bio' => 'sometimes|required|string|min:10|max:100',
+                'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:3072',
                 'display_order' => 'nullable|integer|min:0|max:1000',
                 'is_active' => 'boolean',
             ], [
@@ -153,7 +154,7 @@ class StaffMemberController extends Controller
                 'role.min' => 'Role must be at least 2 characters.',
                 'role.max' => 'Role must not exceed 50 characters.',
                 'short_bio.min' => 'Bio must be at least 10 characters.',
-                'short_bio.max' => 'Bio must not exceed 1000 characters.',
+                'short_bio.max' => 'Bio must not exceed 100 characters.',
                 'display_order.min' => 'Display order cannot be negative.',
                 'display_order.max' => 'Display order cannot exceed 1000.',
             ]);
@@ -235,7 +236,17 @@ class StaffMemberController extends Controller
 
             // Skip Cloudinary deletion for now to avoid errors
             // Just delete from database
+            $staffName = $staffMember->name;
             $staffMember->delete();
+            
+            // Log staff member deletion
+            ActivityLog::logPublic(
+                'deleted',
+                'staff_member',
+                $id,
+                $staffName,
+                auth()->user() ? auth()->user()->name . " deleted staff member: {$staffName}" : "Staff member deleted: {$staffName}"
+            );
 
             return response()->json([
                 'success' => true,

@@ -5,13 +5,15 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Video;
 use App\Models\ActivityLog;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Traits\AuthorizesContent;
 
 class VideoController extends Controller
 {
+    use AuthorizesContent;
+
     public function index(Request $request)
     {
         try {
@@ -29,26 +31,36 @@ class VideoController extends Controller
                 ]);
             }
 
-            $query = Video::query()->with(['tags', 'author']);
+            $query = Video::query()->with(['tags', 'authorUser', 'creator', 'updater']);
 
             // Filter by status
             // Check if user is authenticated admin/moderator
-            $isAdmin = auth()->check() && in_array(auth()->user()->role, ['admin', 'moderator']);
+            $user = auth()->user();
+            $isAdmin = $user && $user->role === 'admin';
+            $isModerator = $user && $user->role === 'moderator';
             
             if ($isAdmin) {
-                // If moderator, only show own content + published content
-                if (auth()->user()->role === 'moderator') {
-                    $query->where(function($q) {
-                        $q->where('author_id', auth()->id())
-                          ->orWhere('status', 'published');
-                    });
-                }
-                
                 // Admin can see all, but if status param provided, filter by it
                 if ($request->has('status') && $request->status !== 'all') {
                     $query->where('status', $request->status);
                 }
                 // If no status param or status=all, show all videos for admin
+            } else if ($isModerator) {
+                // Moderator behavior depends on view_all parameter:
+                // - view_all=true: See all content (for analytics/overview)
+                // - view_all=false or not set: Only see their own content (for management)
+                $viewAll = $request->get('view_all', false) === 'true' || $request->get('view_all', false) === true;
+                
+                if (!$viewAll) {
+                    // Default: Only show moderator's own content
+                    $query->where('author_id', $user->id);
+                }
+                // If view_all=true, don't filter by author_id (show all for analytics)
+                
+                // Filter by status if provided
+                if ($request->has('status') && $request->status !== 'all') {
+                    $query->where('status', $request->status);
+                }
             } else {
                 // Public access: only show published videos
                 $query->where('status', 'published');
@@ -69,8 +81,12 @@ class VideoController extends Controller
             $sortOrder = $request->get('sortOrder', 'desc');
             $query->orderBy($sortBy, $sortOrder);
 
-            // Pagination
-            $perPage = min($request->get('per_page', 15), 50);
+            // Pagination - Allow higher limit for admin dashboard
+            $requestedPerPage = $request->get('per_page', 15);
+            // Admin and moderator (when view_all=true for analytics) can fetch more items
+            $viewAll = $request->get('view_all', false) === 'true' || $request->get('view_all', false) === true;
+            $maxPerPage = ($isAdmin || ($isModerator && $viewAll)) ? 1000 : 50;
+            $perPage = min($requestedPerPage, $maxPerPage);
             $videos = $query->paginate($perPage);
 
             return response()->json([
@@ -102,14 +118,21 @@ class VideoController extends Controller
     {
         try {
             // Check if user is authenticated admin/moderator
-            $isAdmin = auth()->check() && in_array(auth()->user()->role, ['admin', 'moderator']);
+            $user = auth()->user();
+            $isAdmin = $user && $user->role === 'admin';
+            $isModerator = $user && $user->role === 'moderator';
             
             if ($isAdmin) {
                 // Admin can view any video
-                $video = Video::with(['tags', 'author'])->findOrFail($id);
+                $video = Video::with(['tags', 'authorUser', 'creator', 'updater'])->findOrFail($id);
+            } else if ($isModerator) {
+                // Moderator can view their own videos (any status)
+                $video = Video::with(['tags', 'authorUser', 'creator', 'updater'])
+                    ->where('author_id', $user->id)
+                    ->findOrFail($id);
             } else {
                 // Public can only view published videos
-                $video = Video::with(['tags', 'author'])->where('status', 'published')->findOrFail($id);
+                $video = Video::with(['tags', 'authorUser', 'creator', 'updater'])->where('status', 'published')->findOrFail($id);
             }
             
             // Use atomic increment to prevent race conditions
@@ -144,6 +167,26 @@ class VideoController extends Controller
                     'message' => 'Videos table does not exist'
                 ], 500);
             }
+            
+            $data = $request->all();
+            
+            // Set default status based on role
+            if (!isset($data['status']) || !$this->canSetStatus($data['status'])) {
+                $data['status'] = $this->getDefaultStatus();
+            }
+            
+            // Admin can set author_id, moderator cannot
+            if (auth()->user()->role === 'admin') {
+                // Admin can specify author_id from request, default to self
+                if (!isset($data['author_id'])) {
+                    $data['author_id'] = auth()->id();
+                }
+            } else {
+                // Moderator: force author to self
+                $data['author_id'] = auth()->id();
+            }
+            
+            $request->merge($data);
 
             // Basic validation rules
             $validationRules = [
@@ -163,12 +206,12 @@ class VideoController extends Controller
                 'instructor' => 'nullable|string|max:255',
                 'duration' => 'nullable|integer',
                 'category' => 'nullable|string|max:100',
-                'status' => 'required|in:published,archived',
+                'status' => 'required|in:draft,pending,published,archived',
                 'views' => 'nullable|integer|min:0',
                 'likes' => 'nullable|integer|min:0',
                 'is_featured' => 'nullable|boolean',
                 'category_id' => 'nullable|integer',
-                'author_id' => 'nullable|integer',
+                'author_id' => auth()->user()->role === 'admin' ? 'nullable|exists:users,id' : 'nullable',
                 'published_at' => 'nullable|date',
             ];
 
@@ -215,17 +258,6 @@ class VideoController extends Controller
             $tags = $validated['tags'] ?? [];
             unset($validated['tags']);
             
-            // Auto-assign author based on role
-            if (auth()->user()->role === 'admin' && $request->has('author_id')) {
-                // Admin can select author
-                $validated['author_id'] = $request->author_id;
-                $author = User::findOrFail($request->author_id);
-            } else {
-                // Moderator or no selection: assign to self
-                $validated['author_id'] = auth()->id();
-                $author = auth()->user();
-            }
-            
             $video = Video::create($validated);
             
             // Sync tags
@@ -235,18 +267,17 @@ class VideoController extends Controller
                 $video->load('tags');
             }
             
+            // Load relationships for response
+            $video->load(['authorUser', 'creator', 'updater']);
+            
             // Log video creation activity
             ActivityLog::logPublic(
                 'created',
                 'video',
                 $video->id,
                 $video->title,
-                auth()->user()->name . " created video and assigned to " . $author->name,
-                [
-                    'author_id' => $author->id,
-                    'author_name' => $author->name,
-                    'status' => $video->status
-                ]
+                auth()->user() ? auth()->user()->name . " uploaded video: {$video->title}" : "Video uploaded: {$video->title}",
+                ['status' => $video->status]
             );
             
             return response()->json([
@@ -302,24 +333,71 @@ class VideoController extends Controller
                 $request->merge($request->except('_method'));
             }
             
-            $video = Video::with(['tags', 'author'])->findOrFail($id);
+            $video = Video::with(['tags', 'authorUser', 'creator', 'updater'])->findOrFail($id);
+            
+            // Authorization check - moderator can only modify their own content
+            if (!$this->canModifyContent($video)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. You can only modify your own content.'
+                ], 403);
+            }
+            
             Log::info('VideoController::update - Video found', [
                 'video_id' => $video->id,
                 'current_status' => $video->status,
                 'title' => $video->title
             ]);
             
-            // Check permission: only author or admin can update
-            if (auth()->user()->role !== 'admin' && $video->author_id !== auth()->id()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You can only edit your own videos.'
-                ], 403);
+            $data = $request->all();
+            $user = auth()->user();
+            
+            // Detect if this is a STATUS-ONLY change (quick action)
+            $providedFields = array_keys($data);
+            $isStatusOnly = count($providedFields) === 1 && isset($data['status']);
+            
+            // Detect if content was actually changed
+            $contentFields = ['title', 'slug', 'description', 'excerpt', 'content', 'featured_image', 
+                             'cover', 'video_url', 'instructor', 'category', 'thumbnail'];
+            $isContentChanged = false;
+            foreach ($contentFields as $field) {
+                if (isset($data[$field]) && $data[$field] != $video->$field) {
+                    $isContentChanged = true;
+                    break;
+                }
             }
             
-            // Track author changes for logging
-            $oldAuthorId = $video->author_id;
-            $oldAuthor = $video->author;
+            // Remove audit tracking fields that shouldn't be manually set
+            unset($data['created_by'], $data['updated_by'], $data['creator'], $data['updater'],
+                  $data['created_at'], $data['updated_at'], $data['createdAt'], $data['updatedAt']);
+            
+            // Moderator logic for status validation
+            if ($user->role === 'moderator') {
+                $currentStatus = $video->status;
+                $newStatus = $data['status'] ?? $currentStatus;
+                
+                if ($isStatusOnly) {
+                    // Quick status change - use transition rules
+                    if (!$this->canTransitionStatus($currentStatus, $newStatus, false)) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Invalid status transition. You cannot set this status.'
+                        ], 403);
+                    }
+                } else if ($isContentChanged && $currentStatus === 'published') {
+                    // Content edit on published item - force to pending
+                    $data['status'] = 'pending';
+                    \Log::info('Moderator edited published content - forcing to pending', [
+                        'video_id' => $id,
+                        'user_id' => $user->id
+                    ]);
+                }
+                
+                // Prevent moderator from changing author
+                unset($data['author_id']);
+            }
+            
+            $request->merge($data);
             
             // Validation rules - simplified to avoid 422 errors
             $validationRules = [
@@ -339,12 +417,12 @@ class VideoController extends Controller
                 'instructor' => 'nullable|string|max:255',
                 'duration' => 'nullable|string',
                 'category' => 'nullable|string|max:100',
-                'status' => 'nullable|string|in:published,archived',
+                'status' => 'nullable|string|in:draft,pending,published,archived',
                 'views' => 'nullable|integer|min:0',
                 'likes' => 'nullable|integer|min:0',
                 'is_featured' => 'nullable|boolean',
                 'category_id' => 'nullable|integer',
-                'author_id' => 'nullable|integer',
+                'author_id' => auth()->user()->role === 'admin' ? 'nullable|exists:users,id' : 'nullable',
                 'published_at' => 'nullable|date',
             ];
 
@@ -407,11 +485,6 @@ class VideoController extends Controller
             $tags = $validated['tags'] ?? null;
             unset($validated['tags']);
             
-            // Handle author_id updates (admin only)
-            if ($request->has('author_id') && auth()->user()->role === 'admin') {
-                $validated['author_id'] = $request->author_id;
-            }
-            
             $video->update($validated);
             
             // Sync tags if provided
@@ -421,7 +494,7 @@ class VideoController extends Controller
             
             // Reload model with tags relationship after sync
             $video->refresh();
-            $video->load('tags');
+            $video->load(['tags', 'authorUser', 'creator', 'updater']);
             
             Log::info('VideoController::update - Video updated', [
                 'video_id' => $video->id,
@@ -429,34 +502,27 @@ class VideoController extends Controller
                 'updated_fields' => array_keys($validated)
             ]);
             
-            // Log transfer if author changed
-            if ($oldAuthorId && isset($validated['author_id']) && $oldAuthorId != $validated['author_id']) {
-                $newAuthor = User::find($validated['author_id']);
-                ActivityLog::logPublic(
-                    'transferred',
-                    'video',
-                    $video->id,
-                    $video->title,
-                    "Admin transferred video from " . $oldAuthor->name . " to " . $newAuthor->name,
-                    [
-                        'old_author_id' => $oldAuthorId,
-                        'new_author_id' => $validated['author_id'],
-                        'old_author_name' => $oldAuthor->name,
-                        'new_author_name' => $newAuthor->name,
-                        'changed_by' => auth()->user()->name
-                    ]
-                );
-            } else {
-                // Log video update activity
-                ActivityLog::logPublic(
-                    'updated',
-                    'video',
-                    $video->id,
-                    $video->title,
-                    auth()->user() ? auth()->user()->name . " updated video: {$video->title}" : "Video updated: {$video->title}",
-                    ['status' => $video->status, 'changed_fields' => array_keys($validated)]
-                );
-            }
+            // Debug log to verify updated_by is correct
+            Log::info('Video Updated - Audit Trail:', [
+                'video_id' => $video->id,
+                'author_id' => $video->author_id,
+                'created_by' => $video->created_by,
+                'updated_by' => $video->updated_by,
+                'current_user_id' => auth()->id(),
+                'current_user_name' => auth()->user()->name,
+                'updater_name' => $video->updater ? $video->updater->name : 'NULL',
+                'creator_name' => $video->creator ? $video->creator->name : 'NULL',
+            ]);
+            
+            // Log video update activity
+            ActivityLog::logPublic(
+                'updated',
+                'video',
+                $video->id,
+                $video->title,
+                auth()->user() ? auth()->user()->name . " updated video: {$video->title}" : "Video updated: {$video->title}",
+                ['status' => $video->status, 'changed_fields' => array_keys($validated)]
+            );
             
             return response()->json([
                 'success' => true,
@@ -508,6 +574,15 @@ class VideoController extends Controller
     {
         try {
             $video = Video::findOrFail($id);
+            
+            // Authorization check - moderator can only delete their own content
+            if (!$this->canModifyContent($video)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. You can only delete your own content.'
+                ], 403);
+            }
+            
             $videoTitle = $video->title;
             $video->delete();
             
@@ -563,6 +638,154 @@ class VideoController extends Controller
         
         // Return null if we can't generate embed URL
         return null;
+    }
+
+    /**
+     * Get trashed (soft deleted) videos
+     */
+    public function getTrashed(Request $request)
+    {
+        try {
+            // Only admin can access trashed items
+            if (auth()->user()->role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Only administrators can access deleted items.'
+                ], 403);
+            }
+            
+            $query = Video::onlyTrashed()->with(['tags', 'authorUser', 'creator', 'updater']);
+
+            // Search
+            if ($request->has('search') && $request->search) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
+
+            // Sort
+            $sortBy = $request->get('sortBy', 'deleted_at');
+            $sortOrder = $request->get('sortOrder', 'desc');
+            $query->orderBy($sortBy, $sortOrder);
+
+            // Paginate
+            $perPage = $request->get('per_page', 15);
+            $videos = $query->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => \App\Http\Resources\VideoResource::collection($videos->items()),
+                'meta' => [
+                    'current_page' => $videos->currentPage(),
+                    'last_page' => $videos->lastPage(),
+                    'per_page' => $videos->perPage(),
+                    'total' => $videos->total(),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('VideoController::getTrashed failed', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching trashed videos: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Restore a soft deleted video
+     */
+    public function restore($id)
+    {
+        try {
+            // Only admin can restore items
+            if (auth()->user()->role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Only administrators can restore deleted items.'
+                ], 403);
+            }
+            
+            $video = Video::onlyTrashed()->findOrFail($id);
+            $video->restore();
+
+            // Log restore activity
+            ActivityLog::logPublic(
+                'restored',
+                'video',
+                $video->id,
+                $video->title,
+                auth()->user() ? auth()->user()->name . " restored video: {$video->title}" : "Video restored: {$video->title}"
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Video restored successfully',
+                'data' => new \App\Http\Resources\VideoResource($video)
+            ]);
+        } catch (\Exception $e) {
+            Log::error('VideoController::restore failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to restore video: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Permanently delete a soft deleted video
+     */
+    public function forceDelete($id)
+    {
+        try {
+            // Only admin can force delete items
+            if (auth()->user()->role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Only administrators can permanently delete items.'
+                ], 403);
+            }
+            
+            $video = Video::onlyTrashed()->findOrFail($id);
+            $videoTitle = $video->title;
+            
+            $video->forceDelete();
+
+            // Log permanent deletion activity
+            ActivityLog::logPublic(
+                'force_deleted',
+                'video',
+                $id,
+                $videoTitle,
+                auth()->user() ? auth()->user()->name . " permanently deleted video: {$videoTitle}" : "Video permanently deleted: {$videoTitle}"
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Video permanently deleted'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('VideoController::forceDelete failed', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to permanently delete video: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
 

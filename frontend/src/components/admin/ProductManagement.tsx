@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProductList from './ProductList';
-import ProductListWithInfiniteScroll from './ProductListWithInfiniteScroll';
 import ProductCreate from './ProductCreate';
 import ProductEdit from './ProductEdit';
+import { ViewButton, EditButton, DeleteButton } from '../ui/ContentIcons';
 
 interface Product {
   id: string;
@@ -49,13 +49,14 @@ interface ProductManagementProps {
   categories: string[];
   onEditClick?: (product: Product) => void;
   editingProduct?: Product | null;
+  users?: any[];
   onEditCancel?: () => void;
   onCancelCreate?: () => void;
   onBulkDelete?: (ids: string[]) => void;
   onBulkStatusChange?: (ids: string[], status: string) => void;
   showConfirmDialog?: (title: string, message: string, onConfirm: () => void, type?: 'warning' | 'success' | 'info' | 'error') => void;
-  useInfiniteScroll?: boolean; // Enable infinite scroll pagination
-  statusFilter?: 'all' | 'published' | 'archived'; // For infinite scroll mode
+  onQuickStatusChange?: (id: string, newStatus: string) => Promise<void>;
+  currentUser?: { id: number; role: 'admin' | 'moderator' | 'user' };
 }
 
 const ProductManagement: React.FC<ProductManagementProps> = ({
@@ -74,14 +75,15 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
   onCreate,
   categories,
   onEditClick,
+  users = [],
   editingProduct,
   onEditCancel,
   onCancelCreate,
   onBulkDelete,
   onBulkStatusChange,
   showConfirmDialog,
-  useInfiniteScroll = true, // Default to infinite scroll for better performance
-  statusFilter = 'all'
+  onQuickStatusChange,
+  currentUser
 }) => {
 
   const handleEditClick = (product: Product) => {
@@ -125,39 +127,25 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
     <div className="space-y-6">
       {/* Render based on activeTab */}
       {activeTab === 'product-list' && (
-        useInfiniteScroll ? (
-          // New: Infinite scroll mode - loads data automatically
-          <ProductListWithInfiniteScroll
-            onEdit={handleEditClick}
-            onDelete={onDelete}
-            onView={onView}
-            categories={categories}
-            isDarkMode={isDarkMode}
-            statusFilter={statusFilter}
-            onBulkDelete={onBulkDelete}
-            onBulkStatusChange={onBulkStatusChange}
-            showConfirmDialog={showConfirmDialog}
-          />
-        ) : (
-          // Legacy: Manual pagination mode - uses props data
-          <ProductList
-            products={products}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-            onEdit={handleEditClick}
-            onDelete={onDelete}
-            onView={onView}
-            categories={categories}
-            isDarkMode={isDarkMode}
-            onBulkDelete={onBulkDelete}
-            onBulkStatusChange={onBulkStatusChange}
-            showConfirmDialog={showConfirmDialog}
-          />
-        )
+        <ProductList
+          products={products}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          onEdit={handleEditClick}
+          onDelete={onDelete}
+          onView={onView}
+          categories={categories}
+          isDarkMode={isDarkMode}
+          onBulkDelete={onBulkDelete}
+          onBulkStatusChange={onBulkStatusChange}
+          showConfirmDialog={showConfirmDialog}
+          onQuickStatusChange={onQuickStatusChange}
+          currentUser={currentUser}
+        />
       )}
 
       {activeTab === 'product-create' && (
@@ -166,6 +154,7 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
           onSave={handleCreateSave}
           onCancel={handleCreateCancel}
           isDarkMode={isDarkMode}
+          users={users}
         />
       )}
 
@@ -176,6 +165,7 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
           onSave={handleEditSave}
           onCancel={handleEditCancel}
           isDarkMode={isDarkMode}
+          users={users}
         />
       )}
     </div>

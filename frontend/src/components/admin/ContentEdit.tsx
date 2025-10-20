@@ -11,6 +11,7 @@ interface ContentEditProps {
   onSave: (content: Partial<ContentItem>) => void;
   onCancel: () => void;
   isDarkMode: boolean;
+  users?: any[];
 }
 
 const ContentEdit: React.FC<ContentEditProps> = ({
@@ -18,7 +19,8 @@ const ContentEdit: React.FC<ContentEditProps> = ({
   categories,
   onSave,
   onCancel,
-  isDarkMode
+  isDarkMode,
+  users = []
 }) => {
   return (
     <div className="space-y-6">
@@ -38,7 +40,7 @@ const ContentEdit: React.FC<ContentEditProps> = ({
             <ArrowLeft className="w-5 h-5" />
           </motion.button>
           <div>
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`} style={{ whiteSpace: 'nowrap', overflow: 'visible' }}>
               Edit Content
             </h2>
             <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -57,6 +59,7 @@ const ContentEdit: React.FC<ContentEditProps> = ({
           onSave={onSave}
           onCancel={onCancel}
           isDarkMode={isDarkMode}
+          users={users}
         />
       </Card>
     </div>

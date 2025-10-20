@@ -64,13 +64,6 @@ const UserProfileComponent: React.FC<UserProfileComponentProps> = ({
             </div>
             <div className="relative z-10">
               <div className="p-6">
-                {/* Pending Status */}
-                <div className="flex justify-end mb-6">
-                  <span className="px-3 py-1 text-sm font-medium rounded-full bg-orange-100 text-orange-800">
-                    Pending
-                  </span>
-                </div>
-
                 {/* Profile Picture */}
                 <div className="mb-8">
                   <h3 className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Profile Picture</h3>

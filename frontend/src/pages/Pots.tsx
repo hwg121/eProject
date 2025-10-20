@@ -75,12 +75,13 @@ const Pots: React.FC = () => {
     const loadPots = async () => {
       try {
         setLoading(true);
+        // Load all pots once, then handle pagination client-side
         const response = await publicService.getPots();
         
-        // Handle API response format: {success: true, data: [...]}
+        // Handle API response format: {data: [...], meta: {...}}
         let potsData: Product[] = [];
-        if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
-          potsData = (response as any).data;
+        if (response && typeof response === 'object' && 'data' in response) {
+          potsData = response.data;
         } else if (Array.isArray(response)) {
           potsData = response;
         }
@@ -97,7 +98,7 @@ const Pots: React.FC = () => {
     loadPots();
   }, []);
 
-  // Filter pots based on search term
+  // Filter pots based on search term (client-side filtering for current page)
   const filteredPots = pots.filter(pot => {
     const matchesSearch = pot.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          pot.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -107,10 +108,12 @@ const Pots: React.FC = () => {
 
   // Reset to page 1 when search changes
   useEffect(() => {
-    setCurrentPage(1);
+    if (searchTerm) {
+      setCurrentPage(1);
+    }
   }, [searchTerm]);
 
-  // Pagination calculations
+  // Client-side pagination calculations
   const totalPages = Math.ceil(filteredPots.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -131,7 +134,7 @@ const Pots: React.FC = () => {
             <img 
               src={pot.image} 
               alt={pot.name} 
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              className="w-full h-full object-contain bg-gray-50 group-hover:scale-110 transition-transform duration-300"
             />
           </div>
         )}

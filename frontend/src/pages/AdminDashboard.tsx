@@ -23,7 +23,8 @@ import {
   ThemeProvider,
   CssBaseline,
   Snackbar,
-  Alert
+  Alert,
+  Button
 } from '@mui/material';
 import { createAdminTheme } from '../theme/adminTheme';
 
@@ -50,6 +51,14 @@ import AdminContactSettings from './admin/AdminContactSettings';
 import AdminContactMessages from './admin/AdminContactMessages';
 import AdminCampaignSettings from './admin/AdminCampaignSettings';
 import AdminSecuritySettings from './admin/AdminSecuritySettings';
+import AdminMaintenanceSettings from './admin/AdminMaintenanceSettings';
+
+// Import Approval Management
+import ApprovalManagement from '../components/admin/ApprovalManagement';
+import RejectDialog from '../components/admin/RejectDialog';
+
+// Import Restore Management
+import RestoreManagement from '../components/admin/RestoreManagement';
 
 // Import types and utils
 import { 
@@ -73,6 +82,25 @@ import { contactService, userService, articlesService, videosService, booksServi
 import { visitorService } from '../services/visitorService';
 import { campaignService, CampaignStatsResponse } from '../services/campaignService';
 
+// Helper function to transform products based on category
+const transformProductByCategory = (product: any): ContentItem => {
+  switch (product.category) {
+    case 'tool':
+      return transformToolToContentItem(product);
+    case 'book':
+      return transformBookToContentItem(product);
+    case 'pot':
+      return transformPotToContentItem(product);
+    case 'accessory':
+      return transformAccessoryToContentItem(product);
+    case 'suggestion':
+      return transformSuggestionToContentItem(product);
+    default:
+      console.warn('Unknown product category:', product.category);
+      return transformToolToContentItem(product); // Fallback
+  }
+};
+
 const AdminDashboard: React.FC = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const { isDarkMode } = useTheme();
@@ -83,6 +111,58 @@ const AdminDashboard: React.FC = () => {
     console.log('📍 activeTab changed to:', activeTab);
   }, [activeTab]);
   
+  // Load management data (for product-list, content-list tabs - moderator sees only their own)
+  const loadManagementData = useCallback(async () => {
+    try {
+      const loadDataWithFallback = async (serviceCall: () => Promise<unknown>) => {
+        try {
+          const response = await serviceCall() as {success?: boolean, data?: unknown[]};
+          if (response && response.success && Array.isArray(response.data)) {
+            return response.data;
+          } else if (Array.isArray(response)) {
+            return response;
+          } else if (response && response.data && Array.isArray(response.data)) {
+            return response.data;
+          }
+          return [];
+        } catch (error) {
+          return [];
+        }
+      };
+
+      console.log('AdminDashboard - Loading management data (view_all=false for moderator)...');
+      const [articlesData, videosData, allProductsData] = await Promise.all([
+        loadDataWithFallback(() => articlesService.getAll({ status: 'all', per_page: 1000 })), // No view_all = moderator sees only own
+        loadDataWithFallback(() => videosService.getAll({ status: 'all', per_page: 1000 })), // No view_all = moderator sees only own
+        loadDataWithFallback(() => productService.getAll({ status: 'all', per_page: 1000 })) // No view_all = moderator sees only own
+      ]);
+
+      // Update state with filtered data
+      setArticles(articlesData.map(transformArticleToContentItem));
+      setVideos(videosData.map(transformVideoToContentItem));
+      setProducts(allProductsData.map(transformProductByCategory));
+
+      console.log('AdminDashboard - Management data loaded:', {
+        articles: articlesData?.length || 0,
+        videos: videosData?.length || 0,
+        products: allProductsData?.length || 0
+      });
+    } catch (error) {
+      console.error('Error loading management data:', error);
+    }
+  }, []);
+
+  // Reload data when switching to management tabs (for moderator to see only their content)
+  useEffect(() => {
+    const isManagementTab = ['product-list', 'content-list', 'articles', 'videos'].includes(activeTab);
+    const isModerator = user?.role === 'moderator';
+    
+    if (isManagementTab && isModerator) {
+      console.log('🔄 Reloading data for management tab (moderator - own content only)');
+      loadManagementData();
+    }
+  }, [activeTab, user?.role, loadManagementData]);
+  
   // Listen for edit events from ViewAllContent
   useEffect(() => {
     const handleEditEvent = (event: any) => {
@@ -91,11 +171,29 @@ const AdminDashboard: React.FC = () => {
       
       // Set editing item and switch to appropriate edit tab
       if (item.type === 'article' || item.type === 'video') {
-        setEditingItem({ ...item, id: actualId, category });
+        const editData = { 
+          ...item, 
+          id: actualId, 
+          category,
+          creator: item.creator,
+          updater: item.updater,
+          created_at: item.created_at,
+          updated_at: item.updated_at
+        };
+        setEditingItem(editData);
         setActiveTab('content-edit');
       } else {
         // For products
-        setEditingProduct({ ...item, id: actualId, category });
+        const editData = { 
+          ...item, 
+          id: actualId, 
+          category,
+          creator: item.creator,
+          updater: item.updater,
+          created_at: item.created_at,
+          updated_at: item.updated_at
+        };
+        setEditingProduct(editData);
         setActiveTab('product-edit');
       }
     };
@@ -135,6 +233,7 @@ const AdminDashboard: React.FC = () => {
 
   // User management state
   const [users, setUsers] = useState<User[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]); // For author selection in forms
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [userStatusFilter, setUserStatusFilter] = useState('all');
   const [userRoleFilter, setUserRoleFilter] = useState('all');
@@ -159,6 +258,12 @@ const AdminDashboard: React.FC = () => {
   const [productSearchTerm, setProductSearchTerm] = useState('');
   const [productSelectedCategory, setProductSelectedCategory] = useState('all');
   const [productSortBy, setProductSortBy] = useState('latest');
+
+  // Approval Management state
+  const [pendingItems, setPendingItems] = useState<ContentItem[]>([]);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectingItem, setRejectingItem] = useState<ContentItem | null>(null);
 
   // Contact messages state
 
@@ -428,9 +533,9 @@ const AdminDashboard: React.FC = () => {
       // Load all content data using admin endpoints
       console.log('AdminDashboard - Starting to load data...');
       const [articlesData, videosData, allProductsData, contactMessagesData, usersData, publicActivitiesData, securityActivitiesData] = await Promise.all([
-          loadDataWithFallback(() => articlesService.getAll({ status: 'all', per_page: 100 })), // Get all articles including archived
-          loadDataWithFallback(() => videosService.getAll({ status: 'all', per_page: 100 })), // Get all videos including archived
-          loadDataWithFallback(() => productService.getAll({ status: 'all', per_page: 100 })), // Get all products including archived
+          loadDataWithFallback(() => articlesService.getAll({ status: 'all', per_page: 1000, view_all: true })), // Get all articles (moderator can see all in overview)
+          loadDataWithFallback(() => videosService.getAll({ status: 'all', per_page: 1000, view_all: true })), // Get all videos (moderator can see all in overview)
+          loadDataWithFallback(() => productService.getAll({ status: 'all', per_page: 1000, view_all: true })), // Get all products (moderator can see all in overview)
           loadDataWithFallback(() => contactService.getAll()),
           loadDataWithFallback(() => userService.getAll()),
           loadDataWithFallback(() => activityLogService.getPublicActivities(20)),
@@ -525,18 +630,22 @@ const AdminDashboard: React.FC = () => {
       // Handle users data structure (has data and meta properties)
       if (usersData && typeof usersData === 'object' && 'data' in usersData) {
         setUsers((usersData as any).data as User[]);
+        setAllUsers((usersData as any).data as User[]); // For author selection
       } else {
         setUsers(usersData as User[]);
+        setAllUsers(usersData as User[]); // For author selection
       }
 
       // Calculate stats from real API data - only count published content
       const totalArticles = Array.isArray(articlesData) ? articlesData.filter((item: any) => item.status === 'published').length : 0;
       const totalVideos = Array.isArray(videosData) ? videosData.filter((item: any) => item.status === 'published').length : 0;
-      const totalBooks = Array.isArray(booksData) ? booksData.filter((item: any) => item.status === 'published').length : 0;
-      const totalTools = Array.isArray(toolsData) ? toolsData.filter((item: any) => item.status === 'published').length : 0;
-      const totalPots = Array.isArray(potsData) ? potsData.filter((item: any) => item.status === 'published').length : 0;
-      const totalAccessories = Array.isArray(accessoriesData) ? accessoriesData.filter((item: any) => item.status === 'published').length : 0;
-      const totalSuggestions = Array.isArray(suggestionsData) ? suggestionsData.filter((item: any) => item.status === 'published').length : 0;
+      
+      // Calculate product counts from allProductsData (unified product service)
+      const totalBooks = publishedProducts.filter((item: any) => item.category === 'book').length;
+      const totalTools = publishedProducts.filter((item: any) => item.category === 'tool').length;
+      const totalPots = publishedProducts.filter((item: any) => item.category === 'pot').length;
+      const totalAccessories = publishedProducts.filter((item: any) => item.category === 'accessory').length;
+      const totalSuggestions = publishedProducts.filter((item: any) => item.category === 'suggestion').length;
       const totalContactMessages = Array.isArray(contactMessagesData) ? contactMessagesData.length : 0;
       const totalUsers = Array.isArray(usersData) ? usersData.length : 0;
 
@@ -556,31 +665,18 @@ const AdminDashboard: React.FC = () => {
       // Calculate total views from published content only
       const publishedArticles = Array.isArray(articlesData) ? articlesData.filter((item: any) => item.status === 'published') : [];
       const publishedVideos = Array.isArray(videosData) ? videosData.filter((item: any) => item.status === 'published') : [];
-      const publishedBooks = Array.isArray(booksData) ? booksData.filter((item: any) => item.status === 'published') : [];
-      const publishedTools = Array.isArray(toolsData) ? toolsData.filter((item: any) => item.status === 'published') : [];
-      const publishedPots = Array.isArray(potsData) ? potsData.filter((item: any) => item.status === 'published') : [];
-      const publishedAccessories = Array.isArray(accessoriesData) ? accessoriesData.filter((item: any) => item.status === 'published') : [];
-      const publishedSuggestions = Array.isArray(suggestionsData) ? suggestionsData.filter((item: any) => item.status === 'published') : [];
       
       const totalViews = [
         ...publishedArticles,
         ...publishedVideos,
-        ...publishedBooks,
-        ...publishedTools,
-        ...publishedPots,
-        ...publishedAccessories,
-        ...publishedSuggestions
+        ...publishedProducts
       ].reduce((sum, item) => sum + (item.views || 0), 0);
 
       // Calculate average rating from published content only (rating >= 1)
       const ratedContent = [
         ...publishedArticles,
         ...publishedVideos,
-        ...publishedBooks,
-        ...publishedSuggestions,
-        ...publishedAccessories,
-        ...publishedTools,
-        ...publishedPots
+        ...publishedProducts
       ].filter(item => {
         const rating = parseFloat(item.rating);
         return !isNaN(rating) && rating >= 1;
@@ -783,6 +879,76 @@ const AdminDashboard: React.FC = () => {
     }
   }, [user, isAuthenticated]);
 
+  // Fetch pending items for approval management (admin only)
+  const fetchPendingItems = useCallback(async () => {
+    if (user?.role !== 'admin') return;
+    
+    try {
+      const [productsRes, articlesRes, videosRes] = await Promise.all([
+        productService.getAll({ status: 'pending' }),
+        articlesService.getAll({ status: 'pending' }),
+        videosService.getAll({ status: 'pending' })
+      ]);
+      
+      const allPending: ContentItem[] = [
+        ...(Array.isArray(productsRes) ? productsRes.map((p: any) => ({ ...transformProductByCategory(p), type: 'product' })) : []),
+        ...(Array.isArray(articlesRes) ? articlesRes.map((a: any) => ({ ...transformArticleToContentItem(a), type: 'article' })) : []),
+        ...(Array.isArray(videosRes) ? videosRes.map((v: any) => ({ ...transformVideoToContentItem(v), type: 'video' })) : [])
+      ];
+      
+      setPendingItems(allPending);
+      setPendingCount(allPending.length);
+    } catch (error) {
+      console.error('Error fetching pending items:', error);
+      setPendingItems([]);
+      setPendingCount(0);
+    }
+  }, [user]);
+
+  // Load pending items when user changes or on mount (admin only)
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      fetchPendingItems();
+    }
+  }, [user, fetchPendingItems]);
+
+  // Approval Management handlers
+  const handleApproveContent = async (item: ContentItem) => {
+    try {
+      const service = item.type === 'article' ? articlesService : 
+                      item.type === 'video' ? videosService : productService;
+      await service.update(item.id, { status: 'published' });
+      showToast('Content approved and published!', 'success');
+      await fetchPendingItems();
+    } catch (error) {
+      console.error('Error approving content:', error);
+      showToast('Error approving content', 'error');
+    }
+  };
+
+  const handleRejectContent = async (item: ContentItem) => {
+    setRejectingItem(item);
+    setRejectDialogOpen(true);
+  };
+
+  const handleRejectConfirm = async (reason: string) => {
+    if (!rejectingItem) return;
+    
+    try {
+      const service = rejectingItem.type === 'article' ? articlesService : 
+                      rejectingItem.type === 'video' ? videosService : productService;
+      await service.update(rejectingItem.id, { status: 'draft' });
+      showToast(`Content rejected: ${reason}`, 'warning');
+      await fetchPendingItems();
+    } catch (error) {
+      console.error('Error rejecting content:', error);
+      showToast('Error rejecting content', 'error');
+    } finally {
+      setRejectDialogOpen(false);
+      setRejectingItem(null);
+    }
+  };
+
   // Filtered users
   const filteredUsers = users.filter(user => {
     const matchesSearch = (user.name?.toLowerCase() || '').includes(userSearchTerm.toLowerCase()) ||
@@ -817,7 +983,7 @@ const AdminDashboard: React.FC = () => {
           console.error('Error in delete confirmation:', error);
         }
       },
-      'warning'
+      'error'
     );
   };
 
@@ -859,8 +1025,16 @@ const AdminDashboard: React.FC = () => {
           return;
       }
       
-      // Reload data after deletion
-      await loadData();
+      // Reload data based on current context
+      const isManagementTab = ['product-list', 'content-list', 'articles', 'videos'].includes(activeTab);
+      const isModerator = user?.role === 'moderator';
+      
+      if (isManagementTab && isModerator) {
+        await loadManagementData();
+      } else {
+        await loadData();
+      }
+      
       showToast('Item deleted successfully!', 'success');
     } catch (error: any) {
       console.error('Error deleting item:', error);
@@ -902,7 +1076,17 @@ const AdminDashboard: React.FC = () => {
       });
 
       await Promise.all(deletePromises);
-      await loadData();
+      
+      // Reload data based on current context
+      const isManagementTab = ['product-list', 'content-list', 'articles', 'videos'].includes(activeTab);
+      const isModerator = user?.role === 'moderator';
+      
+      if (isManagementTab && isModerator) {
+        await loadManagementData();
+      } else {
+        await loadData();
+      }
+      
       showToast(`Successfully deleted ${ids.length} items!`, 'success');
     } catch (error: any) {
       console.error('Error bulk deleting:', error);
@@ -970,7 +1154,17 @@ const AdminDashboard: React.FC = () => {
       console.log('Executing', updatePromises.length, 'update promises');
       await Promise.all(updatePromises);
       console.log('All updates completed, reloading data');
-      await loadData();
+      
+      // Reload data based on current context
+      const isManagementTab = ['product-list', 'content-list', 'articles', 'videos'].includes(activeTab);
+      const isModerator = user?.role === 'moderator';
+      
+      if (isManagementTab && isModerator) {
+        await loadManagementData();
+      } else {
+        await loadData();
+      }
+      
       showToast(`Successfully updated ${ids.length} items to ${status}!`, 'success');
     } catch (error: any) {
       console.error('Error bulk updating status:', error);
@@ -995,7 +1189,17 @@ const AdminDashboard: React.FC = () => {
     try {
       const deletePromises = ids.map(id => productService.delete(id));
       await Promise.all(deletePromises);
-      await loadData();
+      
+      // Reload data based on current context
+      const isManagementTab = ['product-list', 'tools', 'books', 'pots', 'accessories', 'suggestions'].includes(activeTab);
+      const isModerator = user?.role === 'moderator';
+      
+      if (isManagementTab && isModerator) {
+        await loadManagementData();
+      } else {
+        await loadData();
+      }
+      
       showToast(`Successfully deleted ${ids.length} products!`, 'success');
     } catch (error: any) {
       console.error('Error bulk deleting products:', error);
@@ -1020,7 +1224,17 @@ const AdminDashboard: React.FC = () => {
     try {
       const updatePromises = ids.map(id => productService.update(id, { status }));
       await Promise.all(updatePromises);
-      await loadData();
+      
+      // Reload data based on current context
+      const isManagementTab = ['product-list', 'tools', 'books', 'pots', 'accessories', 'suggestions'].includes(activeTab);
+      const isModerator = user?.role === 'moderator';
+      
+      if (isManagementTab && isModerator) {
+        await loadManagementData();
+      } else {
+        await loadData();
+      }
+      
       showToast(`Successfully updated ${ids.length} products to ${status}!`, 'success');
     } catch (error: any) {
       console.error('Error bulk updating products:', error);
@@ -1028,6 +1242,41 @@ const AdminDashboard: React.FC = () => {
       // Extract proper error message from backend
       let errorMessage = 'Failed to update some products. Please try again.';
       
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      showToast(errorMessage, 'error');
+    }
+  };
+
+  // Quick status change handler (status-only, no content edit)
+  const handleQuickStatusChange = async (id: string, newStatus: string) => {
+    try {
+      // Only send status field - backend will detect this as status-only change
+      await productService.update(id, { status: newStatus });
+      
+      // Reload data based on current context
+      const isManagementTab = ['product-list', 'content-list', 'articles', 'videos', 'tools', 'books', 'pots', 'accessories', 'suggestions'].includes(activeTab);
+      const isModerator = user?.role === 'moderator';
+      
+      if (isManagementTab && isModerator) {
+        // Moderator in management tab - reload only their own content
+        await loadManagementData();
+      } else {
+        // Admin or overview tab - reload all data
+        await loadData();
+      }
+      
+      showToast(`Status updated to ${newStatus}!`, 'success');
+    } catch (error: any) {
+      console.error('Error updating status:', error);
+      
+      let errorMessage = 'Failed to update status. Please try again.';
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error?.response?.data?.error) {
@@ -1173,8 +1422,15 @@ const AdminDashboard: React.FC = () => {
       // Reset editing state
       setEditingItem(null);
       
-      // Reload data
-      await loadData();
+      // Reload data based on current context
+      const isManagementTab = ['product-list', 'content-list', 'articles', 'videos'].includes(activeTab);
+      const isModerator = user?.role === 'moderator';
+      
+      if (isManagementTab && isModerator) {
+        await loadManagementData();
+      } else {
+        await loadData();
+      }
       
       // Redirect to content-list after successful save
       setActiveTab('content-list');
@@ -1255,8 +1511,16 @@ const AdminDashboard: React.FC = () => {
           throw error;
       }
       
-      // Reload products data
-      await loadData();
+      // Reload data based on current context
+      const isManagementTab = ['product-list', 'tools', 'books', 'pots', 'accessories', 'suggestions'].includes(activeTab);
+      const isModerator = user?.role === 'moderator';
+      
+      if (isManagementTab && isModerator) {
+        await loadManagementData();
+      } else {
+        await loadData();
+      }
+      
       showToast('Product created successfully!', 'success');
       
       // Navigate back to list
@@ -1338,8 +1602,16 @@ const AdminDashboard: React.FC = () => {
       const result = await productService.update(updatedProduct.id, updatedProduct);
       console.log('AdminDashboard - Update result:', result);
       
-      // Reload products data
-      await loadData();
+      // Reload data based on current context
+      const isManagementTab = ['product-list', 'tools', 'books', 'pots', 'accessories', 'suggestions'].includes(activeTab);
+      const isModerator = user?.role === 'moderator';
+      
+      if (isManagementTab && isModerator) {
+        await loadManagementData();
+      } else {
+        await loadData();
+      }
+      
       console.log('AdminDashboard - Data reloaded');
       
       // Reset editing state and go back to list
@@ -1383,7 +1655,7 @@ const AdminDashboard: React.FC = () => {
           console.error('Error in product delete confirmation:', error);
         }
       },
-      'warning'
+      'error'
     );
   };
 
@@ -1414,8 +1686,16 @@ const AdminDashboard: React.FC = () => {
           return;
       }
       
-      // Reload products data
-      await loadData();
+      // Reload data based on current context
+      const isManagementTab = ['product-list', 'tools', 'books', 'pots', 'accessories', 'suggestions'].includes(activeTab);
+      const isModerator = user?.role === 'moderator';
+      
+      if (isManagementTab && isModerator) {
+        await loadManagementData();
+      } else {
+        await loadData();
+      }
+      
       showToast('Product deleted successfully!', 'success');
     } catch (error: any) {
       console.error('Error deleting product:', error);
@@ -1623,7 +1903,7 @@ Updated: ${product.updatedAt}
           showToast(errorMessage, 'error');
         }
       },
-      'warning'
+      'error'
     );
   }, [loadData, showConfirmDialog, showToast]);
 
@@ -1883,7 +2163,7 @@ Updated: ${product.updatedAt}
           <AdminSidebar 
             activeTab={activeTab}
             onTabChange={setActiveTab}
-            stats={stats}
+            stats={{ ...stats, pendingCount }}
             isCollapsed={sidebarCollapsed}
             onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
             userRole={user?.role || 'admin'}
@@ -1903,7 +2183,7 @@ Updated: ${product.updatedAt}
           </div>
           
           {/* Content Container with responsive spacing */}
-          <div className="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6 xl:space-y-8 max-w-full overflow-hidden">
+          <div className="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6 xl:space-y-8 max-w-full overflow-visible p-2">
           {/* Error Message */}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
@@ -2014,22 +2294,31 @@ Updated: ${product.updatedAt}
 
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                   {/* Home Button */}
-                  <IconButton
+                  <Button
                     onClick={() => window.location.href = '/'}
+                    startIcon={
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                      </svg>
+                    }
                     sx={{
                       bgcolor: isDarkMode ? '#1e293b' : '#f8fafc',
+                      color: isDarkMode ? '#e2e8f0' : '#1e293b',
+                      border: `2px solid ${isDarkMode ? '#334155' : '#e2e8f0'}`,
                       '&:hover': {
                         bgcolor: isDarkMode ? '#334155' : '#e2e8f0',
-                        transform: 'scale(1.05)',
+                        transform: 'scale(1.01)',
                       },
                       transition: 'all 0.2s',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      px: 2,
+                      py: 1,
+                      margin: '2px'
                     }}
-                    title="Go to Homepage"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                  </IconButton>
+                    Homepage
+                  </Button>
 
                   {/* Reload Current Page Data Button */}
                   <IconButton
@@ -2053,13 +2342,14 @@ Updated: ${product.updatedAt}
                         } else if (currentTab === 'view-all') {
                           // Reload all content for analytics
                           const [articlesData, videosData, productsData] = await Promise.all([
-                            articlesService.getAll({ per_page: 100 }),
-                            videosService.getAll({ per_page: 100 }),
-                            productService.getAll({ per_page: 100 })
+                            articlesService.getAll({ per_page: 1000, status: 'all' }),
+                            videosService.getAll({ per_page: 1000, status: 'all' }),
+                            productService.getAll({ per_page: 1000, status: 'all' })
                           ]);
                           setArticles(articlesData as any);
                           setVideos(videosData as any);
-                          setProducts(productsData as any);
+                          // Transform products based on their category
+                          setProducts(Array.isArray(productsData) ? productsData.map(transformProductByCategory) : []);
                         } else if (currentTab === 'articles' || currentTab === 'techniques') {
                           const data = await articlesService.getAll();
                           setArticles(data as any);
@@ -2070,9 +2360,10 @@ Updated: ${product.updatedAt}
                           const data = await userService.getAll();
                           setUsers(data as any);
                         } else if (currentTab.includes('product') || currentTab === 'tools' || currentTab === 'books' || currentTab === 'pots' || currentTab === 'accessories' || currentTab === 'suggestions') {
-                          // Reload products for product-related tabs
-                          const data = await productService.getAll();
-                          setProducts(data as any);
+                          // Reload products for product-related tabs - get all products including archived
+                          const data = await productService.getAll({ per_page: 1000, status: 'all' });
+                          // Transform products based on their category
+                          setProducts(Array.isArray(data) ? data.map(transformProductByCategory) : []);
                         } else if (activeTab === 'tags') {
                           // Just show toast, tag management handles its own reload
                           showToast('Tag data refreshed!', 'success');
@@ -2082,6 +2373,10 @@ Updated: ${product.updatedAt}
                           window.location.reload();
                         }
                         showToast('Data refreshed successfully!', 'success');
+                        // Refresh pending count for admin
+                        if (user?.role === 'admin') {
+                          await fetchPendingItems();
+                        }
                       } catch (error) {
                         console.error('Error refreshing data:', error);
                         showToast('Failed to refresh data', 'error');
@@ -2104,6 +2399,66 @@ Updated: ${product.updatedAt}
                     </svg>
                   </IconButton>
 
+                  {/* Pending Approvals Notification Bell (Admin Only) */}
+                  {user?.role === 'admin' && (
+                    <IconButton
+                      onClick={() => {
+                        setActiveTab('approvals');
+                        showToast('Navigated to Approval Management', 'info');
+                      }}
+                      sx={{
+                        bgcolor: pendingCount > 0 ? (isDarkMode ? '#dc2626' : '#fee2e2') : (isDarkMode ? '#1e293b' : '#f8fafc'),
+                        position: 'relative',
+                        border: `2px solid ${pendingCount > 0 ? (isDarkMode ? '#b91c1c' : '#fecaca') : (isDarkMode ? '#334155' : '#e2e8f0')}`,
+                        '&:hover': {
+                          bgcolor: pendingCount > 0 ? (isDarkMode ? '#b91c1c' : '#fecaca') : (isDarkMode ? '#334155' : '#e2e8f0'),
+                          transform: 'scale(1.02)',
+                        },
+                        transition: 'all 0.3s',
+                        animation: pendingCount > 0 ? 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' : 'none',
+                        '@keyframes pulse': {
+                          '0%, 100%': { opacity: 1 },
+                          '50%': { opacity: 0.7 },
+                        },
+                        margin: '2px'
+                      }}
+                      title={pendingCount > 0 ? `${pendingCount} pending approval(s)` : 'No pending approvals'}
+                    >
+                      <svg 
+                        className="w-5 h-5" 
+                        fill={pendingCount > 0 ? (isDarkMode ? '#fca5a5' : '#ef4444') : 'currentColor'} 
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" />
+                      </svg>
+                      {/* Badge with pending count */}
+                      {pendingCount > 0 && (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: -4,
+                            right: -4,
+                            bgcolor: '#ef4444',
+                            color: 'white',
+                            borderRadius: '50%',
+                            minWidth: 20,
+                            height: 20,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.75rem',
+                            fontWeight: 'bold',
+                            border: '2px solid',
+                            borderColor: isDarkMode ? '#0f172a' : '#ffffff',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                          }}
+                        >
+                          {pendingCount > 99 ? '99+' : pendingCount}
+                        </Box>
+                      )}
+                    </IconButton>
+                  )}
+
                   {/* Dark Mode Toggle */}
                   <DarkModeToggle />
 
@@ -2116,10 +2471,12 @@ Updated: ${product.updatedAt}
                     }}
                     sx={{
                       p: 0,
+                      border: `2px solid ${isDarkMode ? '#334155' : '#e2e8f0'}`,
                       '&:hover': {
-                        transform: 'scale(1.05)',
+                        transform: 'scale(1.02)',
                       },
                       transition: 'transform 0.2s',
+                      margin: '2px'
                     }}
                   >
                     <Avatar
@@ -2289,6 +2646,33 @@ Updated: ${product.updatedAt}
         <TagManagement isDarkMode={isDarkMode} />
       )}
 
+      {/* Approval Management (Admin Only) */}
+      {activeTab === 'approvals' && user?.role === 'admin' && (
+        <>
+          <ApprovalManagement
+            isDarkMode={isDarkMode}
+            pendingItems={pendingItems}
+            onApprove={handleApproveContent}
+            onReject={handleRejectContent}
+            onEdit={(item) => {
+              if (item.type === 'article' || item.type === 'video') {
+                setEditingItem(item);
+                setActiveTab('content-edit');
+              } else {
+                setEditingProduct(item);
+                setActiveTab('product-edit');
+              }
+            }}
+          />
+          <RejectDialog
+            open={rejectDialogOpen}
+            onClose={() => setRejectDialogOpen(false)}
+            onConfirm={handleRejectConfirm}
+            contentTitle={rejectingItem?.title || ''}
+          />
+        </>
+      )}
+
       {/* Content Management - Only Techniques and Videos */}
       {['articles', 'videos', 'content-list', 'content-create', 'content-edit'].includes(activeTab) && (
         <ContentManagementSection
@@ -2319,6 +2703,8 @@ Updated: ${product.updatedAt}
           onBulkDelete={handleBulkDelete}
           onBulkStatusChange={handleBulkStatusChange}
           showConfirmDialog={showConfirmDialog}
+          users={allUsers}
+          onQuickStatusChange={handleQuickStatusChange}
         />
       )}
 
@@ -2346,6 +2732,9 @@ Updated: ${product.updatedAt}
           onBulkDelete={handleProductBulkDelete}
           onBulkStatusChange={handleProductBulkStatusChange}
           showConfirmDialog={showConfirmDialog}
+          users={allUsers}
+          onQuickStatusChange={handleQuickStatusChange}
+          currentUser={user}
         />
       )}
 
@@ -2356,7 +2745,16 @@ Updated: ${product.updatedAt}
       {activeTab === 'contact-settings' && user?.role === 'admin' && <AdminContactSettings />}
       {activeTab === 'contact-messages' && <AdminContactMessages />}
       {activeTab === 'campaign-settings' && user?.role === 'admin' && <AdminCampaignSettings />}
+      {activeTab === 'restore-management' && user?.role === 'admin' && (
+        <RestoreManagement 
+          onSuccess={() => {
+            // Refresh data after restore (admin always sees all data)
+            loadData();
+          }}
+        />
+      )}
       {activeTab === 'security-settings' && user?.role === 'admin' && <AdminSecuritySettings />}
+      {activeTab === 'maintenance-settings' && user?.role === 'admin' && <AdminMaintenanceSettings />}
 
       {/* Modal for Create/Edit */}
       <AnimatePresence>

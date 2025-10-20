@@ -126,7 +126,7 @@ const Videos: React.FC = () => {
                   <img
                     src={video.featured_image || video.thumbnail || '/image.png'}
                     alt={video.title}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-48 object-contain bg-gray-50 group-hover:scale-105 transition-transform duration-300"
                   />
                   {video.is_featured && (
                     <div className="absolute top-3 left-3 bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1 shadow-lg z-10">

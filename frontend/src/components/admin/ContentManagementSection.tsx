@@ -4,6 +4,7 @@ import ContentList from './ContentList';
 import ContentCreate from './ContentCreate';
 import ContentEdit from './ContentEdit';
 import { ContentItem } from '../../types/admin';
+import { ViewButton, EditButton, DeleteButton } from '../ui/ContentIcons';
 
 interface ContentManagementSectionProps {
   activeTab: string;
@@ -26,7 +27,9 @@ interface ContentManagementSectionProps {
   onCancelEdit?: () => void;
   onBulkDelete?: (ids: string[], types: string[]) => void;
   onBulkStatusChange?: (ids: string[], status: string) => void;
+  onQuickStatusChange?: (id: string, newStatus: string) => Promise<void>;
   showConfirmDialog?: (title: string, message: string, onConfirm: () => void, type?: 'warning' | 'success' | 'info' | 'error') => void;
+  users?: any[];
 }
 
 const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
@@ -50,7 +53,9 @@ const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
   onCancelEdit,
   onBulkDelete,
   onBulkStatusChange,
-  showConfirmDialog
+  showConfirmDialog,
+  users = [],
+  onQuickStatusChange
 }) => {
 
   const handleEditClick = (content: ContentItem) => {
@@ -104,6 +109,7 @@ const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
           onBulkDelete={onBulkDelete}
           onBulkStatusChange={onBulkStatusChange}
           showConfirmDialog={showConfirmDialog}
+          onQuickStatusChange={onQuickStatusChange}
         />
       )}
 
@@ -113,6 +119,7 @@ const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
           onSave={handleCreateSave}
           onCancel={handleCreateCancel}
           isDarkMode={isDarkMode}
+          users={users}
         />
       )}
 
@@ -123,6 +130,7 @@ const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
           onSave={handleEditSave}
           onCancel={handleEditCancel}
           isDarkMode={isDarkMode}
+          users={users}
         />
       )}
     </div>

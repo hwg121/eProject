@@ -73,12 +73,13 @@ const Books: React.FC = () => {
     const loadBooks = async () => {
       try {
         setLoading(true);
+        // Load all books once, then handle pagination client-side
         const response = await publicService.getBooks();
         
-        // Handle API response format: {success: true, data: [...]}
+        // Handle API response format: {data: [...], meta: {...}}
         let booksData: Product[] = [];
-        if (response && typeof response === 'object' && 'success' in response && (response as any).success && (response as any).data) {
-          booksData = (response as any).data;
+        if (response && typeof response === 'object' && 'data' in response) {
+          booksData = response.data;
         } else if (Array.isArray(response)) {
           booksData = response;
         }
@@ -95,7 +96,7 @@ const Books: React.FC = () => {
     loadBooks();
   }, []);
 
-  // Filter books based on search term
+  // Filter books based on search term (client-side filtering for current page)
   const filteredBooks = books.filter(book => {
     const matchesSearch = book.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          book.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -105,10 +106,12 @@ const Books: React.FC = () => {
 
   // Reset to page 1 when search changes
   useEffect(() => {
-    setCurrentPage(1);
+    if (searchTerm) {
+      setCurrentPage(1);
+    }
   }, [searchTerm]);
 
-  // Pagination calculations
+  // Client-side pagination calculations
   const totalPages = Math.ceil(filteredBooks.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -185,7 +188,7 @@ const Books: React.FC = () => {
                         <img 
                           src={book.image} 
                           alt={book.name} 
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          className="w-full h-full object-contain bg-gray-50 group-hover:scale-110 transition-transform duration-300"
                         />
                       </div>
                     )}

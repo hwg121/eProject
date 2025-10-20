@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BarChart3, Users, Package, MessageSquare,
   Menu, X, ChevronRight,
-  FileText, Settings, Target, Hash
+  FileText, Settings, Target, Hash, CheckCircle, Shield
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { 
@@ -45,6 +45,7 @@ interface AdminSidebarProps {
     totalBooks: number;
     totalSuggestions: number;
     totalContactMessages: number;
+    pendingCount?: number;
   };
   isCollapsed: boolean;
   onToggle: () => void;
@@ -99,6 +100,21 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       ]
     },
     {
+      id: 'admin-management',
+      label: 'Admin Management',
+      icon: Shield,
+      color: 'from-emerald-500 to-green-600',
+      description: 'Admin-only features',
+      adminOnly: true,
+      children: [
+        { id: 'approvals', label: 'Approval Management', icon: null, count: stats.pendingCount || 0 },
+        { id: 'restore-management', label: 'Restore Management', icon: null },
+        { id: 'campaign-settings', label: 'Campaign Settings', icon: null },
+        { id: 'security-settings', label: 'Security Settings', icon: null },
+        { id: 'maintenance-settings', label: 'Maintenance Mode', icon: null }
+      ]
+    },
+    {
       id: 'tags',
       label: 'Tag Management',
       icon: Hash,
@@ -123,16 +139,14 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       id: 'site-settings',
       label: 'Site Settings',
       icon: Settings,
-      color: 'from-purple-500 to-indigo-600',
+      color: 'from-emerald-500 to-green-600',
       description: 'Manage site settings',
       children: [
         { id: 'hero-section', label: 'Hero Section', icon: null, adminOnly: true },
         { id: 'staff-management', label: 'Staff Members', icon: null, adminOnly: true },
         { id: 'map-settings', label: 'Map Settings', icon: null, adminOnly: true },
         { id: 'contact-settings', label: 'Contact Settings', icon: null, adminOnly: true },
-        { id: 'contact-messages', label: 'Contact Messages', icon: null },
-        { id: 'campaign-settings', label: 'Campaign Settings', icon: null, adminOnly: true },
-        { id: 'security-settings', label: 'Security Settings', icon: null, adminOnly: true }
+        { id: 'contact-messages', label: 'Contact Messages', icon: null }
       ]
     }
   ];

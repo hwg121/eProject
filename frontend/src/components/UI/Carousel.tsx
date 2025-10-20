@@ -75,7 +75,7 @@ const Carousel: React.FC<CarouselProps> = ({
               <img
                 src={items[currentIndex].image}
                 alt={items[currentIndex].title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain bg-gray-50"
               />
               
               {/* Gradient overlay */}

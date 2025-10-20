@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\MapSetting;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -186,7 +187,17 @@ class MapSettingController extends Controller
                 ], 404);
             }
 
+            $mapTitle = $mapSetting->title;
             $mapSetting->delete();
+            
+            // Log map setting deletion
+            ActivityLog::logPublic(
+                'deleted',
+                'map_setting',
+                $id,
+                $mapTitle,
+                auth()->user() ? auth()->user()->name . " deleted map setting: {$mapTitle}" : "Map setting deleted: {$mapTitle}"
+            );
 
             return response()->json([
                 'success' => true,
