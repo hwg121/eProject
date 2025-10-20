@@ -125,7 +125,7 @@ const AdminMaintenanceSettings: React.FC = () => {
   };
 
   const handleEstimatedEndChange = (value: string) => {
-    setSettings(prev => ({ ...prev, estimated_end_at: convertToISO(value) }));
+    setSettings(prev => ({ ...prev, estimated_end_at: convertToISO(value) || undefined }));
   };
 
   const handleSaveSettings = async () => {
@@ -237,11 +237,10 @@ const AdminMaintenanceSettings: React.FC = () => {
   }
 
   return (
-    <Box sx={{ p: { xs: 1.5, sm: 2, md: 3 } }}>
+    <Box sx={{ p: { xs: 1.5, sm: 2, md: 3 }, maxWidth: '800px', mx: 'auto' }}>
       <PageHeader
         title="Maintenance Mode"
-        description="Manage site maintenance status and display message to visitors"
-        Icon={Wrench}
+        icon={<Wrench />}
       />
 
       <Card
@@ -527,7 +526,7 @@ const AdminMaintenanceSettings: React.FC = () => {
       <Toast
         open={toast.show}
         message={toast.message}
-        type={toast.type}
+        severity={toast.type}
         onClose={() => setToast({ ...toast, show: false })}
       />
     </Box>

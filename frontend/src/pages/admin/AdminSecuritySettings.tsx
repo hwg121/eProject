@@ -191,7 +191,7 @@ const AdminSecuritySettings: React.FC = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="p-2.5 sm:p-3 md:p-4"
+      className="p-2.5 sm:p-3 md:p-4 max-w-2xl mx-auto"
     >
       {/* Header - Responsive */}
       <Box sx={{ mb: { xs: 3, sm: 4 } }}>

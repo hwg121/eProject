@@ -10,6 +10,7 @@ import Card from '../components/ui/Card';
 import AdminSidebar from '../components/admin/AdminSidebar';
 import Toast from '../components/ui/Toast';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
+import ChangePasswordDialog from '../components/ui/ChangePasswordDialog';
 import DashboardCharts from '../components/admin/DashboardCharts';
 import {
   Avatar,
@@ -110,6 +111,13 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     console.log('📍 activeTab changed to:', activeTab);
   }, [activeTab]);
+
+  // Check if user needs to change password on first login
+  useEffect(() => {
+    if (user && user.first_login === true) {
+      setShowChangePasswordDialog(true);
+    }
+  }, [user]);
   
   // Load management data (for product-list, content-list tabs - moderator sees only their own)
   const loadManagementData = useCallback(async () => {
@@ -209,6 +217,8 @@ const AdminDashboard: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('latest');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showChangePasswordDialog, setShowChangePasswordDialog] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   // Removed isLoggedOut state - using authentication context instead
   
   // User profile state
@@ -223,6 +233,7 @@ const AdminDashboard: React.FC = () => {
     address: user?.address || '',
     city: user?.city || '',
     zip_code: user?.zip_code || '',
+    bio: user?.bio || '',
     role: (user?.role === 'admin' || user?.role === 'moderator') ? user.role : 'admin',
     status: user?.status || 'active',
     is_banned: user?.is_banned || false,
@@ -473,6 +484,44 @@ const AdminDashboard: React.FC = () => {
       });
     } catch (error) {
       console.error('Error loading categories:', error);
+    }
+  };
+
+  // Handle change password
+  const handleChangePassword = async (data: {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  }) => {
+    setIsChangingPassword(true);
+    try {
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+      const response = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        showToast('Password changed successfully!', 'success');
+        setShowChangePasswordDialog(false);
+        // Note: User context will be updated on next login/refresh
+        // The backend has already set first_login = false
+      } else {
+        showToast(result.message || 'Failed to change password', 'error');
+      }
+    } catch (error) {
+      console.error('Error changing password:', error);
+      showToast('Failed to change password. Please try again.', 'error');
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -1736,30 +1785,23 @@ Updated: ${product.updatedAt}
 
   const handleSaveUserProfile = useCallback(async () => {
     try {
-    // Create payload WITHOUT password field (password should be handled separately)
+    // Create payload WITHOUT password field (password is handled via ChangePasswordDialog)
+    // Send ALL fields to backend, let backend decide what to update
     const payload: any = {
       name: userProfile.name || '',
       email: userProfile.email || '',
+      phone: userProfile.phone || '',
+      phone_country_code: userProfile.phone_country_code || '',
+      country: userProfile.country || '',
+      address: userProfile.address || '',
+      city: userProfile.city || '',
+      zip_code: userProfile.zip_code || '',
+      bio: userProfile.bio || '',
+      role: userProfile.role || 'moderator',
+      status: userProfile.status || 'active',
       avatar: userProfile.avatar || null,
       avatar_public_id: userProfile.avatar_public_id || null
     };
-    
-    // Add other fields if needed
-    if (userProfile.phone) payload.phone = userProfile.phone;
-    if (userProfile.phone_country_code) payload.phone_country_code = userProfile.phone_country_code;
-    if (userProfile.country) payload.country = userProfile.country;
-    if (userProfile.address) payload.address = userProfile.address;
-    if (userProfile.city) payload.city = userProfile.city;
-    if (userProfile.zip_code) payload.zip_code = userProfile.zip_code;
-    if (userProfile.role) payload.role = userProfile.role;
-    if (userProfile.status) payload.status = userProfile.status;
-    
-    // Only add password if it's provided and not empty
-    if (userProfile.password && userProfile.password.trim() !== '') {
-      payload.password = userProfile.password;
-    }
-
-      // Debug: Check if avatar data is in payload
 
       // Update user profile
       const response = await userService.updateProfile(payload);
@@ -2794,6 +2836,16 @@ Updated: ${product.updatedAt}
         onClose={handleCloseToast}
         autoHideDuration={4000}
         position={{ vertical: 'bottom', horizontal: 'center' }}
+      />
+
+      {/* Change Password Dialog */}
+      <ChangePasswordDialog
+        open={showChangePasswordDialog}
+        onClose={() => setShowChangePasswordDialog(false)}
+        onSubmit={handleChangePassword}
+        isDarkMode={isDarkMode}
+        isLoading={isChangingPassword}
+        isRequired={user?.first_login === true}
       />
 
       {/* Confirm Dialog */}

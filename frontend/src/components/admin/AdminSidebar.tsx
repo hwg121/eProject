@@ -190,7 +190,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
   return (
     <motion.div
-      className={`transition-all duration-300 min-h-screen overflow-hidden ${
+      className={`transition-all duration-300 h-screen overflow-hidden sticky top-0 ${
         isCollapsed ? 'w-16' : 'w-64'
       } ${isDarkMode 
         ? 'bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 border-r border-gray-700/50' 

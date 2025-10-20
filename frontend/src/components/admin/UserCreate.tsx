@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Save, X, User, Mail, Lock, Shield, UserPlus } from 'lucide-react';
-import { TextField, Select, MenuItem, FormControl, InputLabel, Box, Typography } from '@mui/material';
+import { ArrowLeft, Save, User, Lock, UserPlus, RefreshCw, Eye, EyeOff } from 'lucide-react';
+import { TextField, Select, MenuItem, FormControl, InputLabel, Box, Typography, Button, IconButton, InputAdornment } from '@mui/material';
 import { useTheme } from '../../contexts/ThemeContext';
 import Card from '../ui/Card';
 import Toast from '../ui/Toast';
 import ImageUpload from '../common/ImageUpload';
 import SecurityPasswordModal from './SecurityPasswordModal';
+import UserConfirmDialog from '../ui/UserConfirmDialog';
+import { validatePassword } from '../../utils/validation';
 
 interface UserCreateProps {
   onSave: (userData: any) => void;
@@ -46,11 +48,15 @@ const UserCreate: React.FC<UserCreateProps> = ({
     status: 'active',
     phone: '',
     bio: '',
-    avatar: ''
+    avatar: '',
+    first_login: true
   });
 
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [showSecurityModal, setShowSecurityModal] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Dark mode TextField styles - synced with UserEditForm
   const textFieldStyles = {
@@ -87,6 +93,31 @@ const UserCreate: React.FC<UserCreateProps> = ({
   };
   const [pendingData, setPendingData] = useState<any>(null);
 
+  // Generate random password function
+  const generateRandomPassword = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let password = '';
+    for (let i = 0; i < 8; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  };
+
+  const handleGeneratePassword = () => {
+    const newPassword = generateRandomPassword();
+    setFormData(prev => ({
+      ...prev,
+      password: newPassword,
+      confirmPassword: newPassword
+    }));
+    // Clear password errors when generating
+    setErrors(prev => ({
+      ...prev,
+      password: '',
+      confirmPassword: ''
+    }));
+  };
+
   const validateForm = () => {
     const newErrors: {[key: string]: string} = {};
 
@@ -109,12 +140,10 @@ const UserCreate: React.FC<UserCreateProps> = ({
       }
     }
 
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    } else if (formData.password.length > 128) {
-      newErrors.password = 'Password must not exceed 128 characters';
+    // Validate password using utility function
+    const passwordError = validatePassword(formData.password, true, 8, 128);
+    if (passwordError) {
+      newErrors.password = passwordError;
     }
 
     if (formData.password !== formData.confirmPassword) {
@@ -145,6 +174,13 @@ const UserCreate: React.FC<UserCreateProps> = ({
       return;
     }
 
+    // Show confirmation dialog instead of directly submitting
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmCreate = () => {
+    setShowConfirmDialog(false);
+    
     // Check if creating admin role - require security password
     if (formData.role === 'admin') {
       setPendingData(formData);
@@ -152,6 +188,19 @@ const UserCreate: React.FC<UserCreateProps> = ({
     } else {
       onSave(formData);
     }
+  };
+
+  const handleCancelConfirm = () => {
+    setShowConfirmDialog(false);
+  };
+
+  const handleCopyUserInfo = () => {
+    const userInfo = `Name: ${formData.name}\nEmail: ${formData.email}\nPassword: ${formData.password}\nRole: ${formData.role}`;
+    navigator.clipboard.writeText(userInfo).then(() => {
+      showToast('User information copied to clipboard!', 'success');
+    }).catch(() => {
+      showToast('Failed to copy to clipboard', 'error');
+    });
   };
   
   const handleSecurityConfirm = (securityPassword: string) => {
@@ -199,7 +248,7 @@ const UserCreate: React.FC<UserCreateProps> = ({
 
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
@@ -227,13 +276,7 @@ const UserCreate: React.FC<UserCreateProps> = ({
       </div>
 
       {/* Form */}
-      <Card sx={{ 
-        p: 2.5,
-        background: actualDarkMode ? 'rgba(30, 41, 59, 0.6)' : 'white',
-        backdropFilter: 'blur(10px)',
-        border: '1px solid',
-        borderColor: actualDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'
-      }}>
+      <Card className="max-w-4xl mx-auto">
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           {/* Basic Information */}
           <Box sx={{ mb: 3 }}>
@@ -322,39 +365,110 @@ const UserCreate: React.FC<UserCreateProps> = ({
               color: actualDarkMode ? '#fff' : '#1f2937',
               fontWeight: 600
             }}>
-              <Lock className="w-5 h-5" />
+              <Lock style={{ width: '20px', height: '20px' }} />
               Security
             </Typography>
             
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
-              <TextField
-                fullWidth
-                label="Password"
-                type="password"
-                value={formData.password}
-                onChange={(e) => handleInputChange('password', e.target.value)}
-                placeholder="Enter password"
-                error={!!errors.password}
-                helperText={errors.password || 'Password: 6-128 characters, no spaces'}
-                inputProps={{ 
-                  minLength: 6,
-                  maxLength: 128,
-                  pattern: '\\S{6,128}'
-                }}
-                sx={textFieldStyles}
-              />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {/* Password Generator Button */}
+              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                <Button
+                  onClick={handleGeneratePassword}
+                  variant="outlined"
+                  startIcon={<RefreshCw style={{ width: '16px', height: '16px' }} />}
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    borderColor: actualDarkMode ? '#4b5563' : '#d1d5db',
+                    color: actualDarkMode ? '#e5e7eb' : '#6b7280',
+                    px: 3,
+                    py: 1.5,
+                    borderRadius: 2,
+                    '&:hover': {
+                      borderColor: '#10b981',
+                      color: '#10b981',
+                      bgcolor: actualDarkMode ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.05)'
+                    }
+                  }}
+                >
+                  Generate Random Password
+                </Button>
+              </Box>
 
-              <TextField
-                fullWidth
-                label="Confirm Password"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                placeholder="Confirm password"
-                error={!!errors.confirmPassword}
-                helperText={errors.confirmPassword}
-                sx={textFieldStyles}
-              />
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+                <TextField
+                  fullWidth
+                  label="Password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={formData.password}
+                  onChange={(e) => handleInputChange('password', e.target.value)}
+                  placeholder="Enter password"
+                  error={!!errors.password}
+                  helperText={errors.password || 'Password: 8+ chars, uppercase, lowercase, number, special char (!@#$%...)'}
+                  inputProps={{ 
+                    minLength: 6,
+                    maxLength: 128,
+                    pattern: '\\S{6,128}'
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                          sx={{
+                            color: actualDarkMode ? '#9ca3af' : '#6b7280',
+                            '&:hover': {
+                              color: '#10b981'
+                            }
+                          }}
+                        >
+                          {showPassword ? (
+                            <EyeOff style={{ width: '20px', height: '20px' }} />
+                          ) : (
+                            <Eye style={{ width: '20px', height: '20px' }} />
+                          )}
+                        </IconButton>
+                      </InputAdornment>
+                    )
+                  }}
+                  sx={textFieldStyles}
+                />
+
+                <TextField
+                  fullWidth
+                  label="Confirm Password"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={formData.confirmPassword}
+                  onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                  placeholder="Confirm password"
+                  error={!!errors.confirmPassword}
+                  helperText={errors.confirmPassword}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          edge="end"
+                          sx={{
+                            color: actualDarkMode ? '#9ca3af' : '#6b7280',
+                            '&:hover': {
+                              color: '#10b981'
+                            }
+                          }}
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff style={{ width: '20px', height: '20px' }} />
+                          ) : (
+                            <Eye style={{ width: '20px', height: '20px' }} />
+                          )}
+                        </IconButton>
+                      </InputAdornment>
+                    )
+                  }}
+                  sx={textFieldStyles}
+                />
+              </Box>
             </Box>
           </Box>
 
@@ -451,6 +565,21 @@ const UserCreate: React.FC<UserCreateProps> = ({
         </form>
       </Card>
       
+      {/* User Confirmation Dialog */}
+      <UserConfirmDialog
+        open={showConfirmDialog}
+        userData={{
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role
+        }}
+        onConfirm={handleConfirmCreate}
+        onCancel={handleCancelConfirm}
+        onCopy={handleCopyUserInfo}
+        isDarkMode={actualDarkMode}
+      />
+
       {/* Security Password Modal */}
       <SecurityPasswordModal
         isOpen={showSecurityModal}

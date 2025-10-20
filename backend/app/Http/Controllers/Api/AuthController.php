@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\ActivityLog;
+use App\Rules\StrongPassword;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -80,6 +82,7 @@ class AuthController extends Controller
                     'city' => $user->city,
                     'zip_code' => $user->zip_code,
                     'is_banned' => $user->is_banned,
+                    'first_login' => $user->first_login,
                     'created_at' => $user->created_at,
                     'updated_at' => $user->updated_at,
                 ]
@@ -125,6 +128,7 @@ class AuthController extends Controller
                     'city' => $user->city,
                     'zip_code' => $user->zip_code,
                     'is_banned' => $user->is_banned,
+                    'first_login' => $user->first_login,
                     'created_at' => $user->created_at,
                     'updated_at' => $user->updated_at,
                 ]
@@ -165,10 +169,90 @@ class AuthController extends Controller
                     'city' => $user->city,
                     'zip_code' => $user->zip_code,
                     'is_banned' => $user->is_banned,
+                    'first_login' => $user->first_login,
                     'created_at' => $user->created_at,
                     'updated_at' => $user->updated_at,
                 ]
             ]
         ]);
+    }
+
+    /**
+     * Change user password
+     */
+    public function changePassword(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'currentPassword' => 'required',
+                'newPassword' => ['required', new StrongPassword()],
+                'confirmPassword' => 'required|same:newPassword',
+            ]);
+
+            $user = $request->user();
+
+            // Verify current password
+            if (!Hash::check($validated['currentPassword'], $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Current password is incorrect',
+                    'error' => 'INVALID_CURRENT_PASSWORD'
+                ], 400);
+            }
+
+            // Check if new password is different from current
+            if (Hash::check($validated['newPassword'], $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'New password must be different from current password',
+                    'error' => 'SAME_PASSWORD'
+                ], 400);
+            }
+
+            // Update password
+            $user->password = Hash::make($validated['newPassword']);
+            $user->first_login = false; // Mark as not first login anymore
+            $user->save();
+
+            // Log password change activity
+            ActivityLog::logSecurity(
+                'password_change',
+                "User {$user->name} changed password",
+                [
+                    'user_email' => $user->email,
+                    'user_role' => $user->role,
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent()
+                ],
+                'user',
+                $user->id,
+                $user->name
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Password changed successfully',
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'role' => $user->role,
+                        'status' => $user->status,
+                        'first_login' => $user->first_login,
+                    ]
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Change password error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while changing password: ' . $e->getMessage(),
+                'error' => 'INTERNAL_ERROR'
+            ], 500);
+        }
     }
 }

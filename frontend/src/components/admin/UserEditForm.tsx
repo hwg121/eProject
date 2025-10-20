@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { apiClient } from '../../services/api';
+import { validateBio } from '../../utils/validation';
 import ImageUpload from '../common/ImageUpload';
 import SecurityPasswordModal from './SecurityPasswordModal';
 import StatusBadge from '../StatusBadge';
 import Toast from '../ui/Toast';
+import UserConfirmDialog from '../ui/UserConfirmDialog';
 import {
   Box,
   Card,
@@ -91,6 +93,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
     address: userData?.address || '',
     city: userData?.city || '',
     zip_code: userData?.zip_code || '',
+    bio: userData?.bio || '',
     role: userData?.role || 'moderator',
     status: userData?.status || 'active',
     is_banned: userData?.is_banned || userData?.status === 'banned' || false,
@@ -99,7 +102,10 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
   });
 
   const [showSecurityModal, setShowSecurityModal] = useState(false);
+  const [showUserConfirmDialog, setShowUserConfirmDialog] = useState(false);
+  const [confirmDialogData, setConfirmDialogData] = useState<any>(null);
   const [pendingData, setPendingData] = useState<any>(null);
+  const [bioError, setBioError] = useState<string | null>(null);
   
   const originalRole = userData?.role || 'moderator';
   
@@ -120,6 +126,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
         address: userData.address || '',
         city: userData.city || '',
         zip_code: userData.zip_code || '',
+        bio: userData.bio || '',
         role: userData.role || 'moderator',
         status: userData.status || 'active',
         is_banned: userData.is_banned || userData.status === 'banned' || false,
@@ -133,11 +140,24 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
     e.preventDefault();
     
     try {
+      // Validate bio before submission
+      const bioValidationError = validateBio(formData.bio, false, 1000);
+      if (bioValidationError) {
+        setBioError(bioValidationError);
+        showToast(bioValidationError, 'error');
+        return;
+      }
+      
       // Check if editing admin or changing to admin - require security password
       const isChangingToAdmin = formData.role === 'admin';
       const isAlreadyAdmin = originalRole === 'admin';
+      const isChangingPassword = formData.password && formData.password.trim() !== '';
       
-      if (isChangingToAdmin || isAlreadyAdmin) {
+      // Require security password if:
+      // 1. Editing admin user OR
+      // 2. Changing to admin role OR
+      // 3. Changing password of any user
+      if (isChangingToAdmin || isAlreadyAdmin || isChangingPassword) {
         setPendingData(formData);
         setShowSecurityModal(true);
       } else {
@@ -166,21 +186,38 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
       }
       
       // Show error toast
-      setToast({ open: true, message: errorMessage, severity: 'error' });
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     }
   };
   
   const handleSecurityConfirm = async (securityPassword: string) => {
     try {
       if (pendingData) {
-        // Add security password to data
-        const dataWithSecurity = {
-          ...pendingData,
-          security_password: securityPassword
-        };
-        await onSave(dataWithSecurity);
         setShowSecurityModal(false);
-        setPendingData(null);
+        
+        // Check if changing password or role
+        const isChangingPassword = pendingData.password && pendingData.password.trim() !== '';
+        const isChangingRole = pendingData.role !== originalRole;
+        
+        // If changing password or role, show UserConfirmDialog
+        if (isChangingPassword || isChangingRole) {
+          // If changing password, set first_login = true
+          const dataWithFirstLogin = {
+            ...pendingData,
+            security_password: securityPassword,
+            first_login: isChangingPassword ? true : pendingData.first_login
+          };
+          setConfirmDialogData(dataWithFirstLogin);
+          setShowUserConfirmDialog(true);
+        } else {
+          // Not changing password/role, save directly
+          const dataWithSecurity = {
+            ...pendingData,
+            security_password: securityPassword
+          };
+          await onSave(dataWithSecurity);
+          setPendingData(null);
+        }
       }
     } catch (error: any) {
       console.error('UserEditForm - Security confirm error:', error);
@@ -205,7 +242,46 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
       }
       
       // Show error toast
-      setToast({ open: true, message: errorMessage, severity: 'error' });
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+    }
+  };
+
+  const handleConfirmUpdate = async () => {
+    try {
+      if (confirmDialogData) {
+        setShowUserConfirmDialog(false);
+        await onSave(confirmDialogData);
+        setConfirmDialogData(null);
+        setPendingData(null);
+      }
+    } catch (error: any) {
+      console.error('UserEditForm - Confirm update error:', error);
+      
+      let errorMessage = 'Failed to save user. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+    }
+  };
+
+  const handleCancelConfirm = () => {
+    setShowUserConfirmDialog(false);
+    setConfirmDialogData(null);
+  };
+
+  const handleCopyUserInfo = () => {
+    if (confirmDialogData) {
+      const userInfo = `Name: ${confirmDialogData.name}\nEmail: ${confirmDialogData.email}\n${confirmDialogData.password ? `Password: ${confirmDialogData.password}\n` : ''}Role: ${confirmDialogData.role}`;
+      navigator.clipboard.writeText(userInfo).then(() => {
+        showToast('User information copied to clipboard!', 'success');
+      }).catch(() => {
+        showToast('Failed to copy to clipboard', 'error');
+      });
     }
   };
 
@@ -406,7 +482,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                   value={formData.password || ''}
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                   placeholder="Enter new password (leave blank to keep current)"
-                  helperText="Leave blank to keep current password"
+                  helperText="⚠️ Changing password requires security password verification. Leave blank to keep current."
                   sx={textFieldStyles}
                 />
 
@@ -417,8 +493,29 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                   value={formData.phone}
                   onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                   placeholder="Enter phone number"
+                  inputProps={{ maxLength: 20, pattern: '[0-9\\s\\-\\(\\)\\+]+' }}
+                  helperText={`${formData.phone?.length || 0}/20 characters`}
                   sx={textFieldStyles}
                 />
+
+                <FormControl fullWidth>
+                  <InputLabel sx={{ '&.Mui-focused': { color: '#047857' } }}>Phone Country Code</InputLabel>
+                  <Select
+                    value={formData.phone_country_code || 'VN'}
+                    onChange={(e) => setFormData(prev => ({ ...prev, phone_country_code: e.target.value }))}
+                    label="Phone Country Code"
+                    sx={{
+                      '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#10b981' },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#10b981' },
+                    }}
+                 >
+                    <MenuItem value="VN">+84 (VN)</MenuItem>
+                    <MenuItem value="US">+1 (US)</MenuItem>
+                    <MenuItem value="UK">+44 (UK)</MenuItem>
+                    <MenuItem value="JP">+81 (JP)</MenuItem>
+                    <MenuItem value="KR">+82 (KR)</MenuItem>
+                  </Select>
+                </FormControl>
 
                 <FormControl fullWidth>
                   <InputLabel sx={{ '&.Mui-focused': { color: '#047857' } }}>Country</InputLabel>
@@ -445,6 +542,8 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                   value={formData.city}
                   onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
                   placeholder="City"
+                  inputProps={{ maxLength: 255 }}
+                  helperText={`${formData.city?.length || 0}/255 characters`}
                   sx={textFieldStyles}
                 />
 
@@ -454,6 +553,8 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                   value={formData.address}
                   onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
                   placeholder="Address"
+                  inputProps={{ maxLength: 500 }}
+                  helperText={`${formData.address?.length || 0}/500 characters`}
                   sx={textFieldStyles}
                 />
 
@@ -463,6 +564,29 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                   value={formData.zip_code}
                   onChange={(e) => setFormData(prev => ({ ...prev, zip_code: e.target.value }))}
                   placeholder="Zip/code"
+                  inputProps={{ maxLength: 20 }}
+                  helperText={`${formData.zip_code?.length || 0}/20 characters`}
+                  sx={textFieldStyles}
+                />
+
+                <TextField
+                  fullWidth
+                  label="Bio"
+                  value={formData.bio}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFormData(prev => ({ ...prev, bio: value }));
+                    
+                    // Validate bio
+                    const error = validateBio(value, false, 1000);
+                    setBioError(error);
+                  }}
+                  placeholder="Tell us about yourself..."
+                  multiline
+                  rows={3}
+                  inputProps={{ maxLength: 1000 }}
+                  helperText={bioError || `${formData.bio.length}/1000 characters`}
+                  error={!!bioError}
                   sx={textFieldStyles}
                 />
 
@@ -527,6 +651,21 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
         </Card>
       </Box>
       
+      {/* User Confirmation Dialog */}
+      <UserConfirmDialog
+        open={showUserConfirmDialog}
+        userData={{
+          name: confirmDialogData?.name || '',
+          email: confirmDialogData?.email || '',
+          password: confirmDialogData?.password || '',
+          role: confirmDialogData?.role || ''
+        }}
+        onConfirm={handleConfirmUpdate}
+        onCancel={handleCancelConfirm}
+        onCopy={handleCopyUserInfo}
+        isDarkMode={isDarkMode}
+      />
+
       {/* Security Password Modal */}
       <SecurityPasswordModal
         isOpen={showSecurityModal}
@@ -536,7 +675,11 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
         }}
         onConfirm={handleSecurityConfirm}
         title="Admin Operation Requires Verification"
-        message="Editing admin users requires owner verification. Only the website owner should have this password."
+        message={
+          formData.password && formData.password.trim() !== ''
+            ? "Changing user passwords requires owner verification. Only the website owner should have this password."
+            : "Editing admin users requires owner verification. Only the website owner should have this password."
+        }
       />
       
       {/* Toast Notifications */}

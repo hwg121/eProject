@@ -15,7 +15,9 @@ export interface User {
   address?: string;
   city?: string;
   zip_code?: string;
+  bio?: string;
   is_banned?: boolean;
+  first_login?: boolean;
   created_at: string;
   updated_at: string;
 }

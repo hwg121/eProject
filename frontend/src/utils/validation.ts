@@ -91,6 +91,26 @@ export const validatePassword = (
   // Character validation
   if (password.includes(' ')) return 'Password cannot contain spaces';
   
+  // Check for at least one uppercase letter
+  if (!/[A-Z]/.test(password)) {
+    return 'Password must contain at least one uppercase letter';
+  }
+  
+  // Check for at least one lowercase letter
+  if (!/[a-z]/.test(password)) {
+    return 'Password must contain at least one lowercase letter';
+  }
+  
+  // Check for at least one number
+  if (!/[0-9]/.test(password)) {
+    return 'Password must contain at least one number';
+  }
+  
+  // Check for at least one special character
+  if (!/[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/~`]/.test(password)) {
+    return 'Password must contain at least one special character (!@#$%^&*...)';
+  }
+  
   return null;
 };
 
@@ -369,6 +389,41 @@ export const validateSlugUnique = (
   
   if (isDuplicate) {
     return 'Slug already exists. Please use a different slug.';
+  }
+  
+  return null;
+};
+
+/**
+ * Validates bio text (user biography)
+ * @param bio - Bio text to validate
+ * @param required - Whether bio is required (default: false)
+ * @param maxLength - Maximum length (default: 1000)
+ * @returns Error message or null if valid
+ */
+export const validateBio = (
+  bio: string, 
+  required: boolean = false, 
+  maxLength: number = 1000
+): string | null => {
+  if (!bio || bio.trim() === '') {
+    return required ? 'Bio is required' : null;
+  }
+
+  const trimmedBio = bio.trim();
+  
+  if (trimmedBio.length > maxLength) {
+    return `Bio must not exceed ${maxLength} characters`;
+  }
+  
+  // Check for excessive whitespace
+  if (trimmedBio.includes('  ')) {
+    return 'Bio cannot contain multiple consecutive spaces';
+  }
+  
+  // Check for excessive line breaks
+  if (trimmedBio.includes('\n\n\n')) {
+    return 'Bio cannot contain more than 2 consecutive line breaks';
   }
   
   return null;

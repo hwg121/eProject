@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\ActivityLog;
 use App\Models\SecuritySetting;
+use App\Rules\StrongPassword;
 use App\Services\CloudinaryService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -93,17 +94,19 @@ class UserController extends Controller
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email',
-                'password' => 'required|string|min:8',
+                'password' => ['required', 'string', new StrongPassword()],
                 'phone' => 'nullable|string|max:20',
                 'phone_country_code' => 'nullable|string|max:5',
                 'country' => 'nullable|string|max:10',
                 'address' => 'nullable|string|max:500',
                 'city' => 'nullable|string|max:255',
                 'zip_code' => 'nullable|string|max:20',
+                'bio' => 'nullable|string|max:1000',
                 'role' => ['required', Rule::in(['admin', 'moderator'])],
                 'status' => ['required', Rule::in(['active', 'banned'])],
                 'avatar' => 'nullable|string', // Accept avatar URL from Cloudinary
                 'avatar_public_id' => 'nullable|string|max:255', // Accept public_id from Cloudinary
+                'first_login' => 'nullable|boolean', // Accept first_login from frontend
                 'security_password' => 'nullable|string', // Required when creating admin
             ]);
             
@@ -133,6 +136,11 @@ class UserController extends Controller
 
             // Hash password
             $validated['password'] = Hash::make($validated['password']);
+
+            // Set first_login to true if not provided
+            if (!isset($validated['first_login'])) {
+                $validated['first_login'] = true;
+            }
 
             // Handle avatar upload (if file is provided instead of URL)
             if ($request->hasFile('avatar')) {
@@ -227,26 +235,30 @@ class UserController extends Controller
                 'address' => 'nullable|string|max:500',
                 'city' => 'nullable|string|max:255',
                 'zip_code' => 'nullable|string|max:20',
+                'bio' => 'nullable|string|max:1000',
                 'role' => ['sometimes', Rule::in(['admin', 'moderator'])],
                 'status' => ['sometimes', Rule::in(['active', 'banned'])],
                 'is_email_verified' => 'boolean',
                 'avatar' => 'nullable|string', // Accept avatar URL from Cloudinary
                 'avatar_public_id' => 'nullable|string|max:255', // Accept public_id from Cloudinary
+                'first_login' => 'nullable|boolean', // Accept first_login from frontend
                 'security_password' => 'nullable|string', // Required when editing admin
             ]);
             
-            // Check if changing role to admin OR if user is already admin
+            // Check if changing role to admin OR if user is already admin OR changing password
             $isChangingToAdmin = isset($validated['role']) && $validated['role'] === 'admin';
             $isAlreadyAdmin = $user->role === 'admin';
+            $isChangingPassword = isset($validated['password']) && !empty($validated['password']);
             
-            if ($isChangingToAdmin || $isAlreadyAdmin) {
+            if ($isChangingToAdmin || $isAlreadyAdmin || $isChangingPassword) {
                 // Require security password when:
                 // 1. Changing any user to admin
                 // 2. Editing an existing admin user
+                // 3. Changing password of any user
                 if (!isset($validated['security_password'])) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Security password is required to create/edit admin user',
+                        'message' => 'Security password is required to edit admin user or change passwords',
                         'requires_security_password' => true
                     ], 403);
                 }
@@ -267,6 +279,10 @@ class UserController extends Controller
             // Hash password if provided
             if (isset($validated['password'])) {
                 $validated['password'] = Hash::make($validated['password']);
+                // If changing password, set first_login to true (unless explicitly set to false)
+                if (!isset($validated['first_login'])) {
+                    $validated['first_login'] = true;
+                }
             }
 
             // Handle avatar upload with Cloudinary
@@ -499,23 +515,19 @@ class UserController extends Controller
             $validated = $request->validate([
                 'name' => 'sometimes|string|max:255',
                 'email' => ['sometimes', 'email', Rule::unique('users', 'email')->ignore($user->id)],
-                'password' => 'sometimes|string|min:8',
+                // Password is NOT allowed here - use /auth/change-password endpoint instead
                 'phone' => 'nullable|string|max:20',
                 'phone_country_code' => 'nullable|string|max:5',
                 'country' => 'nullable|string|max:10',
                 'address' => 'nullable|string|max:500',
                 'city' => 'nullable|string|max:255',
                 'zip_code' => 'nullable|string|max:20',
+                'bio' => 'nullable|string|max:1000',
                 'role' => ['sometimes', Rule::in(['admin', 'moderator'])],
                 'status' => ['sometimes', Rule::in(['active', 'banned'])],
                 'avatar' => 'nullable|string', // Accept avatar URL from Cloudinary
                 'avatar_public_id' => 'nullable|string|max:255', // Accept public_id from Cloudinary
             ]);
-
-            // Hash password if provided
-            if (isset($validated['password'])) {
-                $validated['password'] = Hash::make($validated['password']);
-            }
 
             // Avatar is already uploaded to Cloudinary, just save URL and public_id
 

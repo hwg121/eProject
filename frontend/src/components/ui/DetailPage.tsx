@@ -950,7 +950,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
                                     <img
                                       src={image}
                                       alt={`${title} - Image ${index + 1}`}
-                                      className="w-full h-24 object-cover rounded-lg shadow-md group-hover:shadow-xl transition-all duration-300"
+                                      className="w-full h-24 object-contain bg-gray-50 rounded-lg shadow-md group-hover:shadow-xl transition-all duration-300"
                                     />
                                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-all duration-300 flex items-center justify-center">
                                       <Eye className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

@@ -130,7 +130,9 @@ export interface User {
   address?: string;
   city?: string;
   zip_code?: string;
+  bio?: string;
   is_banned?: boolean;
+  first_login?: boolean;
   createdAt: string;
   updatedAt: string;
 }

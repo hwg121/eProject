@@ -38,6 +38,7 @@ Route::middleware(['cors'])->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
     Route::get('/auth/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
     Route::post('/auth/refresh', [AuthController::class, 'refresh'])->middleware('auth:sanctum');
+    Route::post('/auth/change-password', [AuthController::class, 'changePassword'])->middleware('auth:sanctum');
 
     // Maintenance mode status (Public)
     Route::get('/maintenance/status', [MaintenanceController::class, 'status']);
