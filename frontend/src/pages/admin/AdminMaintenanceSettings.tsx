@@ -22,6 +22,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import PageHeader from '../../components/ui/PageHeader';
 import Toast from '../../components/ui/Toast';
 import { maintenanceService } from '../../services/api';
+import { formatDate } from '../../utils/dateUtils';
 
 interface MaintenanceSettings {
   is_enabled: boolean;
@@ -39,26 +40,37 @@ const AdminMaintenanceSettings: React.FC = () => {
   const { isDarkMode } = useTheme();
   
   // Helper function to convert datetime-local value to ISO string
+  // Backend timezone is Asia/Ho_Chi_Minh (UTC+7), so we send local time as-is
   const convertToISO = (datetimeLocalValue: string) => {
     if (!datetimeLocalValue) return null;
-    // datetime-local gives us YYYY-MM-DDTHH:mm format
-    // We need to treat it as local time and convert to ISO
+    // datetime-local gives us YYYY-MM-DDTHH:mm format in user's local time
+    // Backend will handle timezone conversion to Asia/Ho_Chi_Minh
+    // Just convert to ISO format without timezone manipulation
     const date = new Date(datetimeLocalValue);
-    const result = date.toISOString();
-    console.log('convertToISO:', { datetimeLocalValue, result });
-    return result;
+    if (isNaN(date.getTime())) return null;
+    return date.toISOString();
   };
   
   // Helper function to convert ISO string to datetime-local value
-  const convertToDatetimeLocal = (isoString: string | null) => {
+  // Backend returns time in Asia/Ho_Chi_Minh timezone, convert to local for display
+  const convertToDatetimeLocal = (isoString: string | null | undefined) => {
     if (!isoString) return '';
-    const date = new Date(isoString);
-    // Get the local timezone offset and adjust
-    const offset = date.getTimezoneOffset();
-    const localDate = new Date(date.getTime() - (offset * 60000));
-    const result = localDate.toISOString().slice(0, 16);
-    console.log('convertToDatetimeLocal:', { isoString, offset, result });
-    return result;
+    try {
+      const date = new Date(isoString);
+      if (isNaN(date.getTime())) return '';
+      
+      // Convert to local time for datetime-local input
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    } catch (error) {
+      console.error('Error converting to datetime-local:', error);
+      return '';
+    }
   };
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -261,7 +273,13 @@ const AdminMaintenanceSettings: React.FC = () => {
               <Typography variant="body2">
                 <strong>Enabled by:</strong> {settings.enabled_by.name} ({settings.enabled_by.email})
                 <br />
-                <strong>Started at:</strong> {settings.started_at ? new Date(settings.started_at).toLocaleString() : 'N/A'}
+                <strong>Started at:</strong> {formatDate(settings.started_at)}
+                {settings.estimated_end_at && (
+                  <>
+                    <br />
+                    <strong>Estimated end:</strong> {formatDate(settings.estimated_end_at)}
+                  </>
+                )}
               </Typography>
             </Alert>
           )}
@@ -368,7 +386,7 @@ const AdminMaintenanceSettings: React.FC = () => {
               }}
             />
             <Typography variant="body2" sx={{ color: isDarkMode ? '#94a3b8' : '#64748b', mt: 1 }}>
-              When maintenance is expected to be completed
+              When maintenance is expected to be completed (Vietnam time - GMT+7)
             </Typography>
           </Box>
 

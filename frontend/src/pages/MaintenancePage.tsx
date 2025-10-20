@@ -1,5 +1,6 @@
-import React from 'react';
-import { Wrench, Clock, Mail, Leaf, Flower2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Wrench, Clock, Mail } from 'lucide-react';
+import { formatMaintenanceEstimate } from '../utils/dateUtils';
 
 interface MaintenancePageProps {
   message?: string;
@@ -10,22 +11,26 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({
   message = 'We are currently performing scheduled maintenance to improve our services. Please check back soon.',
   estimatedEndAt 
 }) => {
-  const formatEstimatedTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = date.getTime() - now.getTime();
-    
-    if (diff <= 0) return 'Very soon!';
-    
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
-    if (hours > 0) {
-      return `Back in ${hours}h ${minutes}m`;
-    } else {
-      return `Back in ${minutes} minutes`;
-    }
-  };
+  // State for real-time countdown update
+  const [countdownText, setCountdownText] = useState<string>('');
+
+  // Update countdown every minute
+  useEffect(() => {
+    if (!estimatedEndAt) return;
+
+    const updateCountdown = () => {
+      const formatted = formatMaintenanceEstimate(estimatedEndAt);
+      setCountdownText(formatted);
+    };
+
+    // Initial update
+    updateCountdown();
+
+    // Update every 60 seconds
+    const interval = setInterval(updateCountdown, 60000);
+
+    return () => clearInterval(interval);
+  }, [estimatedEndAt]);
 
   return (
     <div className="h-screen w-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center p-4 relative overflow-hidden">
@@ -75,7 +80,7 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({
           </p>
 
           {/* Estimated Time */}
-          {estimatedEndAt && (
+          {estimatedEndAt && countdownText && (
             <div className="inline-flex items-center gap-3 bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 px-6 py-3 rounded-full text-green-700 mb-8 border border-green-300/60 shadow-lg shadow-green-200/50 backdrop-blur-sm">
               <div className="relative">
                 <Clock className="w-5 h-5 animate-pulse" style={{ animationDuration: '6s' }} />
@@ -83,7 +88,7 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({
                   <Clock className="w-5 h-5" />
                 </div>
               </div>
-              <span className="text-base font-semibold">{formatEstimatedTime(estimatedEndAt)}</span>
+              <span className="text-base font-semibold">{countdownText}</span>
             </div>
           )}
 

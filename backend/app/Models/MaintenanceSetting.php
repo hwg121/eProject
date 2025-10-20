@@ -21,6 +21,17 @@ class MaintenanceSetting extends Model
     ];
 
     /**
+     * Prepare dates for JSON serialization.
+     * Return dates in Asia/Ho_Chi_Minh timezone for frontend.
+     */
+    protected function serializeDate(\DateTimeInterface $date): string
+    {
+        // Convert to Asia/Ho_Chi_Minh timezone and return ISO format
+        $vietnamTime = $date->setTimezone(new \DateTimeZone('Asia/Ho_Chi_Minh'));
+        return $vietnamTime->format('c');
+    }
+
+    /**
      * Get the user who enabled maintenance mode
      */
     public function enabledBy()

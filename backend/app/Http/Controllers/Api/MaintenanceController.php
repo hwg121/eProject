@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\MaintenanceResource;
 use App\Models\MaintenanceSetting;
 use App\Models\SecuritySetting;
 use Illuminate\Http\Request;
@@ -21,11 +22,7 @@ class MaintenanceController extends Controller
             
             return response()->json([
                 'success' => true,
-                'data' => [
-                    'is_enabled' => $maintenance->is_enabled,
-                    'message' => $maintenance->message,
-                    'estimated_end_at' => $maintenance->estimated_end_at,
-                ]
+                'data' => new MaintenanceResource($maintenance)
             ]);
         } catch (\Exception $e) {
             Log::error('MaintenanceController::status failed', [
@@ -54,21 +51,11 @@ class MaintenanceController extends Controller
                 ], 403);
             }
 
-            $maintenance = MaintenanceSetting::current();
+            $maintenance = MaintenanceSetting::with('enabledBy')->first() ?? MaintenanceSetting::current();
             
             return response()->json([
                 'success' => true,
-                'data' => [
-                    'is_enabled' => $maintenance->is_enabled,
-                    'message' => $maintenance->message,
-                    'started_at' => $maintenance->started_at,
-                    'estimated_end_at' => $maintenance->estimated_end_at,
-                    'enabled_by' => $maintenance->enabledBy ? [
-                        'id' => $maintenance->enabledBy->id,
-                        'name' => $maintenance->enabledBy->name,
-                        'email' => $maintenance->enabledBy->email,
-                    ] : null,
-                ]
+                'data' => new MaintenanceResource($maintenance)
             ]);
         } catch (\Exception $e) {
             Log::error('MaintenanceController::show failed', [
@@ -134,7 +121,9 @@ class MaintenanceController extends Controller
             }
 
             if ($request->estimated_end_at) {
-                $data['estimated_end_at'] = $request->estimated_end_at;
+                // Convert UTC time from frontend to Asia/Ho_Chi_Minh timezone
+                $utcTime = \Carbon\Carbon::parse($request->estimated_end_at, 'UTC');
+                $data['estimated_end_at'] = $utcTime->setTimezone('Asia/Ho_Chi_Minh');
             } else {
                 $data['estimated_end_at'] = null;
             }
@@ -148,17 +137,15 @@ class MaintenanceController extends Controller
                 'is_enabled' => $request->is_enabled,
             ]);
 
+            // Refresh to get the latest data with relationships
+            $maintenance = $maintenance->fresh(['enabledBy']);
+            
             return response()->json([
                 'success' => true,
                 'message' => $request->is_enabled 
                     ? 'Maintenance mode enabled successfully' 
                     : 'Maintenance mode disabled successfully',
-                'data' => [
-                    'is_enabled' => $maintenance->is_enabled,
-                    'message' => $maintenance->message,
-                    'started_at' => $maintenance->started_at,
-                    'estimated_end_at' => $maintenance->estimated_end_at,
-                ]
+                'data' => new MaintenanceResource($maintenance)
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
@@ -201,7 +188,9 @@ class MaintenanceController extends Controller
             }
             
             if ($request->has('estimated_end_at')) {
-                $data['estimated_end_at'] = $request->estimated_end_at;
+                // Convert UTC time from frontend to Asia/Ho_Chi_Minh timezone
+                $utcTime = \Carbon\Carbon::parse($request->estimated_end_at, 'UTC');
+                $data['estimated_end_at'] = $utcTime->setTimezone('Asia/Ho_Chi_Minh');
             }
 
             $maintenance->update($data);
@@ -212,15 +201,13 @@ class MaintenanceController extends Controller
                 'updated_fields' => array_keys($data),
             ]);
 
+            // Refresh to get the latest data with relationships
+            $maintenance = $maintenance->fresh(['enabledBy']);
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Maintenance content updated successfully',
-                'data' => [
-                    'is_enabled' => $maintenance->is_enabled,
-                    'message' => $maintenance->message,
-                    'started_at' => $maintenance->started_at,
-                    'estimated_end_at' => $maintenance->estimated_end_at,
-                ]
+                'data' => new MaintenanceResource($maintenance)
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
