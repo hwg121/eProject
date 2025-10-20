@@ -114,6 +114,11 @@ class ApiClient {
       
       // This duplicate check is removed since we already handle it above
 
+      // Handle 204 No Content responses (e.g. successful DELETE operations)
+      if (response.status === 204) {
+        return {} as T;
+      }
+
       const data = await response.json();
       
       // For upload endpoints, return the full response object
