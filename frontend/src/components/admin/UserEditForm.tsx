@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { apiClient } from '../../services/api';
-import { validateBio } from '../../utils/validation';
+import { validateBio, validateEmail, validatePhone } from '../../utils/validation';
 import ImageUpload from '../common/ImageUpload';
 import SecurityPasswordModal from './SecurityPasswordModal';
 import StatusBadge from '../StatusBadge';
@@ -105,6 +105,8 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
   const [showUserConfirmDialog, setShowUserConfirmDialog] = useState(false);
   const [confirmDialogData, setConfirmDialogData] = useState<any>(null);
   const [pendingData, setPendingData] = useState<any>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
   const [bioError, setBioError] = useState<string | null>(null);
   
   const originalRole = userData?.role || 'moderator';
@@ -140,11 +142,21 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
     e.preventDefault();
     
     try {
-      // Validate bio before submission
+      // Validate email
+      const emailValidationError = validateEmail(formData.email, false);
+      setEmailError(emailValidationError);
+      
+      // Validate phone
+      const phoneValidationError = validatePhone(formData.phone, false);
+      setPhoneError(phoneValidationError);
+      
+      // Validate bio
       const bioValidationError = validateBio(formData.bio, false, 1000);
-      if (bioValidationError) {
-        setBioError(bioValidationError);
-        showToast(bioValidationError, 'error');
+      setBioError(bioValidationError);
+      
+      // If any validation errors, show toast and return
+      if (emailValidationError || phoneValidationError || bioValidationError) {
+        showToast('Please fix validation errors before saving', 'error');
         return;
       }
       
@@ -193,29 +205,33 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
   const handleSecurityConfirm = async (securityPassword: string) => {
     try {
       if (pendingData) {
-        setShowSecurityModal(false);
-        
-        // Check if changing password or role
+        // Check if changing password
         const isChangingPassword = pendingData.password && pendingData.password.trim() !== '';
-        const isChangingRole = pendingData.role !== originalRole;
         
-        // If changing password or role, show UserConfirmDialog
-        if (isChangingPassword || isChangingRole) {
-          // If changing password, set first_login = true
+        // Only show UserConfirmDialog if changing PASSWORD (to allow admin to copy new credentials)
+        // If only changing role or other fields, save directly
+        if (isChangingPassword) {
+          // Changing password - show UserConfirmDialog to display new credentials
           const dataWithFirstLogin = {
             ...pendingData,
             security_password: securityPassword,
-            first_login: isChangingPassword ? true : pendingData.first_login
+            first_login: true // Always set first_login = true when admin changes password
           };
           setConfirmDialogData(dataWithFirstLogin);
-          setShowUserConfirmDialog(true);
+          setShowSecurityModal(false); // Close security modal
+          setShowUserConfirmDialog(true); // Open confirm dialog
         } else {
-          // Not changing password/role, save directly
+          // Not changing password (only role/other fields) - save directly
           const dataWithSecurity = {
             ...pendingData,
             security_password: securityPassword
           };
+          
+          // Try to save - if backend rejects security password, error will be caught
           await onSave(dataWithSecurity);
+          
+          // Success - close modal and clear pending data
+          setShowSecurityModal(false);
           setPendingData(null);
         }
       }
@@ -236,21 +252,27 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
       } else if (error?.response?.status === 401) {
         errorMessage = 'Unauthorized. Please login again.';
       } else if (error?.response?.status === 403) {
-        errorMessage = 'Access denied. You do not have permission.';
+        errorMessage = 'Access denied. Invalid security password.';
       } else if (error?.response?.status === 409) {
         errorMessage = 'User with this email already exists.';
       }
       
       // Show error toast
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+      
+      // Keep modal open so user can try again - DON'T close modal on error!
+      // Modal will stay open and user can re-enter password
     }
   };
 
   const handleConfirmUpdate = async () => {
     try {
       if (confirmDialogData) {
-        setShowUserConfirmDialog(false);
+        // Try to save first, close dialog only on success
         await onSave(confirmDialogData);
+        
+        // Success - close dialog and clear data
+        setShowUserConfirmDialog(false);
         setConfirmDialogData(null);
         setPendingData(null);
       }
@@ -263,9 +285,14 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
         errorMessage = error.response.data.message;
       } else if (error?.message) {
         errorMessage = error.message;
+      } else if (error?.response?.status === 403) {
+        errorMessage = 'Access denied. Invalid security password.';
       }
       
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+      
+      // Keep dialog open on error so user sees the issue
+      // They can click Cancel to close it
     }
   };
 
@@ -340,6 +367,14 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
               <ImageUpload
                 value={formData.avatar}
                 onChange={(url) => setFormData({ ...formData, avatar: url })}
+                onUploadSuccess={(data) => {
+                  // Save both URL and public_id
+                  setFormData(prev => ({ 
+                    ...prev, 
+                    avatar: data.url,
+                    avatar_public_id: data.public_id
+                  }));
+                }}
                 onError={(error) => showToast(error, 'error')}
                 folder="user-avatar"
                 modelType="user"
@@ -470,8 +505,18 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                   label="Email Address"
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFormData(prev => ({ ...prev, email: value }));
+                    
+                    // Validate email
+                    const error = validateEmail(value, false);
+                    setEmailError(error);
+                  }}
                   placeholder="Email address"
+                  inputProps={{ maxLength: 254 }}
+                  helperText={emailError || `${formData.email?.length || 0}/254 characters`}
+                  error={!!emailError}
                   sx={textFieldStyles}
                 />
 
@@ -491,10 +536,18 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
                   label="Phone Number"
                   type="tel"
                   value={formData.phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFormData(prev => ({ ...prev, phone: value }));
+                    
+                    // Validate phone
+                    const error = validatePhone(value, false);
+                    setPhoneError(error);
+                  }}
                   placeholder="Enter phone number"
                   inputProps={{ maxLength: 20, pattern: '[0-9\\s\\-\\(\\)\\+]+' }}
-                  helperText={`${formData.phone?.length || 0}/20 characters`}
+                  helperText={phoneError || `${formData.phone?.length || 0}/20 characters`}
+                  error={!!phoneError}
                   sx={textFieldStyles}
                 />
 

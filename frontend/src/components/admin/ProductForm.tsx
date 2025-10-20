@@ -15,6 +15,7 @@ interface Product {
   slug?: string;
   description: string;
   image?: string;
+  image_public_id?: string;
   category: 'tool' | 'book' | 'pot' | 'accessory' | 'suggestion';
   subcategory?: string;
   status: ContentStatus;
@@ -114,6 +115,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       status: 'published',
       description: '',
       image: '',
+      image_public_id: '',
       brand: '',
       material: '',
       size: '',
@@ -651,6 +653,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
         <ImageUpload
           value={formData.image}
           onChange={(url) => setFormData({ ...formData, image: url })}
+          onUploadSuccess={(data) => {
+            // Save both image URL and public_id
+            setFormData(prev => ({ 
+              ...prev, 
+              image: data.url,
+              image_public_id: data.public_id
+            }));
+          }}
           onError={(error) => showToast(error, 'error')}
           placeholder="Upload product image"
           modelType="product"

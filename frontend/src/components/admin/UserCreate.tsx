@@ -497,6 +497,14 @@ const UserCreate: React.FC<UserCreateProps> = ({
                 <ImageUpload
                   value={formData.avatar}
                   onChange={(url) => handleInputChange('avatar', url)}
+                  onUploadSuccess={(data) => {
+                    // Save both URL and public_id
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      avatar: data.url,
+                      avatar_public_id: data.public_id
+                    }));
+                  }}
                   onError={(error) => showToast(error, 'error')}
                   folder="user-avatar"
                   modelType="user"

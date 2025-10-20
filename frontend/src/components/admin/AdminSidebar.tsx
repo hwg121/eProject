@@ -100,6 +100,13 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       ]
     },
     {
+      id: 'tags',
+      label: 'Tag Management',
+      icon: Hash,
+      color: 'from-emerald-500 to-green-600',
+      description: 'Manage tags for content'
+    },
+    {
       id: 'admin-management',
       label: 'Admin Management',
       icon: Shield,
@@ -113,13 +120,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
         { id: 'security-settings', label: 'Security Settings', icon: null },
         { id: 'maintenance-settings', label: 'Maintenance Mode', icon: null }
       ]
-    },
-    {
-      id: 'tags',
-      label: 'Tag Management',
-      icon: Hash,
-      color: 'from-emerald-500 to-green-600',
-      description: 'Manage tags for content'
     },
     {
       id: 'users',

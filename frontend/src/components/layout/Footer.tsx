@@ -79,10 +79,10 @@ const Footer: React.FC = () => {
             <h3 className="text-xl font-bold mb-6 text-emerald-300">Quick Links</h3>
             <ul className="space-y-3 text-emerald-100">
               {[
-                { href: "/techniques", label: "🌱 Gardening Tips" },
-                { href: "/tools", label: "🔧 Tools & Equipment" },
-                { href: "/books", label: "📚 Recommended Books" },
-                { href: "/videos", label: "🎥 Educational Videos" }
+                { href: "/techniques", label: "Gardening Tips" },
+                { href: "/tools", label: "Tools & Equipment" },
+                { href: "/books", label: "Recommended Books" },
+                { href: "/videos", label: "Educational Videos" }
               ].map((link, index) => (
                 <motion.li key={index} whileHover={{ x: 5 }}>
                   <a 
@@ -151,11 +151,8 @@ const Footer: React.FC = () => {
         
         <div className="border-t border-emerald-800/50 mt-12 pt-8 text-center text-emerald-200 relative z-10">
           <p className="text-lg">
-            &copy; 2025 Green Groves. All rights reserved. Made with 🌱 for gardening enthusiasts.
+            &copy; 2025 Green Groves. All rights reserved. Made with heart for gardening enthusiasts.
           </p>
-          <div className="mt-4 text-emerald-400">
-            ✨ Growing dreams, one garden at a time ✨
-          </div>
         </div>
       </div>
     </footer>

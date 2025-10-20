@@ -4,6 +4,7 @@ import { apiClient } from '../../services/api';
 interface ImageUploadProps {
   value?: string;
   onChange: (url: string) => void;
+  onUploadSuccess?: (data: { url: string; public_id: string }) => void; // NEW: Full upload data
   onError?: (error: string) => void;
   className?: string;
   placeholder?: string;
@@ -17,6 +18,7 @@ interface ImageUploadProps {
 const ImageUpload: React.FC<ImageUploadProps> = ({
   value,
   onChange,
+  onUploadSuccess,
   onError,
   className = '',
   placeholder = 'Click to upload image',
@@ -36,25 +38,29 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   }, [value]);
 
   // Upload via backend API
-  const uploadToBackend = async (file: File): Promise<string> => {
+  const uploadToBackend = async (file: File): Promise<{ url: string; public_id?: string }> => {
     const uploadFolder = folder || 'featured-images';
     const uploadModelType = modelType || 'video';
     const response = await apiClient.uploadImage(file, uploadFolder, uploadModelType);
     
-    // Extract URL from response object - check both 'url' and 'secure_url'
+    // Extract URL and public_id from response object
     if (response && typeof response === 'object' && 'success' in response && response.success && 'data' in response && response.data && typeof response.data === 'object') {
-      // Check for 'url' first, then 'secure_url' as fallback
       const data = response.data as any;
-      if ('url' in data) {
-        return data.url as string;
-      } else if ('secure_url' in data) {
-        return data.secure_url as string;
+      
+      // Get URL
+      const url = ('url' in data) ? data.url : (('secure_url' in data) ? data.secure_url : null);
+      
+      // Get public_id
+      const public_id = ('public_id' in data) ? data.public_id : undefined;
+      
+      if (url) {
+        return { url, public_id };
       }
     }
     
     // Fallback if response is already a string
     if (typeof response === 'string') {
-      return response;
+      return { url: response };
     }
     
     console.error('Invalid response format:', response);
@@ -83,17 +89,19 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     setIsUploading(true);
     
     try {
-      const cloudinaryUrl = await uploadToBackend(file);
+      const uploadResult = await uploadToBackend(file);
       
-      // Update with Cloudinary URL and notify parent
-      // Ensure we're passing a string, not an object
-      const imageUrl = typeof cloudinaryUrl === 'string' ? cloudinaryUrl : 
-                      (cloudinaryUrl && typeof cloudinaryUrl === 'object' && (cloudinaryUrl as any).url) ? (cloudinaryUrl as any).url :
-                      (cloudinaryUrl && typeof cloudinaryUrl === 'object' && (cloudinaryUrl as any).secure_url) ? (cloudinaryUrl as any).secure_url :
-                      cloudinaryUrl;
+      // Update with Cloudinary URL
+      onChange(uploadResult.url);
+      setPreview(uploadResult.url);
       
-      onChange(imageUrl);
-      setPreview(imageUrl);
+      // If onUploadSuccess callback is provided, call it with full data
+      if (onUploadSuccess && uploadResult.public_id) {
+        onUploadSuccess({
+          url: uploadResult.url,
+          public_id: uploadResult.public_id
+        });
+      }
       
     } catch (error) {
       console.error('Upload failed:', error);

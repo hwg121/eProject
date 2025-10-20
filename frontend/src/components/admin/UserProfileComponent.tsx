@@ -268,6 +268,16 @@ const UserProfileComponent: React.FC<UserProfileComponentProps> = ({
                       setProfileData(prev => ({ ...prev, avatar: url }));
                       onUserProfileChange('avatar', url);
                     }}
+                    onUploadSuccess={(data) => {
+                      // Save both URL and public_id
+                      setProfileData(prev => ({ 
+                        ...prev, 
+                        avatar: data.url,
+                        avatar_public_id: data.public_id
+                      }));
+                      onUserProfileChange('avatar', data.url);
+                      onUserProfileChange('avatar_public_id', data.public_id);
+                    }}
                     onError={(error) => showToast(error, 'error')}
                     folder="user-avatar"
                     modelType="user"
