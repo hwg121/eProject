@@ -314,7 +314,7 @@ const Tools: React.FC = () => {
         <h3 className="text-2xl font-bold mb-4">Tool Care Tips</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h4 className="text-lg font-semibold mb-2">🔧 Maintenance</h4>
+            <h4 className="text-lg font-semibold mb-2">Maintenance</h4>
             <ul className="space-y-1 text-blue-100">
               <li>• Clean tools after each use</li>
               <li>• Keep cutting edges sharp</li>
@@ -323,7 +323,7 @@ const Tools: React.FC = () => {
             </ul>
           </div>
           <div>
-            <h4 className="text-lg font-semibold mb-2">💡 Pro Tips</h4>
+            <h4 className="text-lg font-semibold mb-2">Pro Tips</h4>
             <ul className="space-y-1 text-blue-100">
               <li>• Invest in quality over quantity</li>
               <li>• Choose ergonomic handles</li>

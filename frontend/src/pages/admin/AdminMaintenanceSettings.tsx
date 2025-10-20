@@ -237,7 +237,7 @@ const AdminMaintenanceSettings: React.FC = () => {
   }
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+    <Box sx={{ p: { xs: 1.5, sm: 2, md: 3 } }}>
       <PageHeader
         title="Maintenance Mode"
         description="Manage site maintenance status and display message to visitors"
@@ -251,7 +251,7 @@ const AdminMaintenanceSettings: React.FC = () => {
           boxShadow: isDarkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.1)',
         }}
       >
-        <CardContent sx={{ p: 4 }}>
+        <CardContent sx={{ p: 3 }}>
           {/* Warning Alert */}
           <Alert 
             severity="warning" 
@@ -285,7 +285,7 @@ const AdminMaintenanceSettings: React.FC = () => {
           )}
 
           {/* Enable/Disable Toggle */}
-          <Box sx={{ mb: 4 }}>
+          <Box sx={{ mb: 3 }}>
             <FormControlLabel
               control={
                 <Switch
@@ -330,14 +330,14 @@ const AdminMaintenanceSettings: React.FC = () => {
           </Box>
 
           {/* Maintenance Message */}
-          <Box sx={{ mb: 3 }}>
+          <Box sx={{ mb: 2.5 }}>
             <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600, color: isDarkMode ? '#f1f5f9' : '#1e293b' }}>
               Maintenance Message
             </Typography>
             <TextField
               fullWidth
               multiline
-              rows={4}
+              rows={3}
               value={settings.message}
               onChange={(e) => handleMessageChange(e.target.value)}
               placeholder="Enter the message to display to visitors during maintenance"
@@ -360,7 +360,7 @@ const AdminMaintenanceSettings: React.FC = () => {
           </Box>
 
           {/* Estimated End Time */}
-          <Box sx={{ mb: 4 }}>
+          <Box sx={{ mb: 3 }}>
             <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600, color: isDarkMode ? '#f1f5f9' : '#1e293b' }}>
               Estimated End Time (Optional)
             </Typography>
@@ -400,9 +400,9 @@ const AdminMaintenanceSettings: React.FC = () => {
                 backgroundColor: '#10b981',
                 color: '#ffffff',
                 textTransform: 'none',
-                px: 4,
-                py: 1.5,
-                fontSize: '1rem',
+                px: 3,
+                py: 1,
+                fontSize: '0.95rem',
                 fontWeight: 600,
                 '&:hover': {
                   backgroundColor: '#059669',

@@ -107,16 +107,16 @@ const AdminSecuritySettings: React.FC = () => {
       // This is a security check to ensure the user knows their own password
       
       // Then update security password
-      const response = await apiClient.request('/admin/security-password', {
+      const response: any = await (apiClient as any).request('/admin/security-password', {
         method: 'PUT',
-        body: {
+        body: ({
           current_password: formData.currentSecurityPassword,
           new_password: formData.newSecurityPassword,
           new_password_confirmation: formData.confirmSecurityPassword
-        }
+        } as any)
       });
 
-      if (response.success) {
+      if (response && response.success) {
         showToast('Security password updated successfully!', 'success');
         
         // Clear form
@@ -128,7 +128,7 @@ const AdminSecuritySettings: React.FC = () => {
         });
         setErrors({});
       } else {
-        showToast(response.message || 'Failed to update security password', 'error');
+        showToast((response && response.message) || 'Failed to update security password', 'error');
       }
     } catch (error: any) {
       console.error('Error updating security password:', error);
@@ -191,7 +191,7 @@ const AdminSecuritySettings: React.FC = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="p-3 sm:p-4 md:p-6"
+      className="p-2.5 sm:p-3 md:p-4"
     >
       {/* Header - Responsive */}
       <Box sx={{ mb: { xs: 3, sm: 4 } }}>
@@ -250,8 +250,8 @@ const AdminSecuritySettings: React.FC = () => {
       <Paper
         elevation={0}
         sx={{
-          p: 3,
-          mb: 4,
+          p: 2,
+          mb: 3,
           bgcolor: isDarkMode ? 'rgba(217, 119, 6, 0.1)' : '#fffbeb',
           border: '1px solid',
           borderColor: isDarkMode ? 'rgba(251, 191, 36, 0.3)' : '#fcd34d',
@@ -286,15 +286,15 @@ const AdminSecuritySettings: React.FC = () => {
           backdropFilter: 'blur(10px)',
         }}
       >
-        <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 3, sm: 4 } }}>
+        <CardContent sx={{ p: { xs: 1.5, sm: 2, md: 3 } }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3 } }}>
             {/* Account Password Section */}
             <Box>
               <Typography
                 variant="subtitle1"
                 sx={{
                   fontWeight: 600,
-                  mb: { xs: 1.5, sm: 2 },
+                  mb: { xs: 1, sm: 1.5 },
                   color: isDarkMode ? '#f3f4f6' : '#1f2937',
                   display: 'flex',
                   alignItems: 'center',
@@ -338,7 +338,7 @@ const AdminSecuritySettings: React.FC = () => {
                 variant="subtitle1"
                 sx={{
                   fontWeight: 600,
-                  mb: 2,
+                  mb: 1.5,
                   color: isDarkMode ? '#f3f4f6' : '#1f2937',
                   display: 'flex',
                   alignItems: 'center',
@@ -381,7 +381,7 @@ const AdminSecuritySettings: React.FC = () => {
                 variant="subtitle1"
                 sx={{
                   fontWeight: 600,
-                  mb: 2,
+                  mb: 1.5,
                   color: isDarkMode ? '#f3f4f6' : '#1f2937',
                   display: 'flex',
                   alignItems: 'center',
@@ -431,7 +431,7 @@ const AdminSecuritySettings: React.FC = () => {
             </Box>
 
             {/* Action Buttons */}
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
+            <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'flex-end', mt: 1.5 }}>
                 <Button
                   variant="outlined"
                   onClick={() => {
@@ -451,6 +451,7 @@ const AdminSecuritySettings: React.FC = () => {
                       borderColor: isDarkMode ? '#4b5563' : '#374151',
                       bgcolor: isDarkMode ? 'rgba(75, 85, 99, 0.1)' : 'rgba(0, 0, 0, 0.04)',
                     },
+                    minHeight: 36,
                   }}
                 >
                   Clear
@@ -470,9 +471,9 @@ const AdminSecuritySettings: React.FC = () => {
                     '&:disabled': {
                       bgcolor: isDarkMode ? 'rgba(75, 85, 99, 0.3)' : 'rgba(0, 0, 0, 0.12)',
                     },
-                    minHeight: '44px',
-                    fontSize: { xs: '0.875rem', sm: '1rem' },
-                    py: { xs: 1.5, sm: 2 }
+                    minHeight: '40px',
+                    fontSize: { xs: '0.85rem', sm: '0.95rem' },
+                    py: { xs: 1, sm: 1.25 }
                   }}
                 >
                   {loading ? 'Updating...' : 'Update Security Password'}

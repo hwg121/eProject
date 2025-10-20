@@ -281,7 +281,7 @@ const Books: React.FC = () => {
 
       {/* Featured Books */}
       <Card className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
-        <h2 className="text-2xl font-bold mb-4">📖 Editor's Book Picks</h2>
+        <h2 className="text-2xl font-bold mb-4">Editor's Book Picks</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white/10 p-4 rounded-lg">
             <h3 className="font-semibold mb-2">Best for Beginners</h3>
@@ -300,10 +300,10 @@ const Books: React.FC = () => {
 
       {/* Book Categories */}
       <Card className="bg-gradient-to-r from-green-500 to-teal-500 text-white">
-        <h3 className="text-2xl font-bold mb-6">📚 Book Categories</h3>
+        <h3 className="text-2xl font-bold mb-6">Book Categories</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div>
-            <h4 className="text-lg font-semibold mb-3">🌱 Beginner Guides</h4>
+            <h4 className="text-lg font-semibold mb-3">Beginner Guides</h4>
             <ul className="space-y-1 text-green-100">
               <li>• Square Foot Gardening</li>
               <li>• Container Gardening</li>
@@ -312,7 +312,7 @@ const Books: React.FC = () => {
             </ul>
           </div>
           <div>
-            <h4 className="text-lg font-semibold mb-3">🥕 Vegetable Growing</h4>
+            <h4 className="text-lg font-semibold mb-3">Vegetable Growing</h4>
             <ul className="space-y-1 text-green-100">
               <li>• Organic Methods</li>
               <li>• Season Extension</li>
@@ -321,7 +321,7 @@ const Books: React.FC = () => {
             </ul>
           </div>
           <div>
-            <h4 className="text-lg font-semibold mb-3">🌸 Flower Gardening</h4>
+            <h4 className="text-lg font-semibold mb-3">Flower Gardening</h4>
             <ul className="space-y-1 text-green-100">
               <li>• Perennial Gardens</li>
               <li>• Cut Flower Growing</li>
@@ -330,7 +330,7 @@ const Books: React.FC = () => {
             </ul>
           </div>
           <div>
-            <h4 className="text-lg font-semibold mb-3">🌿 Specialized Topics</h4>
+            <h4 className="text-lg font-semibold mb-3">Specialized Topics</h4>
             <ul className="space-y-1 text-green-100">
               <li>• Native Plant Gardening</li>
               <li>• Permaculture</li>
@@ -343,10 +343,10 @@ const Books: React.FC = () => {
 
       {/* Reading Tips */}
       <Card className="bg-gradient-to-r from-orange-500 to-red-500 text-white">
-        <h3 className="text-2xl font-bold mb-4">📖 Reading & Learning Tips</h3>
+        <h3 className="text-2xl font-bold mb-4">Reading & Learning Tips</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
-            <h4 className="text-lg font-semibold mb-3">📝 Effective Reading</h4>
+            <h4 className="text-lg font-semibold mb-3">Effective Reading</h4>
             <ul className="space-y-2 text-orange-100">
               <li>• Keep a gardening journal alongside</li>
               <li>• Mark pages with seasonal reminders</li>
@@ -356,7 +356,7 @@ const Books: React.FC = () => {
             </ul>
           </div>
           <div>
-            <h4 className="text-lg font-semibold mb-3">🌱 Application Tips</h4>
+            <h4 className="text-lg font-semibold mb-3">Application Tips</h4>
             <ul className="space-y-2 text-orange-100">
               <li>• Start with one new technique at a time</li>
               <li>• Adapt advice to your climate</li>
@@ -370,7 +370,7 @@ const Books: React.FC = () => {
 
       {/* Library Resources */}
       <Card className="border-2 border-emerald-200">
-        <h3 className="text-2xl font-bold text-emerald-800 mb-4">📍 Find These Books</h3>
+        <h3 className="text-2xl font-bold text-emerald-800 mb-4">Find These Books</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center">
             <div className="bg-emerald-100 p-4 rounded-lg mb-3">

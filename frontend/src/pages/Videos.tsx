@@ -223,10 +223,10 @@ const Videos: React.FC = () => {
 
       {/* Video Categories */}
       <Card className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white">
-        <h3 className="text-2xl font-bold mb-6">📹 Video Categories</h3>
+        <h3 className="text-2xl font-bold mb-6">Video Categories</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div>
-            <h4 className="text-lg font-semibold mb-3">🌱 Beginner Basics</h4>
+            <h4 className="text-lg font-semibold mb-3">Beginner Basics</h4>
             <ul className="space-y-1 text-purple-100">
               <li>• Getting started with gardening</li>
               <li>• Essential tools overview</li>
@@ -235,7 +235,7 @@ const Videos: React.FC = () => {
             </ul>
           </div>
           <div>
-            <h4 className="text-lg font-semibold mb-3">🌿 Advanced Techniques</h4>
+            <h4 className="text-lg font-semibold mb-3">Advanced Techniques</h4>
             <ul className="space-y-1 text-purple-100">
               <li>• Grafting and propagation</li>
               <li>• Season extension methods</li>
@@ -244,7 +244,7 @@ const Videos: React.FC = () => {
             </ul>
           </div>
           <div>
-            <h4 className="text-lg font-semibold mb-3">🏠 Indoor Gardening</h4>
+            <h4 className="text-lg font-semibold mb-3">Indoor Gardening</h4>
             <ul className="space-y-1 text-purple-100">
               <li>• Houseplant care guides</li>
               <li>• Hydroponic setups</li>
@@ -257,10 +257,10 @@ const Videos: React.FC = () => {
 
       {/* Quick Tips */}
       <Card className="bg-gradient-to-r from-green-500 to-emerald-500 text-white">
-        <h3 className="text-2xl font-bold mb-4">💡 Quick Video Tips</h3>
+        <h3 className="text-2xl font-bold mb-4">Quick Video Tips</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h4 className="text-lg font-semibold mb-2">⏰ Time-Saving Tips</h4>
+            <h4 className="text-lg font-semibold mb-2">Time-Saving Tips</h4>
             <ul className="space-y-1 text-green-100">
               <li>• Watch at 1.25x speed for efficiency</li>
               <li>• Take notes on key timestamps</li>
@@ -269,7 +269,7 @@ const Videos: React.FC = () => {
             </ul>
           </div>
           <div>
-            <h4 className="text-lg font-semibold mb-2">📝 Learning Best Practices</h4>
+            <h4 className="text-lg font-semibold mb-2">Learning Best Practices</h4>
             <ul className="space-y-1 text-green-100">
               <li>• Start with beginner videos</li>
               <li>• Rewatch complex techniques</li>

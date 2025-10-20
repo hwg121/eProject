@@ -484,7 +484,7 @@ const Home: React.FC = () => {
                     <motion.div
                       className="ml-2 sm:ml-3"
                       animate={{ x: [0, 8, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
+                      transition={{ duration: 10, repeat: Infinity }}
                     >
                       <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
                     </motion.div>
@@ -572,7 +572,7 @@ const Home: React.FC = () => {
               x: ['-100%', '100%'],
             }}
             transition={{
-              duration: 3,
+              duration: 10,
               repeat: Infinity,
               ease: "easeInOut"
             }}

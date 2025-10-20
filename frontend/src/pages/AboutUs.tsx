@@ -210,7 +210,7 @@ const AboutUs: React.FC = () => {
           <motion.p 
             className="text-xl font-semibold text-emerald-600"
             animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 2, repeat: Infinity }}
+            transition={{ duration: 10, repeat: Infinity }}
           >
             Loading amazing content...
           </motion.p>
@@ -393,12 +393,12 @@ const AboutUs: React.FC = () => {
                     <motion.div 
                       className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-200/60 to-purple-200/60 dark:from-blue-400/40 dark:to-purple-400/40 rounded-bl-full opacity-0 group-hover:opacity-100"
                       animate={{ rotate: [0, 5, 0] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                      transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
                     ></motion.div>
                     <motion.div 
                       className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-tr from-pink-200/60 to-orange-200/60 dark:from-pink-400/40 dark:to-orange-400/40 rounded-tr-full opacity-0 group-hover:opacity-100"
                       animate={{ rotate: [0, -5, 0] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                      transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                     ></motion.div>
                     
                     <div className="relative z-10">
@@ -762,7 +762,7 @@ const AboutUs: React.FC = () => {
                           <span className="text-sm md:text-base">Send Message</span>
                           <motion.div
                             animate={{ x: [0, 5, 0] }}
-                            transition={{ duration: 1.5, repeat: Infinity }}
+                            transition={{ duration: 10, repeat: Infinity }}
                             className="hidden sm:block"
                           >
                             →

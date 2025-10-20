@@ -81,7 +81,7 @@ const Card: React.FC<CardProps> = ({
               x: ['-100%', '100%'],
             }}
             transition={{
-              duration: 1.5,
+              duration: 10,
               repeat: Infinity,
               repeatDelay: 2,
               ease: "easeInOut"

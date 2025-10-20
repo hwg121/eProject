@@ -246,7 +246,7 @@ const Essentials: React.FC = () => {
               <div className={`w-full h-3 rounded-t-lg bg-gradient-to-r ${soil.color} mb-4`}></div>
               <h3 className="text-xl font-semibold text-emerald-800 mb-3">{soil.name}</h3>
               <p className="text-emerald-600 mb-4">{soil.description}</p>
-              
+
               {/* Technical Specs */}
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <div className="bg-blue-50 p-3 rounded-lg">
@@ -258,11 +258,10 @@ const Essentials: React.FC = () => {
                   <p className="text-purple-700 text-sm">{soil.drainage}</p>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="bg-green-50 p-3 rounded-lg">
-                  <h4 className="font-semibold text-green-800 mb-2 flex items-center">
-                    <CheckCircle className="h-4 w-4 mr-1" />
+                  <h4 className="font-semibold text-green-800 mb-2">
                     Advantages
                   </h4>
                   <ul className="text-green-700 text-sm space-y-1">
@@ -271,10 +270,9 @@ const Essentials: React.FC = () => {
                     ))}
                   </ul>
                 </div>
-                
+
                 <div className="bg-orange-50 p-3 rounded-lg">
-                  <h4 className="font-semibold text-orange-800 mb-2 flex items-center">
-                    <AlertTriangle className="h-4 w-4 mr-1" />
+                  <h4 className="font-semibold text-orange-800 mb-2">
                     Disadvantages
                   </h4>
                   <ul className="text-orange-700 text-sm space-y-1">
@@ -284,7 +282,7 @@ const Essentials: React.FC = () => {
                   </ul>
                 </div>
               </div>
-              
+
               <div className="space-y-3">
                 <div className="bg-indigo-50 p-3 rounded-lg">
                   <h4 className="font-semibold text-indigo-800 mb-1">Best for:</h4>
@@ -307,12 +305,9 @@ const Essentials: React.FC = () => {
           {fertilizers.map((fertilizer, index) => (
             <Card key={index} className="h-full">
               <div className="text-center mb-4">
-                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r ${fertilizer.color} text-white text-2xl mb-3`}>
-                  {fertilizer.icon}
-                </div>
                 <h3 className="text-xl font-semibold text-emerald-800">{fertilizer.type}</h3>
               </div>
-              
+
               <div className="space-y-4">
                 <div className="bg-emerald-50 p-3 rounded-lg">
                   <h4 className="font-semibold text-emerald-800 mb-2">Popular products:</h4>
@@ -325,7 +320,7 @@ const Essentials: React.FC = () => {
                     ))}
                   </div>
                 </div>
-                
+
                 <div className="bg-blue-50 p-3 rounded-lg">
                   <h4 className="font-semibold text-blue-800 mb-2">Benefits:</h4>
                   <ul className="text-blue-700 text-sm space-y-1">
@@ -334,7 +329,7 @@ const Essentials: React.FC = () => {
                     ))}
                   </ul>
                 </div>
-                
+
                 <div className="grid grid-cols-1 gap-3">
                   <div className="bg-purple-50 p-3 rounded-lg">
                     <h4 className="font-semibold text-purple-800 mb-1">Usage:</h4>
@@ -345,7 +340,7 @@ const Essentials: React.FC = () => {
                     <p className="text-yellow-700 text-sm">{fertilizer.dosage}</p>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-pink-50 p-3 rounded-lg">
                     <h4 className="font-semibold text-pink-800 mb-1 text-sm">Timing:</h4>
@@ -369,12 +364,9 @@ const Essentials: React.FC = () => {
           {pesticides.map((pesticide, index) => (
             <Card key={index} className="h-full">
               <div className="text-center mb-4">
-                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r ${pesticide.color} text-white text-2xl mb-3`}>
-                  {pesticide.icon}
-                </div>
                 <h3 className="text-xl font-semibold text-emerald-800">{pesticide.category}</h3>
               </div>
-              
+
               <div className="space-y-4">
                 <div className="bg-emerald-50 p-3 rounded-lg">
                   <h4 className="font-semibold text-emerald-800 mb-2">Products:</h4>
@@ -387,7 +379,7 @@ const Essentials: React.FC = () => {
                     ))}
                   </div>
                 </div>
-                
+
                 <div className="bg-red-50 p-3 rounded-lg">
                   <h4 className="font-semibold text-red-800 mb-2">Targets:</h4>
                   <div className="flex flex-wrap gap-1">
@@ -398,7 +390,7 @@ const Essentials: React.FC = () => {
                     ))}
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 gap-3">
                   <div className="bg-yellow-50 p-3 rounded-lg">
                     <h4 className="font-semibold text-yellow-800 mb-1">Safety:</h4>
@@ -409,7 +401,7 @@ const Essentials: React.FC = () => {
                     <p className="text-blue-700 text-sm">{pesticide.application}</p>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-purple-50 p-3 rounded-lg">
                     <h4 className="font-semibold text-purple-800 mb-1 text-sm">Dosage:</h4>
@@ -433,12 +425,9 @@ const Essentials: React.FC = () => {
           {seedGuide.map((guide, index) => (
             <Card key={index} className="h-full">
               <div className="text-center mb-4">
-                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r ${guide.color} text-white text-2xl mb-3`}>
-                  {guide.icon}
-                </div>
                 <h3 className="text-xl font-semibold text-emerald-800">{guide.category}</h3>
               </div>
-              
+
               <div className="space-y-4">
                 <div className="bg-emerald-50 p-3 rounded-lg">
                   <h4 className="font-semibold text-emerald-800 mb-2">Popular varieties:</h4>
@@ -453,7 +442,7 @@ const Essentials: React.FC = () => {
                     ))}
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-blue-50 p-3 rounded-lg">
                     <h4 className="font-semibold text-blue-800 mb-1 text-sm flex items-center">
@@ -470,7 +459,7 @@ const Essentials: React.FC = () => {
                     <p className="text-purple-700 text-xs">{guide.soilTemp}</p>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-orange-50 p-3 rounded-lg">
                     <h4 className="font-semibold text-orange-800 mb-1 text-sm">Spacing:</h4>
@@ -481,7 +470,7 @@ const Essentials: React.FC = () => {
                     <p className="text-pink-700 text-xs">{guide.depth}</p>
                   </div>
                 </div>
-                
+
                 <div className="bg-yellow-50 p-3 rounded-lg">
                   <h4 className="font-semibold text-yellow-800 mb-1">Success tips:</h4>
                   <p className="text-yellow-700 text-sm">{guide.tips}</p>
@@ -494,12 +483,12 @@ const Essentials: React.FC = () => {
 
       {/* Seasonal Calendar */}
       <Card className="bg-gradient-to-r from-emerald-500 to-green-500 text-white">
-        <h3 className="text-2xl font-bold mb-6 text-center">📅 Seasonal Gardening Calendar</h3>
+        <h3 className="text-2xl font-bold mb-6 text-center">Seasonal Gardening Calendar</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="bg-white/10 p-4 rounded-lg">
             <h4 className="text-lg font-semibold mb-3 flex items-center">
               <Sun className="h-5 w-5 mr-2" />
-              🌸 Spring (Feb-Apr)
+              Spring (Feb-Apr)
             </h4>
             <ul className="space-y-2 text-green-100 text-sm">
               <li>• <strong>Sow:</strong> Leafy greens, herbs</li>
@@ -511,8 +500,8 @@ const Essentials: React.FC = () => {
           </div>
           <div className="bg-white/10 p-4 rounded-lg">
             <h4 className="text-lg font-semibold mb-3 flex items-center">
-              <Thermometer className="h-5 w-5 mr-2" />
-              ☀️ Summer (May-Jul)
+              <Sun className="h-5 w-5 mr-2" />
+              Summer (May-Jul)
             </h4>
             <ul className="space-y-2 text-green-100 text-sm">
               <li>• <strong>Water:</strong> Twice daily, morning-evening</li>
@@ -525,7 +514,7 @@ const Essentials: React.FC = () => {
           <div className="bg-white/10 p-4 rounded-lg">
             <h4 className="text-lg font-semibold mb-3 flex items-center">
               <Wind className="h-5 w-5 mr-2" />
-              🍂 Fall (Aug-Oct)
+              Fall (Aug-Oct)
             </h4>
             <ul className="space-y-2 text-green-100 text-sm">
               <li>• <strong>Sow:</strong> Winter vegetables, root crops</li>
@@ -538,7 +527,7 @@ const Essentials: React.FC = () => {
           <div className="bg-white/10 p-4 rounded-lg">
             <h4 className="text-lg font-semibold mb-3 flex items-center">
               <Droplets className="h-5 w-5 mr-2" />
-              ❄️ Winter (Nov-Jan)
+              Winter (Nov-Jan)
             </h4>
             <ul className="space-y-2 text-green-100 text-sm">
               <li>• <strong>Protect:</strong> Cover from cold, move indoors</li>
@@ -553,7 +542,7 @@ const Essentials: React.FC = () => {
 
       {/* Expert Tips */}
       <Card className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-        <h3 className="text-2xl font-bold mb-6 text-center">💡 Expert Tips & Secrets</h3>
+        <h3 className="text-2xl font-bold mb-6 text-center">Expert Tips & Secrets</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-white/10 p-4 rounded-lg">
             <h4 className="text-lg font-semibold mb-3 flex items-center">
@@ -599,10 +588,10 @@ const Essentials: React.FC = () => {
 
       {/* Troubleshooting Guide */}
       <Card className="bg-gradient-to-r from-orange-500 to-red-500 text-white">
-        <h3 className="text-2xl font-bold mb-6 text-center">🚨 Common Problem Solutions</h3>
+        <h3 className="text-2xl font-bold mb-6 text-center">Common Problem Solutions</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
-            <h4 className="text-lg font-semibold mb-4">🌱 Soil Problems</h4>
+            <h4 className="text-lg font-semibold mb-4">Soil Problems</h4>
             <div className="space-y-3">
               <div className="bg-white/10 p-3 rounded-lg">
                 <h5 className="font-semibold mb-1">Hard, compacted soil</h5>
@@ -625,7 +614,7 @@ const Essentials: React.FC = () => {
             </div>
           </div>
           <div>
-            <h4 className="text-lg font-semibold mb-4">🌿 Plant Problems</h4>
+            <h4 className="text-lg font-semibold mb-4">Plant Problems</h4>
             <div className="space-y-3">
               <div className="bg-white/10 p-3 rounded-lg">
                 <h5 className="font-semibold mb-1">Yellow leaves, leaf drop</h5>

@@ -203,7 +203,7 @@ const Techniques: React.FC = () => {
         <h3 className="text-2xl font-bold mb-4">Quick Gardening Tips</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h4 className="text-lg font-semibold mb-2">🌱 For Beginners</h4>
+            <h4 className="text-lg font-semibold mb-2">For Beginners</h4>
             <ul className="space-y-1 text-emerald-100">
               <li>• Start with easy-to-grow plants like herbs</li>
               <li>• Water in early morning or late evening</li>
@@ -212,7 +212,7 @@ const Techniques: React.FC = () => {
             </ul>
           </div>
           <div>
-            <h4 className="text-lg font-semibold mb-2">🌿 Advanced Tips</h4>
+            <h4 className="text-lg font-semibold mb-2">Advanced Tips</h4>
             <ul className="space-y-1 text-emerald-100">
               <li>• Practice crop rotation for vegetable gardens</li>
               <li>• Implement companion planting strategies</li>

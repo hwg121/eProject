@@ -524,14 +524,14 @@ const Accessories: React.FC = () => {
       {/* Decorative Items Section */}
       <section className="space-y-12">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-emerald-800 mb-4">✨ Decorative Accessories Guide</h2>
+          <h2 className="text-3xl font-bold text-emerald-800 mb-4">Decorative Accessories Guide</h2>
           <p className="text-emerald-600 text-lg">Transform your garden with beautiful decorations</p>
         </div>
         
       {decorativeItems.map((category, categoryIndex) => (
           <div key={categoryIndex} className="space-y-6">
             <div className="text-center">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-pink-400 to-rose-500 text-white text-4xl mb-4 shadow-lg">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[#C0E5C8] text-white text-4xl mb-4 shadow-lg">
                 {category.icon}
               </div>
               <h3 className="text-2xl font-bold text-emerald-800 mb-2">{category.category}</h3>
@@ -545,9 +545,6 @@ const Accessories: React.FC = () => {
                     {category.items.slice(0, 3).map((item, index) => (
                       <Card key={index} className="h-full hover:shadow-lg transition-shadow duration-300">
                         <div className="text-center mb-4">
-                          <div className={`inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-r ${category.color} text-white text-xl mb-3 shadow-md`}>
-                            {category.icon}
-                          </div>
                           <h4 className="text-lg font-bold text-emerald-800 mb-2">{item.name}</h4>
                           <p className="text-emerald-600 text-sm">{item.description}</p>
                         </div>
@@ -609,9 +606,6 @@ const Accessories: React.FC = () => {
                     {category.items.slice(3, 5).map((item, index) => (
                       <Card key={index + 3} className="h-full hover:shadow-lg transition-shadow duration-300">
                         <div className="text-center mb-4">
-                          <div className={`inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-r ${category.color} text-white text-xl mb-3 shadow-md`}>
-                            {category.icon}
-                          </div>
                           <h4 className="text-lg font-bold text-emerald-800 mb-2">{item.name}</h4>
                           <p className="text-emerald-600 text-sm">{item.description}</p>
                         </div>
@@ -675,9 +669,6 @@ const Accessories: React.FC = () => {
             {category.items.map((item, index) => (
                     <Card key={index} className="h-full hover:shadow-lg transition-shadow duration-300">
                 <div className="text-center mb-4">
-                        <div className={`inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-r ${category.color} text-white text-xl mb-3 shadow-md`}>
-                    {category.icon}
-                  </div>
                         <h4 className="text-lg font-bold text-emerald-800 mb-2">{item.name}</h4>
                         <p className="text-emerald-600 text-sm">{item.description}</p>
                 </div>
@@ -744,16 +735,17 @@ const Accessories: React.FC = () => {
       {/* Lighting Accessories Section */}
       <section className="space-y-6">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-emerald-800 mb-4">💡 Lighting & Decoration Systems</h2>
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[#C0E5C8] text-white text-4xl mb-4 shadow-lg">
+            <Lightbulb className="h-8 w-8" />
+          </div>
+          <h2 className="text-3xl font-bold text-emerald-800 mb-4">Lighting & Decoration Systems</h2>
           <p className="text-emerald-600 text-lg">Illuminate your garden with smart lighting solutions</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {lightingAccessories.map((light, index) => (
             <Card key={index} className="h-full hover:shadow-lg transition-shadow duration-300">
               <div className="text-center mb-4">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-3xl mb-3 shadow-md">
-                  💡
-                </div>
+
                 <h3 className="text-lg font-bold text-emerald-800 mb-2">{light.name}</h3>
                 <p className="text-emerald-600 text-sm">{light.description}</p>
               </div>
@@ -850,7 +842,7 @@ const Accessories: React.FC = () => {
 
       {/* DIY Accessories Guide */}
       <Card className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white">
-        <h3 className="text-2xl font-bold mb-6 text-center">🎨 DIY Accessories Guide</h3>
+        <h3 className="text-2xl font-bold mb-6 text-center">DIY Accessories Guide</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-white/10 p-4 rounded-lg">
             <h4 className="text-lg font-semibold mb-3 flex items-center">
@@ -896,10 +888,10 @@ const Accessories: React.FC = () => {
 
       {/* Care and Maintenance */}
       <Card className="bg-gradient-to-r from-green-500 to-emerald-500 text-white">
-        <h3 className="text-2xl font-bold mb-6 text-center">🧹 Accessory Care & Maintenance</h3>
+        <h3 className="text-2xl font-bold mb-6 text-center">Accessory Care & Maintenance</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white/10 p-4 rounded-lg">
-            <h4 className="text-lg font-semibold mb-3">🧽 Daily Cleaning</h4>
+            <h4 className="text-lg font-semibold mb-3">Daily Cleaning</h4>
             <ul className="space-y-2 text-green-100 text-sm">
               <li>• Dust decorative accessories</li>
               <li>• Check LED lights functioning</li>
@@ -908,7 +900,7 @@ const Accessories: React.FC = () => {
             </ul>
           </div>
           <div className="bg-white/10 p-4 rounded-lg">
-            <h4 className="text-lg font-semibold mb-3">🔧 Weekly Maintenance</h4>
+            <h4 className="text-lg font-semibold mb-3">Weekly Maintenance</h4>
             <ul className="space-y-2 text-green-100 text-sm">
               <li>• Check automatic watering system</li>
               <li>• Clean decorative stones</li>
@@ -917,7 +909,7 @@ const Accessories: React.FC = () => {
             </ul>
           </div>
           <div className="bg-white/10 p-4 rounded-lg">
-            <h4 className="text-lg font-semibold mb-3">🗓️ Monthly Maintenance</h4>
+            <h4 className="text-lg font-semibold mb-3">Monthly Maintenance</h4>
             <ul className="space-y-2 text-green-100 text-sm">
               <li>• Deep clean all accessories</li>
               <li>• Replace sensor and LED batteries</li>
@@ -926,7 +918,7 @@ const Accessories: React.FC = () => {
             </ul>
           </div>
           <div className="bg-white/10 p-4 rounded-lg">
-            <h4 className="text-lg font-semibold mb-3">🔄 Seasonal Maintenance</h4>
+            <h4 className="text-lg font-semibold mb-3">Seasonal Maintenance</h4>
             <ul className="space-y-2 text-green-100 text-sm">
               <li>• Change seasonal decorations</li>
               <li>• Store unused accessories</li>
@@ -946,7 +938,7 @@ const Accessories: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="bg-gradient-to-br from-green-100 to-emerald-100 border-2 border-green-300 hover:border-green-400 transition-all duration-300 hover:shadow-xl">
             <div className="text-center mb-4">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 mb-3 shadow-md">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#C0E5C8] mb-3 shadow-md">
                 <Star className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-green-800 mb-2">Basic Package</h3>
@@ -972,7 +964,7 @@ const Accessories: React.FC = () => {
           
           <Card className="bg-gradient-to-br from-blue-100 to-indigo-100 border-2 border-blue-300 hover:border-blue-400 transition-all duration-300 hover:shadow-xl transform hover:scale-105">
             <div className="text-center mb-4">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-blue-400 to-indigo-500 mb-3 shadow-md">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#C0E5C8] mb-3 shadow-md">
                 <Star className="h-8 w-8 text-white fill-current" />
               </div>
               <h3 className="text-2xl font-bold text-blue-800 mb-2">Standard Package</h3>
@@ -999,7 +991,7 @@ const Accessories: React.FC = () => {
           
           <Card className="bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-purple-300 hover:border-purple-400 transition-all duration-300 hover:shadow-xl">
             <div className="text-center mb-4">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-purple-400 to-pink-500 mb-3 shadow-md">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#C0E5C8] mb-3 shadow-md">
                 <Star className="h-8 w-8 text-white fill-current" />
               </div>
               <h3 className="text-2xl font-bold text-purple-800 mb-2">Premium Package</h3>
@@ -1027,12 +1019,12 @@ const Accessories: React.FC = () => {
 
       {/* Shopping Guide */}
       <Card className="bg-gradient-to-r from-orange-500 to-red-500 text-white">
-        <h3 className="text-2xl font-bold mb-6 text-center">🛒 Smart Shopping Guide</h3>
+        <h3 className="text-2xl font-bold mb-6 text-center">Smart Shopping Guide</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
             <h4 className="text-lg font-semibold mb-4 flex items-center">
               <Gift className="h-5 w-5 mr-2" />
-              📍 Trusted Shopping Places
+              Trusted Shopping Places
             </h4>
             <div className="space-y-3">
               <div className="bg-white/10 p-3 rounded-lg">
@@ -1052,7 +1044,7 @@ const Accessories: React.FC = () => {
           <div>
             <h4 className="text-lg font-semibold mb-4 flex items-center">
               <Lightbulb className="h-5 w-5 mr-2" />
-              💡 Shopping Tips
+              Shopping Tips
             </h4>
             <div className="space-y-3">
               <div className="bg-white/10 p-3 rounded-lg">

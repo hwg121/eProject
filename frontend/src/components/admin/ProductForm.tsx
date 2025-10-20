@@ -315,14 +315,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-      <div className="flex items-center justify-between mb-6">
+    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+      <div className="flex items-center justify-between mb-4">
         <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
           {item ? 'Edit' : 'Create'} Product
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div>
           <TextField
             fullWidth
@@ -613,7 +613,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
           <TextField
             fullWidth
             multiline
-            rows={4}
+            rows={3}
             label="Description"
             value={formData.description || ''}
             onChange={(e) => {
@@ -661,7 +661,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       {/* Category-specific fields */}
 
       {formData.category === 'book' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div>
             <TextField
               fullWidth
@@ -804,7 +804,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
       {formData.category === 'suggestion' && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div>
               <TextField
                 fullWidth
@@ -912,7 +912,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Featured Product Checkbox */}
         <div className="flex items-center">
           <input
@@ -973,7 +973,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
       {/* Created by / Updated by info */}
       {item && ((item as any).creator || (item as any).created_by) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg mb-4" style={{
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 rounded-lg mb-3" style={{
           backgroundColor: isDarkMode ? '#374151' : '#f9fafb'
         }}>
           <div>
@@ -995,7 +995,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         </div>
       )}
 
-      <div className="flex items-center justify-end space-x-4 pt-6">
+      <div className="flex items-center justify-end space-x-4 pt-4">
         <motion.button
           type="button"
           onClick={onCancel}

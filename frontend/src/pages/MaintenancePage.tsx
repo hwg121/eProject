@@ -102,7 +102,7 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({
                 className="group inline-flex items-center gap-2 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 text-white px-6 md:px-8 py-3 md:py-4 rounded-full font-bold shadow-[0_10px_30px_rgba(16,185,129,0.4)] hover:shadow-[0_15px_40px_rgba(16,185,129,0.5)] transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 relative overflow-hidden text-sm md:text-base"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-teal-500 via-green-500 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
+                <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-[10000ms] skew-x-12"></div>
                 <Mail className="w-4 h-4 md:w-5 md:h-5 relative z-10 group-hover:rotate-12 group-hover:scale-110 transition-transform duration-300" />
                 <span className="relative z-10">Contact Support</span>
               </a>

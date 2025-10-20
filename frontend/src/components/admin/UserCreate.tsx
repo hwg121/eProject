@@ -199,7 +199,7 @@ const UserCreate: React.FC<UserCreateProps> = ({
 
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
@@ -228,17 +228,17 @@ const UserCreate: React.FC<UserCreateProps> = ({
 
       {/* Form */}
       <Card sx={{ 
-        p: 3,
+        p: 2.5,
         background: actualDarkMode ? 'rgba(30, 41, 59, 0.6)' : 'white',
         backdropFilter: 'blur(10px)',
         border: '1px solid',
         borderColor: actualDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'
       }}>
-          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           {/* Basic Information */}
-          <Box sx={{ mb: 4 }}>
+          <Box sx={{ mb: 3 }}>
             <Typography variant="h6" sx={{ 
-              mb: 3, 
+              mb: 2, 
               display: 'flex', 
               alignItems: 'center', 
               gap: 1,
@@ -249,7 +249,7 @@ const UserCreate: React.FC<UserCreateProps> = ({
               Basic Information
             </Typography>
             
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
               <TextField
                 fullWidth
                 label="Full Name"
@@ -313,9 +313,9 @@ const UserCreate: React.FC<UserCreateProps> = ({
           </Box>
 
           {/* Security */}
-          <Box sx={{ mb: 4 }}>
+          <Box sx={{ mb: 3 }}>
             <Typography variant="h6" sx={{ 
-              mb: 3, 
+              mb: 2, 
               display: 'flex', 
               alignItems: 'center', 
               gap: 1,
@@ -326,7 +326,7 @@ const UserCreate: React.FC<UserCreateProps> = ({
               Security
             </Typography>
             
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
               <TextField
                 fullWidth
                 label="Password"
@@ -359,9 +359,9 @@ const UserCreate: React.FC<UserCreateProps> = ({
           </Box>
 
           {/* Profile */}
-          <Box sx={{ mb: 4 }}>
+          <Box sx={{ mb: 3 }}>
             <Typography variant="h6" sx={{ 
-              mb: 3, 
+              mb: 2, 
               display: 'flex', 
               alignItems: 'center', 
               gap: 1,
@@ -372,7 +372,7 @@ const UserCreate: React.FC<UserCreateProps> = ({
               Profile
             </Typography>
             
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Box>
                 <Typography variant="body2" sx={{ 
                   mb: 1, 
@@ -394,7 +394,7 @@ const UserCreate: React.FC<UserCreateProps> = ({
                 fullWidth
                 label="Bio"
                 multiline
-                rows={3}
+                rows={2}
                 value={formData.bio}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -422,7 +422,7 @@ const UserCreate: React.FC<UserCreateProps> = ({
           </Box>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+          <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200">
             <motion.button
               type="button"
               onClick={onCancel}

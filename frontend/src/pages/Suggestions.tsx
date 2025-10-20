@@ -274,7 +274,7 @@ const Suggestions: React.FC = () => {
 
       {/* Budget-Friendly Options */}
       <Card className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
-        <h3 className="text-2xl font-bold mb-6">💰 Budget-Friendly Picks</h3>
+        <h3 className="text-2xl font-bold mb-6">Budget-Friendly Picks</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
             <h4 className="text-lg font-semibold mb-3">Under $15</h4>
@@ -299,7 +299,7 @@ const Suggestions: React.FC = () => {
 
       {/* Seasonal Recommendations */}
       <Card className="bg-gradient-to-r from-orange-500 to-pink-500 text-white">
-        <h3 className="text-2xl font-bold mb-6">🍂 Seasonal Picks</h3>
+        <h3 className="text-2xl font-bold mb-6">Seasonal Picks</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white/10 p-4 rounded-lg">
             <h4 className="font-semibold mb-2">Spring</h4>

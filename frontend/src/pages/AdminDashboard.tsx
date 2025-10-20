@@ -2734,7 +2734,7 @@ Updated: ${product.updatedAt}
           showConfirmDialog={showConfirmDialog}
           users={allUsers}
           onQuickStatusChange={handleQuickStatusChange}
-          currentUser={user}
+          currentUser={user ? { ...user, id: Number(user.id) } : undefined}
         />
       )}
 
@@ -2766,7 +2766,7 @@ Updated: ${product.updatedAt}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className={`max-w-2xl w-full max-h-[90vh] overflow-y-auto rounded-xl p-6 ${
+              className={`max-w-4xl w-full max-h-[90vh] overflow-y-auto rounded-xl p-4 ${
                 isDarkMode ? 'bg-gray-800' : 'bg-white'
               }`}
               initial={{ scale: 0.9, opacity: 0 }}
