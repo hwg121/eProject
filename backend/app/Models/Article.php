@@ -19,7 +19,9 @@ class Article extends Model
         'body',
         'content',
         'featured_image',
+        'featured_image_public_id',
         'cover',
+        'cover_public_id',
         'category', // Add category field (string: 'Technique', etc.)
         'category_id',
         'author_id',

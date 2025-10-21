@@ -56,7 +56,6 @@ import AdminMaintenanceSettings from './admin/AdminMaintenanceSettings';
 
 // Import Approval Management
 import ApprovalManagement from '../components/admin/ApprovalManagement';
-import RejectDialog from '../components/admin/RejectDialog';
 
 // Import Restore Management
 import RestoreManagement from '../components/admin/RestoreManagement';
@@ -273,8 +272,6 @@ const AdminDashboard: React.FC = () => {
   // Approval Management state
   const [pendingItems, setPendingItems] = useState<ContentItem[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
-  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
-  const [rejectingItem, setRejectingItem] = useState<ContentItem | null>(null);
 
   // Contact messages state
 
@@ -976,25 +973,15 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleRejectContent = async (item: ContentItem) => {
-    setRejectingItem(item);
-    setRejectDialogOpen(true);
-  };
-
-  const handleRejectConfirm = async (reason: string) => {
-    if (!rejectingItem) return;
-    
     try {
-      const service = rejectingItem.type === 'article' ? articlesService : 
-                      rejectingItem.type === 'video' ? videosService : productService;
-      await service.update(rejectingItem.id, { status: 'draft' });
-      showToast(`Content rejected: ${reason}`, 'warning');
+      const service = item.type === 'article' ? articlesService : 
+                      item.type === 'video' ? videosService : productService;
+      await service.update(item.id, { status: 'draft' });
+      showToast('Content rejected and moved to draft', 'warning');
       await fetchPendingItems();
     } catch (error) {
       console.error('Error rejecting content:', error);
       showToast('Error rejecting content', 'error');
-    } finally {
-      setRejectDialogOpen(false);
-      setRejectingItem(null);
     }
   };
 
@@ -2690,29 +2677,21 @@ Updated: ${product.updatedAt}
 
       {/* Approval Management (Admin Only) */}
       {activeTab === 'approvals' && user?.role === 'admin' && (
-        <>
-          <ApprovalManagement
-            isDarkMode={isDarkMode}
-            pendingItems={pendingItems}
-            onApprove={handleApproveContent}
-            onReject={handleRejectContent}
-            onEdit={(item) => {
-              if (item.type === 'article' || item.type === 'video') {
-                setEditingItem(item);
-                setActiveTab('content-edit');
-              } else {
-                setEditingProduct(item);
-                setActiveTab('product-edit');
-              }
-            }}
-          />
-          <RejectDialog
-            open={rejectDialogOpen}
-            onClose={() => setRejectDialogOpen(false)}
-            onConfirm={handleRejectConfirm}
-            contentTitle={rejectingItem?.title || ''}
-          />
-        </>
+        <ApprovalManagement
+          isDarkMode={isDarkMode}
+          pendingItems={pendingItems}
+          onApprove={handleApproveContent}
+          onReject={handleRejectContent}
+          onEdit={(item) => {
+            if (item.type === 'article' || item.type === 'video') {
+              setEditingItem(item);
+              setActiveTab('content-edit');
+            } else {
+              setEditingProduct(item);
+              setActiveTab('product-edit');
+            }
+          }}
+        />
       )}
 
       {/* Content Management - Only Techniques and Videos */}

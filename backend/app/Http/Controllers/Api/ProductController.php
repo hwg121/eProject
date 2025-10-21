@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Models\ActivityLog;
+use App\Services\CloudinaryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Traits\AuthorizesContent;
@@ -13,6 +14,13 @@ use App\Http\Controllers\Traits\AuthorizesContent;
 class ProductController extends Controller
 {
     use AuthorizesContent;
+    
+    protected $cloudinary;
+
+    public function __construct(CloudinaryService $cloudinary)
+    {
+        $this->cloudinary = $cloudinary;
+    }
 
     /**
      * Display a listing of products.
@@ -345,6 +353,7 @@ class ProductController extends Controller
                 'subcategory' => 'nullable|string|max:100',
                 'price' => 'nullable|numeric|min:0|max:999999',
                 'image' => 'nullable|string|max:255',
+                'image_public_id' => 'nullable|string|max:255',
                 'images_json' => 'nullable|array',
                 'brand' => 'nullable|string|max:50',
                 'material' => 'nullable|string|max:100',
@@ -617,6 +626,7 @@ class ProductController extends Controller
                 'subcategory' => 'nullable|string|max:100',
                 'price' => 'nullable|numeric|min:0|max:999999',
                 'image' => 'nullable|string|max:255',
+                'image_public_id' => 'nullable|string|max:255',
                 'images_json' => 'nullable',
                 'brand' => 'nullable|string|max:50',
                 'material' => 'nullable|string|max:100',
@@ -738,6 +748,10 @@ class ProductController extends Controller
         
         $productName = $product->name;
         $productCategory = $product->category;
+        
+        // Note: Don't delete image from Cloudinary on soft delete
+        // Only delete on forceDelete to allow restore
+        
         $product->delete();
         
         // Log product deletion activity
@@ -897,6 +911,19 @@ class ProductController extends Controller
             $product = Product::onlyTrashed()->findOrFail($id);
             $productName = $product->name;
             $productCategory = $product->category;
+            
+            // Delete image from Cloudinary if exists
+            if ($product->image_public_id) {
+                try {
+                    $this->cloudinary->destroy($product->image_public_id);
+                } catch (\Exception $e) {
+                    Log::warning('Failed to delete product image from Cloudinary', [
+                        'product_id' => $product->id,
+                        'public_id' => $product->image_public_id,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
             
             $product->forceDelete();
             
